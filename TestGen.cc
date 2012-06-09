@@ -167,7 +167,7 @@ void TestGen::ReadTree( string dataName ) {
            */ 
            h_Time->Fill( dT ) ;
            if ( dT == -4 ) EscapedPhoton++ ;
-           h_ctau->Fill( genT[mId]*300. / (xP4.Beta() * xP4.Gamma()) ) ;
+           h_ctau->Fill( genT[mId]*300. /  xP4.Gamma()) ;
            h_xbeta->Fill( xP4.Beta() ) ;
            //cout<<" PID:"<<pdgId[k] ;
            //cout<<" T_X: "<< genT[k] <<" EcalTime: "<<  EcalTime <<" dT = "<< dT << endl; 
