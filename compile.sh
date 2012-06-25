@@ -22,5 +22,6 @@ cxx="-m64"
 g++ AnaInput.cc -c  -o AnaInput.o $libs $cflags $cxx $cxxflags
 g++ DPSelection.cc -c  -o  DPSelection.o $libs $cflags $cxx $cxxflags
 g++ TestGen.cc -c  -o  TestGen.o $libs $cflags $cxx $cxxflags
+g++ Trigger.cc -c  -o  Trigger.o $libs $cflags $cxx $cxxflags
 
-g++ $input -o $output AnaInput.o DPSelection.o TestGen.o $libs $cflags $cxx $cxxflags $glibs
+g++ $input -o $output AnaInput.o DPSelection.o TestGen.o Trigger.o $libs $cflags $cxx $cxxflags $glibs

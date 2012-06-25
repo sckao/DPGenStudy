@@ -7,29 +7,33 @@
 RootFiles = rootfiles/
 
 # Folder to store results
-#Path = Results/
+Path = Results/
 #Path = GMSB1k/
 #Path = PairChi1/
-Path = GGM_Scan/
+#Path = GGM_Scan/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
 
+# module 
+# 0 : TestGen, 1: Trigger
+Module = 0
 # MC = 0 , Data = 1
-IsData = 0
+IsData = 1
 # Files , '+' is the flag for TChain,  
-TheData = ( mc+ )
+#TheData = ( mc+ )
 #mcChain = ( GMSB_7TeV_L100_CT1000_unclean_1a )
 #mcChain = ( GMSB_7TeV_L100_CT500_unclean_1, GMSB_7TeV_L100_CT500_unclean_2 , GMSB_7TeV_L100_CT500_unclean_3 )
 #mcChain = ( GMSB_7TeV_L100_CT6000_unclean_1, GMSB_7TeV_L100_CT6000_unclean_2 )
 #mcChain = ( gmsb_ctau1000_uncleaned )
-#mcChain = ( pairChi1_ctau1000_uncleaned )
+#mcChain = ( pairChi1_ctau1000_cleaned )
 #mcChain = ( pairChi1_ctau3000 )
-mcChain = ( ggm_415_305 )
+#mcChain = ( ggm_415_305 )
 
-#TheData = ( data+ )
-#dataChain = ( run2011A_v4 )
-#dataChain = ( run2012B_test_uncleaned )
+TheData = ( data+ )
+#dataChain = ( mu2012B_iso24 )
+dataChain = ( Photon_2012B_test_t25 )
+#dataChain = ( run2012B_uncleaned )
 
 # -1 : all of events
 ProcessEvents = -1
@@ -37,17 +41,19 @@ ProcessEvents = -1
 TCut = 2
 FitCtau = 100
 
-# Photon Cuts  Pt,  Eta,  hoverE,  dRgj, nPhotn, sMinMin, sMinMax  
-PhotonCuts = ( 70,  2.5,    0.05,  0.5,    1,       0.1,    0.35  )
+# trigger selection
+TriggerBits = ( 1, 2, 3 )
+# Photon Cuts  Pt,  Eta,  hoverE,  dRgj, nPhotn, sMinMin, sMinMax, dR_trk  
+PhotonCuts = ( 50,  2.5,    0.05,  1.,    1,       0.1,      0.4,  0.5  )
 # Photon Iso   trk,  ecalEt, ecalR, hcalEt, hcalR   
 PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
-#PhotonIso  = ( 0.5,     99.,    1.0,    99.,   1.0  )
+#PhotonIso  = ( 0.1,     2.4,   0.05,   2.4,   0.05 )
 # vertex cut   ndof,   z,  d0 
 VertexCuts = (    0,  24,   2 )
 #VertexCuts = (    4,  24,   2 )
 
 # Jet/MET     Pt,  Eta,  NJets, MaxNJets,  MET,   MET < 0 : set a max value for the MET
-JetCuts = (   30.,  1.4,     0,       99,  30 )
+JetCuts = (   30.,  2.4,     0,      99,   0 )
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
 # muon       Pt  Eta  relIso  dRmj

@@ -12,6 +12,8 @@ DPSelection::DPSelection( string datacardfile ){
   Input->GetParameters( "ElectronCuts", &electronCuts );
   Input->GetParameters( "JetCuts",      &jetCuts );
   Input->GetParameters( "MuonCuts",     &muonCuts );
+  Input->GetParameters( "IsData",       &isData );
+  Input->GetParameters( "TriggerBits",  &trigBits );
 
   /*
   // CMSSW getParameter method
@@ -63,6 +65,7 @@ void DPSelection::Init( TTree* tr ) {
    tr->SetBranchAddress("phoEcalIso",  phoEcalIso );
    tr->SetBranchAddress("phoHcalIso",  phoHcalIso );
    tr->SetBranchAddress("phoTrkIso",   phoTrkIso );
+   tr->SetBranchAddress("dR_TrkPho",   dR_TrkPho );
    tr->SetBranchAddress("phoHoverE",   phoHovE );
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("sMajPho",     sMajPho );
@@ -96,8 +99,13 @@ void DPSelection::Init( TTree* tr ) {
 // analysis template
 bool DPSelection::HLTFilter( ) { 
     
-     bool pass = ( triggered == 1 ) ? true : false ; 
-
+     bool pass = false ;
+     for ( size_t i=0; i < trigBits.size(); i++ )  {
+        pass = ( triggered  == trigBits[i] ) ? true : false ; 
+        //int pass_val = pass ? 1 : 0 ;
+        //cout<<" trig : "<< trigBits[i] <<" pass : "<< pass_val <<endl;
+        if ( pass ) break ;
+     }
      return pass ;
 }
 
@@ -116,7 +124,8 @@ bool DPSelection::PhotonFilter( bool doIso ) {
            //if ( ( phoHcalIso[j]/phoP4.Pt() + phoHovE[j] ) * phoE[j] >= photonCuts[2] )      continue ;
            if ( phoHovE[j] >= photonCuts[2] ) continue ;
            if ( sMinPho[j] <= photonCuts[5] || sMinPho[j] >= photonCuts[6] )                continue ;
- 
+           if ( dR_TrkPho[j] < photonCuts[7] ) continue; 
+
            //if ( phoTime[j] < photonCuts[7] ) continue ; 
            // Isolation
            if ( doIso ) {
@@ -316,15 +325,16 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
 	  ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
 	  //ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
        }
-       bool passPho = PhotonFilter( true );
+       bool passPho = PhotonFilter( true );  // true for selecting Isolation 
 
        bool passJet = JetMETFilter();
 
-       bool passGJets = GammaJetsBackground() ;
+       //bool passGJets = GammaJetsBackground() ;
 
        ResetCuts() ;  // reset cuts from Datacard
 
-       bool isSignal = ( passHLT && passVtx  && passPho && passJet && !passGJets ) ? true : false ;
+       //bool isSignal = ( passHLT && passVtx  && passPho && passJet && !passGJets ) ? true : false ;
+       bool isSignal = ( passHLT && passVtx  && passPho && passJet ) ? true : false ;
       
        return isSignal ;
 

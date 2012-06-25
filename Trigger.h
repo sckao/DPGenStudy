@@ -1,5 +1,5 @@
-#ifndef TestGen_H
-#define TestGen_H
+#ifndef Trigger_H
+#define Trigger_H
 
 #include "TObject.h"
 #include <vector>
@@ -23,7 +23,9 @@
 #include <TStyle.h>
 #include <TFrame.h>
 #include <TLegend.h>
+#include <TLatex.h>
 #include <TGraph.h>
+#include <TGraphAsymmErrors.h>
 #include <TGraphErrors.h>
 #include "TLorentzVector.h"
 
@@ -35,17 +37,18 @@
 #define MAXGEN 20
 #define MAXMU 5
 
-class TestGen : public TObject {
+class Trigger : public TObject {
 
 public:
 
-   TestGen( string datacardfile = "DataCard.txt");     
-   ~TestGen();     
+   Trigger( string datacardfile = "DataCard.txt");     
+   ~Trigger();     
    
    void ReadTree( string dataName ) ;
-   bool Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
-   bool Propagator1( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
-   static Double_t fExp(Double_t *v, Double_t *par) ;
+   void EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, string graphName ) ;
+   void EffProbPlot( double N_pass, double N_all ) ;
+   pair<double,double> EffError( double N_all, double N_pass ) ;
+   static Double_t BinomialErr( Double_t* x, Double_t* par ) ;
 
 
 private:
@@ -59,24 +62,24 @@ private:
    int ProcessEvents ;
    int isData ;
    double TCut ;
-   double FitCtau ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
    int   pdgId[MAXGEN], momId[MAXGEN] ;
-   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
+   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], dR_TrkPho[MAXPHO], pt_TrkPho[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
-   //float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
+   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 
    float metPx, metPy, metE ;
-   int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered ;
+   int   nGen, nPhotons, nJets, nMuons, nElectrons, nVertices, triggered, L1a ;
+   int   runId ;
 
-   //ClassDef(TestGen, 1);
+   //ClassDef(Trigger, 1);
 };
 
 //#if !defined(__CINT__)
-//    ClassImp(TestGen);
+//    ClassImp(Trigger);
 #endif
 

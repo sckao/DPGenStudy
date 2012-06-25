@@ -83,12 +83,13 @@ private:
    vector<double> jetCuts ;
    vector<double> electronCuts ;
    vector<double> muonCuts ;
+   vector<int>    trigBits ;
 
    unsigned int eventId ;
    float vtxX[MAXVTX],    vtxY[MAXVTX],  vtxZ[MAXVTX],   vtxChi2[MAXVTX], vtxNdof[MAXVTX];
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
    float jetNDau[MAXJET], jetCM[MAXJET], jetCEF[MAXJET], jetCHF[MAXJET], jetNHF[MAXJET], jetNEF[MAXJET];
-   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], seedTime[MAXPHO], aveTime[MAXPHO] ;
+   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO] ;
    float muPx[MAXMU], muPy[MAXMU], muPz[MAXMU], muE[MAXMU] ;
    //float muEcalIso[MAXOBJ], muHcalIso[MAXOBJ], muTrkIso[MAXOBJ] ;
@@ -98,6 +99,9 @@ private:
 
    float metPx, metPy, metE ;
    int   nJets, nPhotons, nElectrons, nVertices, nMuons, triggered ;
+
+   int isData ;
+   vector<int> trigCuts ;
 
    //ClassDef(DPSelection, 1);
 };
