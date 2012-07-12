@@ -4,7 +4,8 @@ Trigger::Trigger( string datacardfile ){
 
   Input  = new AnaInput( datacardfile );
   select = new DPSelection( datacardfile ) ;
- 
+  drawer = new hDraw( datacardfile ) ;
+
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
   Input->GetParameters("RootFiles",     &rfolder ) ; 
@@ -14,10 +15,11 @@ Trigger::Trigger( string datacardfile ){
 
 }
 
-Trigger::~Trigger(){
+Trigger::~Trigger() {
 
   delete select ;
-  delete Input ;
+  delete Input  ;
+  delete drawer ;
   cout<<" done ! "<<endl ;
 
 }
@@ -57,6 +59,10 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("aveTime1",    aveTime1 );
    tr->SetBranchAddress("aveTimeErr",  aveTimeErr );
    tr->SetBranchAddress("aveTimeErr1", aveTimeErr1 );
+
+   tr->SetBranchAddress("fSpike",      fSpike );
+   tr->SetBranchAddress("nXtals",      nXtals );
+   tr->SetBranchAddress("nBC",         nBC );
 
    tr->SetBranchAddress("vtxX",       vtxX );
    tr->SetBranchAddress("vtxY",       vtxY );
@@ -247,7 +253,7 @@ void Trigger::ReadTree( string dataName ) {
 
    // test Efficiency Function
    //EffProbPlot( 7, 3 ) ;
-   //EffError( 8, 4 ) ;
+   //drawer->EffError( 8, 4 ) ;
 
 }  
 
@@ -282,7 +288,7 @@ void Trigger::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, string grap
           xV.push_back( x / rbin )  ;
           xW.push_back( rbin * 5. / 2.) ;
           // sc's method to calculate error
-          pair<double,double> errs = EffError( ba, bc ) ;
+          pair<double,double> errs = drawer->EffError( ba, bc ) ;
           errH.push_back( errs.first ) ;
           errL.push_back( errs.second ) ;
           //cout<<" x: "<< x/rbin <<" rb: "<< rbin <<"  bc: "<< bc <<"  ba: "<< ba <<endl ;
@@ -339,7 +345,6 @@ void Trigger::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, string grap
    gStyle->SetOptStat(kTRUE);
    gStyle->SetOptFit(111);
 
-   c0->cd();
    gr->SetMaximum( 1.1 );
    gr->SetMinimum( 0.0 );
    //gr->SetMarkerColor(4);
@@ -391,6 +396,7 @@ void Trigger::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, string grap
 }
 
 // return asymmetry errors <H,L>
+/*
 pair<double, double> Trigger::EffError( double N_all, double N_pass ) {
 
     double eff0 = N_pass / N_all ;
@@ -460,11 +466,11 @@ Double_t Trigger::BinomialErr( Double_t* x, Double_t* par ) {
 
   return prob ;
 }
-
+*/
 void Trigger::EffProbPlot( double N_all, double N_pass ){
 
   cout<<" N_All = "<< N_all <<" N_pass = "<< N_pass <<endl ; 
-  TF1* fn1 = new TF1("fn1", Trigger::BinomialErr, 0., 1., 3);
+  TF1* fn1 = new TF1("fn1", hDraw::BinomialErr, 0., 1., 3);
 
   fn1->SetParameter( 0, 1. ) ;
 

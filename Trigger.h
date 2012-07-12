@@ -31,6 +31,7 @@
 
 #include "AnaInput.h"
 #include "DPSelection.h"
+#include "hDraw.h"
 
 #define MAXPHO 10
 #define MAXVTX 10
@@ -47,14 +48,15 @@ public:
    void ReadTree( string dataName ) ;
    void EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, string graphName ) ;
    void EffProbPlot( double N_pass, double N_all ) ;
-   pair<double,double> EffError( double N_all, double N_pass ) ;
-   static Double_t BinomialErr( Double_t* x, Double_t* par ) ;
+   //pair<double,double> EffError( double N_all, double N_pass ) ;
+   //static Double_t BinomialErr( Double_t* x, Double_t* par ) ;
 
 
 private:
 
    AnaInput*     Input;
    DPSelection*  select;
+   hDraw*        drawer ;
 
    string hfolder  ;
    string plotType ;
@@ -69,6 +71,8 @@ private:
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], dR_TrkPho[MAXPHO], pt_TrkPho[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
+   float fSpike[MAXPHO] ;
+   int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 

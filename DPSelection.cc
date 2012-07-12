@@ -116,6 +116,7 @@ bool DPSelection::PhotonFilter( bool doIso ) {
 
        // 0. photon cuts
        phoV.clear() ;
+       double maxPt = 0 ;
        for ( int j=0 ; j< nPhotons; j++ ) {
            TLorentzVector phoP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
            if (        phoP4.Pt() < photonCuts[0] )          continue ;
@@ -141,10 +142,11 @@ bool DPSelection::PhotonFilter( bool doIso ) {
            }
            if ( dR_gj < photonCuts[3] ) continue ;
            
- 
+           maxPt = ( maxPt < phoP4.Pt() ) ? phoP4.Pt() : maxPt ;
+
            phoV.push_back( make_pair( j , phoP4) );
        }
-       if ( (int)phoV.size() < photonCuts[4] ) pass = false ;
+       if ( (int)phoV.size() < photonCuts[4] || maxPt < photonCuts[8] ) pass = false ;
 
        return pass ;
 }

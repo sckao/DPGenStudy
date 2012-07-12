@@ -27,8 +27,11 @@
 #include <TGraphErrors.h>
 #include "TLorentzVector.h"
 
+#include <algorithm>
+
 #include "AnaInput.h"
 #include "DPSelection.h"
+#include "hDraw.h"
 
 #define MAXPHO 10
 #define MAXVTX 10
@@ -45,13 +48,14 @@ public:
    void ReadTree( string dataName ) ;
    bool Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
    bool Propagator1( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
-   static Double_t fExp(Double_t *v, Double_t *par) ;
 
+   vector<int> GlobalDRMatch( vector<TLorentzVector> vr, vector<TLorentzVector> vg ) ;
 
 private:
 
    AnaInput*     Input;
    DPSelection*  select;
+   hDraw*        h_draw ;
 
    string hfolder  ;
    string plotType ;
@@ -65,13 +69,16 @@ private:
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
    int   pdgId[MAXGEN], momId[MAXGEN] ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
+   float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
-   //float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
+   float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO] ;
+   float fSpike[MAXPHO], maxSwissX[MAXPHO] ;
+   int   nXtals[MAXPHO], nBC[MAXPHO] ;
+   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 
    float metPx, metPy, metE ;
-   int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered ;
+   int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
 
    //ClassDef(TestGen, 1);
 };

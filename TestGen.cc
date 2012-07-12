@@ -4,7 +4,8 @@ TestGen::TestGen( string datacardfile ){
 
   Input  = new AnaInput( datacardfile );
   select = new DPSelection( datacardfile ) ;
- 
+  h_draw = new hDraw( datacardfile ) ; 
+
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
   Input->GetParameters("RootFiles",     &rfolder ) ; 
@@ -37,7 +38,8 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("nMuons",      &nMuons);
    tr->SetBranchAddress("nElectrons",  &nElectrons);
    tr->SetBranchAddress("triggered",   &triggered);
-   //tr->SetBranchAddress("nVertices",   &nVertices);
+   tr->SetBranchAddress("nVertices",   &nVertices);
+   tr->SetBranchAddress("totalNVtx",   &totalNVtx);
 
    tr->SetBranchAddress("metPx",       &metPx );
    tr->SetBranchAddress("metPy",       &metPy );
@@ -50,15 +52,26 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("phoPz",       phoPz );
    tr->SetBranchAddress("phoE",        phoE );
    tr->SetBranchAddress("seedTime",    seedTime );
+   tr->SetBranchAddress("seedTimeErr", seedTimeErr );
    tr->SetBranchAddress("aveTime",     aveTime );
    tr->SetBranchAddress("aveTime1",    aveTime1 );
    tr->SetBranchAddress("aveTimeErr",  aveTimeErr );
    tr->SetBranchAddress("aveTimeErr1", aveTimeErr1 );
-   //tr->SetBranchAddress("phoTime",     phoTime );
+   tr->SetBranchAddress("timeChi2",    timeChi2 );
 
-   //tr->SetBranchAddress("vtxX",       vtxX );
-   //tr->SetBranchAddress("vtxY",       vtxY );
-   //tr->SetBranchAddress("vtxZ",       vtxZ );
+   tr->SetBranchAddress("sMinPho",     sMinPho );
+   tr->SetBranchAddress("phoTrkIso",   phoTrkIso );
+   tr->SetBranchAddress("phoEcalIso",  phoEcalIso );
+   tr->SetBranchAddress("phoHcalIso",  phoHcalIso );
+
+   tr->SetBranchAddress("maxSwissX",   maxSwissX );
+   tr->SetBranchAddress("fSpike",      fSpike );
+   tr->SetBranchAddress("nXtals",      nXtals );
+   tr->SetBranchAddress("nBC",         nBC );
+
+   tr->SetBranchAddress("vtxX",       vtxX );
+   tr->SetBranchAddress("vtxY",       vtxY );
+   tr->SetBranchAddress("vtxZ",       vtxZ );
    
    tr->SetBranchAddress("genPx",       genPx );
    tr->SetBranchAddress("genPy",       genPy );
@@ -77,7 +90,7 @@ void TestGen::ReadTree( string dataName ) {
    int totalN = tr->GetEntries();
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
-   TH1D* obsTime  = new TH1D("obsTime", "observed Photon Time from seed", 160,  -14.5, 25.5);
+   TH1D* obsTime     = new TH1D("obsTime", "observed Photon Time from seed", 160,  -14.5, 25.5);
    TH1D* aveObsTime  = new TH1D("aveObsTime", "observed Photon Time from clusters", 160,  -14.5, 25.5);
    TH1D* aveObsTime1 = new TH1D("aveObsTime1", "observed Photon Time from clusters", 160,  -14.5, 25.5);
    TH1D* obsTimeErr  = new TH1D("obsTimeErr", "observed Photon Time Error from seed", 100,  0, 2.0);
@@ -85,14 +98,31 @@ void TestGen::ReadTree( string dataName ) {
    TH1D* aveObsTimeErr1 = new TH1D("aveObsTimeErr1", "observed Photon Time Error from clusters", 100,  0, 2.0);
 
    TH1D* h_Time   = new TH1D("h_Time", "Expected Photon Time", 160,  -14.5, 25.5);
-   TH1D* h_ctau   = new TH1D("h_ctau", "gen Photon Time (ctau)", 80,  0, 8000);
-   TH1D* h_g1Pt   = new TH1D("h_g1Pt", "Leading Photon Pt ", 50,  0, 500);
-   TH1D* h_met    = new TH1D("h_met",  "MET distribution ", 40,  0, 800);
+   TH1D* h_nChi2  = new TH1D("h_nChi2", "normalized chi2 of seed xtals", 100,  0, 50.0);
+   TH1D* h_ctau   = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
    TH1D* h_xbeta  = new TH1D("h_xbeta", "Beta of Neutrlino ", 55,  0, 1.1);
-   TH1D* h_nPhotons = new TH1D("h_nPhotons", "N of Photons  ", 10,  -0.5, 9.5);
-   TH1D* h_nJets    = new TH1D("h_nJets", "N of Jets  ", 10,  -0.5, 9.5);
+   TH1D* h_TrkIso  = new TH1D("h_TrkIso", " Track Isolation ", 100, 0, 10. );
+   TH1D* h_HcalIso = new TH1D("h_HcalIso", " HCAL Isolation ", 100, 0, 10. );
+   TH1D* h_EcalIso = new TH1D("h_EcalIso", " ECAL Isolation ", 100, 0, 10. );
+   TH1D* h_TrkIsoR  = new TH1D("h_TrkIsoR", " Track Isolation Ratio", 110, 0, 1.1 );
+   TH1D* h_HcalIsoR = new TH1D("h_HcalIsoR", " HCAL Isolation Ratio", 110, 0, 1.1 );
+   TH1D* h_EcalIsoR = new TH1D("h_EcalIsoR", " ECAL Isolation Ratio", 110, 0, 1.1 );
+
+   TH1D* h_maxSwiss = new TH1D("h_maxSwiss", " max SwissCross value from seed BC ", 150,  0., 1.5 );
+   TH1D* h_fSpike   = new TH1D("h_fSpike", "fraction of spike crystals in seed cluster ", 220,  -1.1, 1.1 );
+   TH1D* h_nXtals   = new TH1D("h_nXtals", "N of crystals of the photon ", 100,  0, 100 );
+   TH1D* h_nBC      = new TH1D("h_nBC",    "N of basic cluster of the photon ", 12,  0, 12 );
+   TH1D* h_sMin     = new TH1D("h_sMin",    " sMinor distribution ", 105,  -0.05, 1 );
+
+   TH1D* h_met      = new TH1D("h_met",  "MET distribution ", 40,  0, 800);
+   TH1D* h_g1Pt     = new TH1D("h_g1Pt", "Leading Photon Pt ", 50,  0, 500);
+
+   TH1D* h_nVtx       = new TH1D("h_nVtx",    "N of vertices", 51,  -0.5, 50.5 );
+   TH1D* h_nPhotons   = new TH1D("h_nPhotons", "N of Photons  ", 10,  -0.5, 9.5);
+   TH1D* h_nJets      = new TH1D("h_nJets", "N of Jets  ", 10,  -0.5, 9.5);
    TH1D* h_nMuons     = new TH1D("h_nMuons", "N of Muons  ", 10,  -0.5, 9.5);
    TH1D* h_nElectrons = new TH1D("h_nElectrons", "N of Electrons  ", 10,  -0.5, 9.5);
+
 
    int nEvt = 0 ;
    int EscapedPhoton = 0 ;
@@ -109,8 +139,11 @@ void TestGen::ReadTree( string dataName ) {
 
        nEvt++; 
        // multiplicity
+       h_nVtx->Fill( totalNVtx ) ;
        h_nJets->Fill( nJets ) ;
        h_nPhotons->Fill( nPhotons ) ;
+       h_nMuons->Fill( nMuons ) ;
+       h_nElectrons->Fill( nElectrons ) ;
 
        // MET information
        TLorentzVector met( metPx, metPy, 0, metE)  ;
@@ -127,12 +160,29 @@ void TestGen::ReadTree( string dataName ) {
               g1P4 = gP4_ ;
            } 
 
+           h_maxSwiss->Fill( maxSwissX[k] );
+           h_fSpike->Fill( fSpike[k] ) ;
+           h_sMin->Fill( sMinPho[k] ) ;
+           if ( fSpike[k] != 0 ) continue ;
+           if ( nXtals[k] < 1 ) continue ;
+           //if ( maxSwissX[k] > 0.95 ) continue ;
+
            obsTime->Fill( seedTime[k] );
            obsTimeErr->Fill( seedTimeErr[k] );
+           //if (  aveTimeErr[k] < 0.4 )  aveObsTime->Fill( aveTime[k] );
            aveObsTime->Fill( aveTime[k] );
-           aveObsTime1->Fill( aveTime1[k] );
            aveObsTimeErr->Fill( aveTimeErr[k] );
-           aveObsTimeErr1->Fill( aveTimeErr1[k] );
+           if ( timeChi2[k] < 10 )  aveObsTime1->Fill( aveTime1[k] );
+           if ( timeChi2[k] < 10 )  aveObsTimeErr1->Fill( aveTimeErr1[k] );
+           h_nChi2->Fill( timeChi2[k] ) ;
+           h_TrkIso->Fill( phoTrkIso[k] );
+           h_EcalIso->Fill( phoEcalIso[k] );
+           h_HcalIso->Fill( phoHcalIso[k] );
+           h_TrkIsoR->Fill( phoTrkIso[k] / gP4_.Pt() );
+           h_EcalIsoR->Fill( phoEcalIso[k] / gP4_.E() );
+           h_HcalIsoR->Fill( phoHcalIso[k] / gP4_.E() );
+           h_nXtals->Fill( nXtals[k] ) ;
+           h_nBC->Fill( nBC[k] ) ;
        }
        h_g1Pt->Fill( max_gPt );
 
@@ -190,85 +240,11 @@ void TestGen::ReadTree( string dataName ) {
    } // end of event looping
    cout<<" EscapedPhoton = "<< EscapedPhoton << endl ;
 
-   TCanvas*  c1 = new TCanvas("c1","", 800, 600);
-   c1->SetFillColor(10);
-   c1->SetFillColor(10);
-   gStyle->SetOptStat("emriou");
-   //c1->SetLogy();
 
-   // Photon Pt distribution
-   c1->cd();
-   c1->SetLogy();
-   gStyle->SetStatY(0.95);
-   gStyle->SetStatTextColor(1);
-   h_g1Pt->SetLineColor(1) ;
-   h_g1Pt->Draw() ;
-   c1->Update();
-
-   TString plotname1 = hfolder + "PhotonPt." +plotType ;
-   c1->Print( plotname1 );
-   c1->SetLogy(0);
-
-   // MET distribution
-   c1->cd();
-   c1->SetLogy();
-   h_met->SetLineColor(1) ;
-   h_met->Draw() ;
-   c1->Update();
-
-   plotname1 = hfolder + "MET." +plotType ;
-   c1->Print( plotname1 );
-   c1->SetLogy(0);
-
-   // Photon Time
-   c1->cd() ;
-   c1->SetLogy();
-   c1->SetGridx();
-
-   gStyle->SetOptStat("emri");
-   if ( isData == 1 ) {
-      // seed time
-      gStyle->SetStatY(0.95);
-      gStyle->SetStatTextColor(2);
-      obsTime->SetLineColor(2) ;
-      obsTime->Draw() ;
-      c1->Update();
-      // alternated weighted averaged clustertime
-      gStyle->SetStatY(0.7);
-      gStyle->SetStatTextColor(4);
-      aveObsTime->SetLineColor(4) ;
-      aveObsTime->DrawCopy("sames") ;
-      c1->Update();
-      // original weighted averaged clustertime
-      gStyle->SetStatY(0.45);
-      gStyle->SetStatTextColor(6);
-      aveObsTime1->SetLineColor(6) ;
-      aveObsTime1->DrawCopy("sames") ;
-   } else { 
-      // gen Time 
-      h_Time->SetLineColor(1) ;
-      h_Time->Draw() ;
-      c1->Update();
-      // seed time
-      gStyle->SetStatY(0.75);
-      gStyle->SetStatTextColor(2);
-      obsTime->SetLineColor(2) ;
-      obsTime->DrawCopy("sames") ;
-      c1->Update();
-      // altered weighted averaged clustertime
-      gStyle->SetStatY(0.55);
-      gStyle->SetStatTextColor(4);
-      aveObsTime->SetLineColor(4) ;
-      aveObsTime->DrawCopy("sames") ;
-      c1->Update();
-      // original weighted averaged clustertime
-      gStyle->SetStatY(0.35);
-      gStyle->SetStatTextColor(6);
-      aveObsTime1->SetLineColor(6) ;
-      aveObsTime1->DrawCopy("sames") ;
-   }
-   c1->Update();
-
+   // ********************* 
+   // *  Draw histograms  *
+   // *********************
+   
    TLegend* leg1  = new TLegend(.52, .7, .78, .9 );
    leg1->Clear();
    TString IntStr0 = "" ;
@@ -282,7 +258,7 @@ void TestGen::ReadTree( string dataName ) {
    /// gen time
    if ( isData == 0 ) {
       Int_t nu0  = h_Time->Integral(bin_tcut,160);
-      Int_t nu0a = h_Time->Integral(1,160);
+      Int_t nu0a = h_Time->Integral(43,160);      // ignore the photons outside ECAL ( t = -4 ns )
       IntStr0 += nu0 ;
       IntStr0 += " / " ;
       IntStr0 += nu0a ;
@@ -315,95 +291,73 @@ void TestGen::ReadTree( string dataName ) {
    leg1->AddEntry( aveObsTime1, IntStr3,  "L");
 
    cout<<" nEvent >= "<< TCut <<" ns1 = "<<nu1 <<" ns2 = "<<nu2 <<" ns3 = "<<nu3 <<endl; 
-   leg1->Draw("sames");
 
-   plotname1 = hfolder + "PhoTime." + plotType ;
-   c1->Print( plotname1 );
-   c1->SetLogy(0);
-   c1->SetGridx(0);
+   // Photon Time
+   gStyle->SetOptStat("emri");
+   if ( isData == 1 ) {
 
-   // Photon Time Error
-   // alternated weighted averaged clustertime
-   c1->cd() ;
-   gStyle->SetStatY(0.7);
-   gStyle->SetStatTextColor(4);
-   aveObsTimeErr->SetLineColor(4) ;
-   aveObsTimeErr->Draw() ;
-   // original weighted averaged clustertime
-   c1->Update();
-   gStyle->SetStatY(0.45);
-   gStyle->SetStatTextColor(6);
-   aveObsTimeErr1->SetLineColor(6) ;
-   aveObsTimeErr1->DrawCopy("sames") ;
-   c1->Update();
-   // seed Time error
-   gStyle->SetStatY(0.95);
-   gStyle->SetStatTextColor(2);
-   obsTimeErr->SetLineColor(2) ;
-   obsTimeErr->DrawCopy("sames") ;
-   c1->Update();
+      ///double init_fval[3] = { 10000, -0.2, 1. } ;
+      ///h_draw->SetFitParameter( "Gaus", -3 , 3., 3, init_fval , 8 );
+      //h_draw->SetFitParameter( "Gaus", obsTime, 0, 0, 3, 8 );
+      //h_draw->FitNDraw(       obsTime, "", "Ecal Time (ns)", "", "logY", 0.95, 2 ) ;
+      h_draw->Draw(       obsTime, "", "Ecal Time (ns)", "", "logY", 0.95, 2 ) ;
+      h_draw->DrawAppend( aveObsTime, "", 0.75, 4 ) ;
+      h_draw->DrawAppend( aveObsTime1, "PhotonTime", 0.55, 6, leg1 ) ;
 
-   plotname1 = hfolder + "PhoTimeErr." + plotType ;
-   c1->Print( plotname1 );
+      h_draw->Draw(       obsTimeErr, "", "Ecal Time Error (ns)", "", "logY", 0.95, 2 ) ;
+      h_draw->DrawAppend( aveObsTimeErr, "", 0.75, 4 ) ;
+      h_draw->DrawAppend( aveObsTimeErr1, "PhotonTimeErr", 0.55, 6 ) ;
+   } else { 
+      h_draw->Draw(       h_Time, "", "Ecal Time (ns)", "", "logY", 0.95, 1 ) ;
+      h_draw->DrawAppend( obsTime, "", 0.75, 2 ) ;
+      h_draw->DrawAppend( aveObsTime, "", 0.55, 4 ) ;
+      h_draw->DrawAppend( aveObsTime1, "PhotonTime", 0.35, 6, leg1 ) ;
+
+      h_draw->Draw(       obsTimeErr, "", "Ecal Time Error (ns)", "", "logY", 0.95, 2 ) ;
+      h_draw->DrawAppend( aveObsTimeErr, "", 0.75, 4 ) ;
+      h_draw->DrawAppend( aveObsTimeErr1, "PhotonTimeErr", 0.55, 6 ) ;
+
+      // Efficiency in Time spectrum
+      //h_draw->EffProbPlot( 2, "EffErrFunction2" ) ;
+      h_draw->EffPlot( aveObsTime, h_Time, 100, 51, -1,  "timeEff" );  
+   }
 
    if ( isData == 0 ) {
       // Beta distribution
-      c1->cd();
-      c1->SetLogy();
-      h_xbeta->SetLineColor(1) ;
-      h_xbeta->Draw() ;
-      c1->Update();
+      h_draw->Draw( h_xbeta, "Beta", " #{beta} ", "", "logY", 0.95, 2 ) ;
 
-      plotname1 = hfolder + "Beta." +plotType ;
-      c1->Print( plotname1 );
-      c1->SetLogy(0);
-
-      // Gen Photon Time
-      c1->cd() ;
-      gStyle->SetStatY(0.95);
-      gStyle->SetOptFit(111);
-      TF1 *func = new TF1("func", &TestGen::fExp , 0., 10000., 2);
-      func->SetParameter(0, 500);
-      func->SetParameter(1, FitCtau );
-
-      h_ctau->Draw() ;
-      c1->Update();
-      h_ctau->Fit( func, "R" );
-      func->SetLineColor(2);
-      func->Draw("same") ;
-      c1->Update();  
-
-      plotname1 = hfolder + "GenPhoTime." + plotType ;
-      c1->Print( plotname1 );
+      // Gen CTau 
+      double init_fval[2] = { 300, FitCtau } ;
+      h_draw->SetFitParameter( "exp", 0., 4000., 2, init_fval , 2 );
+      h_draw->FitNDraw( h_ctau, "GenCTau", " ctau (mm)", "", "logY", 0.95, 1 );
    }
 
+   // some Pt/Et spectrums
+   h_draw->Draw( h_g1Pt,   "PhotonPt",    " Pt (GeV/c) ", "",          "logY", 0.95, 1 ) ;
+   h_draw->Draw( h_met,    "MET",         " #slash{E_{T}} (GeV) ", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw( h_nChi2,  "TimeChi2",    " #chi^{2} / ndof", "",      "logY", 0.95, 1 ) ;
+   h_draw->Draw( h_fSpike, "fSpike",      " fraction of spike xtal","","logY", 0.95, 1 ) ;
+   h_draw->Draw( h_maxSwiss, "maxSwissX", " max SwissCross value", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw( h_nXtals, "nXtals",      " N of xtals ", "",         "", 0.95, 1 ) ;
+   h_draw->Draw( h_nBC,    "nBC",         " N of basic cluster ", "", "", 0.95, 1 ) ;
+   h_draw->Draw( h_nVtx,   "NVertices",   " N of valid vertices ", "","", 0.95, 1 ) ;
+   h_draw->Draw( h_sMin,   "sMinor",      " sMinor ", "",              "logY", 0.95, 1 ) ;
+
    // Multiplicity
-   TCanvas*  c2 = new TCanvas("c2","", 800, 600);
-   c2->SetFillColor(10);
-   c2->SetFillColor(10);
-   gStyle->SetOptStat("emriou");
+   h_draw->CreateNxM( "Multiplicity", 2,2 );
+   h_draw->DrawNxM( 1, h_nPhotons,   "N of Photons",   "", "logY", 1, false );
+   h_draw->DrawNxM( 2, h_nJets,      "N of Jets",      "", "logY", 1, false );
+   h_draw->DrawNxM( 3, h_nMuons,     "N of Muons",     "", "logY", 1, false );
+   h_draw->DrawNxM( 4, h_nElectrons, "N of Electrons", "", "logY", 1, true );
 
-   c2->cd() ;
-   c2->SetFillColor(10);
-   c2->Divide(2,2) ;
-   c2->cd(1);
-   h_nPhotons->Draw() ;
-   c2->Update();  
-
-   c2->cd(2);
-   h_nJets->Draw() ;
-   c2->Update();  
-
-   c2->cd(3);
-   h_nElectrons->Draw() ;
-   c2->Update();  
-
-   c2->cd(4);
-   h_nMuons->Draw() ;
-   c2->Update();  
-
-   plotname1 = hfolder + "Multiplicity." + plotType ;
-   c2->Print( plotname1 );
+   // Isolation
+   h_draw->CreateNxM( "Isolations", 2,3 );
+   h_draw->DrawNxM( 1, h_TrkIso,   "Track Isolation ",       "", "logY", 1, false );
+   h_draw->DrawNxM( 2, h_TrkIsoR,  "Track Isolation Ratio",  "", "logY", 1, false );
+   h_draw->DrawNxM( 3, h_EcalIso,  "Ecal Isolation ",        "", "logY", 2, false );
+   h_draw->DrawNxM( 4, h_EcalIsoR, "Ecal Isolation Ratio",   "", "logY", 2, false );
+   h_draw->DrawNxM( 5, h_HcalIso,  "Hcal Isolation ",        "", "logY", 4, false );
+   h_draw->DrawNxM( 6, h_HcalIsoR, "Hcal Isolation Ratio",   "", "logY", 4, true );
 
 }  
 
@@ -500,10 +454,29 @@ bool TestGen::Propagator1( TLorentzVector v, double& x, double& y, double& z, do
     return insideEcal ;
 }
 
-Double_t TestGen::fExp(Double_t *v, Double_t *par) {
-      Double_t arg = v[0] /par[1];
+vector<int> GlobalDRMatch( vector<TLorentzVector> vr, vector<TLorentzVector> vg ) {
 
-      Double_t fitval = par[0]*TMath::Exp( -1*arg);
-      return fitval;
+    vector<int> pool ;
+    for (size_t i=0; i < vg.size(); i++) pool.push_back(i) ;
+
+    vector<int> mlist ;
+    double minDR = 999 ; 
+    do {
+
+        double dr = 0 ;
+        int m = 0 ;
+        for ( size_t j=0; j< pool.size() ; j++ ) {
+            if ( j > vr.size() ) break ;
+            dr += vr[j].DeltaR( vg[ pool[j] ] ) ;
+            m++ ;
+        }
+        if ( m > 0 &&  dr < minDR ) {
+             minDR = dr ;
+             mlist = pool ;
+        }
+
+    } while (  next_permutation( pool.begin() ,pool.end() ) ) ;
+
+    return mlist ;
 }
-            
+ 
