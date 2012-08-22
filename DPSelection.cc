@@ -14,6 +14,7 @@ DPSelection::DPSelection( string datacardfile ){
   Input->GetParameters( "MuonCuts",     &muonCuts );
   Input->GetParameters( "IsData",       &isData );
   Input->GetParameters( "TriggerBits",  &trigBits );
+  Input->GetParameters( "UseL1",        &UseL1 );
 
   /*
   // CMSSW getParameter method
@@ -23,6 +24,10 @@ DPSelection::DPSelection( string datacardfile ){
   photonIso            = iConfig.getParameter<std::vector<double> >("photonIso");
   electronCuts         = iConfig.getParameter<std::vector<double> >("electronCuts");
   */
+  for ( int i =0 ; i< 8 ; i++) {
+      counter[i] = 0 ;
+      gCounter[i] = 0 ;
+  }
 
 }
 
@@ -37,6 +42,7 @@ void DPSelection::Init( TTree* tr ) {
 
    tr->SetBranchAddress("eventId",    &eventId);
    tr->SetBranchAddress("triggered",  &triggered);
+   tr->SetBranchAddress("L1a",        &L1a);
    tr->SetBranchAddress("nPhotons",   &nPhotons);
    tr->SetBranchAddress("nJets",      &nJets);
    tr->SetBranchAddress("nMuons",     &nMuons);
@@ -109,23 +115,35 @@ bool DPSelection::HLTFilter( ) {
      return pass ;
 }
 
+bool DPSelection::L1Filter() { 
+
+     bool pass = ( L1a == 1 ) ? true : false ;
+     return pass ;
+}
+
 
 bool DPSelection::PhotonFilter( bool doIso ) { 
 
        bool pass =  true ;
+       int nG[8] = { 0. } ;
 
        // 0. photon cuts
        phoV.clear() ;
        double maxPt = 0 ;
        for ( int j=0 ; j< nPhotons; j++ ) {
+           nG[0]++ ;
            TLorentzVector phoP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
            if (        phoP4.Pt() < photonCuts[0] )          continue ;
            if ( fabs(phoP4.Eta()) > photonCuts[1] )          continue ;
+           nG[1]++ ;
 
            //if ( ( phoHcalIso[j]/phoP4.Pt() + phoHovE[j] ) * phoE[j] >= photonCuts[2] )      continue ;
-           if ( phoHovE[j] >= photonCuts[2] ) continue ;
-           if ( sMinPho[j] <= photonCuts[5] || sMinPho[j] >= photonCuts[6] )                continue ;
+           if ( phoHovE[j] > photonCuts[2] ) continue ;
+           nG[2]++ ;
+           if ( sMinPho[j] < photonCuts[5] || sMinPho[j] > photonCuts[6] )                continue ;
+           nG[3]++ ;
            if ( dR_TrkPho[j] < photonCuts[7] ) continue; 
+           nG[4]++ ;
 
            //if ( phoTime[j] < photonCuts[7] ) continue ; 
            // Isolation
@@ -134,6 +152,7 @@ bool DPSelection::PhotonFilter( bool doIso ) {
               if ( phoEcalIso[j] >= photonIso[1] || phoEcalIso[j] / phoE[j] >= photonIso[2] )  continue ;
               if ( phoHcalIso[j] >= photonIso[3] || phoHcalIso[j] / phoE[j] >= photonIso[4] )  continue ;
            }
+           nG[5]++ ;
 
            // check the isolation -- using dR_gj
            double dR_gj = 999. ;
@@ -141,12 +160,24 @@ bool DPSelection::PhotonFilter( bool doIso ) {
                if ( phoP4.DeltaR( jetV[k].second ) < dR_gj )  dR_gj  = phoP4.DeltaR( jetV[k].second ) ;
            }
            if ( dR_gj < photonCuts[3] ) continue ;
+           nG[6]++ ;
            
            maxPt = ( maxPt < phoP4.Pt() ) ? phoP4.Pt() : maxPt ;
 
            phoV.push_back( make_pair( j , phoP4) );
        }
+       if ( maxPt >= photonCuts[8] ) nG[7]++ ;
+
+       // identify which photon cut kill the events
+       for ( int i=0; i < 8; i++ ) { 
+           if ( nG[i] == 0 ) { 
+              photonCutFlow = i ;
+              break ;
+           }
+       }
+
        if ( (int)phoV.size() < photonCuts[4] || maxPt < photonCuts[8] ) pass = false ;
+       if ( pass ) photonCutFlow = 8 ;
 
        return pass ;
 }
@@ -181,23 +212,23 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
            
          // Jet ID cuts
          if ( usePFJetClean ) { 
-            if ( jetNDau[j] <    2 )  continue ;
-	    if ( jetCEF[j] >= 0.99 )  continue ;
-	    if ( jetNHF[j] >= 0.99 )  continue ;
-	    if ( jetNEF[j] >= 0.99 )  continue ;
-	    if ( fabs( jp4.Eta() ) < 2.4 && jetCM[j]  <=0 ) continue ;
+            if ( jetNDau[j] < (double)   2 )  continue ;
+	    if ( jetCEF[j] >= (double)0.99 )  continue ;
+	    if ( jetNHF[j] >= (double)0.99 )  continue ;
+	    if ( jetNEF[j] >= (double)0.99 )  continue ;
+	    if ( fabs( jp4.Eta() ) < 2.4 && jetCM[j]  <= 0 ) continue ;
          }
 
-	 double dR_gj = 999. ;
-	 for ( size_t k=0; k< phoV.size() ; k++) {
-	     if ( phoV[k].second.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoV[k].second.DeltaR( jp4 ) ;
-	 }
-	 if ( dR_gj < photonCuts[3] ) continue ;
+	 //double dR_gj = 999. ;
+	 //for ( size_t k=0; k< phoV.size() ; k++) {
+	 //    if ( phoV[k].second.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoV[k].second.DeltaR( jp4 ) ;
+	 //}
+	 //if ( dR_gj < photonCuts[3] ) continue ;
 	 jetV.push_back( make_pair( j, jp4 ) );
 
      }
      int nu_Jets = (int)jetV.size() ;
-     if ( nu_Jets < jetCuts[2] || nu_Jets > jetCuts[3] )      pass = false ;
+     if ( nu_Jets < (int)jetCuts[2] || nu_Jets > (int)jetCuts[3] )      pass = false ;
 
      // 2. met selection
      TLorentzVector metp4( metPx, metPy, 0., metE ) ;
@@ -312,13 +343,19 @@ bool DPSelection::GammaJetsControlSample( bool isTightPhoton ) {
 
 bool DPSelection::SignalSelection( bool isTightPhoton ) {
 
+       counter[0]++ ;
+
+       bool passL1  =  L1Filter() ;
        bool passHLT  = HLTFilter();
-       
+       bool passTrigger = ( UseL1 == 1 ) ? passL1 : passHLT ;
+       if ( passTrigger ) counter[1]++ ;
+
        bool passVtx  = VertexFilter();
+       if ( passTrigger && passVtx ) counter[2]++ ;
 
        // reset cuts to tight photon selection
        if ( isTightPhoton ) {
-          ResetCuts( "PhotonCuts", 0, 100. ) ;  // pt
+          ResetCuts( "PhotonCuts", 0, 50. ) ;  // pt
 	  ResetCuts( "PhotonCuts", 1, 1.4 ) ;   // eta
 	  ResetCuts( "PhotonIso",  0, 0.1 ) ;   // Trk Iso
 	  ResetCuts( "PhotonIso",  1, 2.4 ) ;   // Ecal Et 
@@ -328,17 +365,34 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
 	  //ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
        }
        bool passPho = PhotonFilter( true );  // true for selecting Isolation 
+       if ( passTrigger && passVtx ) {
+          int photonStop = GetPhotonCutFlow() ;
+          for ( int i=0; i< photonStop ; i++) { 
+              gCounter[i]++ ;
+          }
+       }
+       if ( passTrigger && passVtx && passPho ) counter[3]++ ;
 
        bool passJet = JetMETFilter();
+       if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
 
        //bool passGJets = GammaJetsBackground() ;
 
        ResetCuts() ;  // reset cuts from Datacard
 
        //bool isSignal = ( passHLT && passVtx  && passPho && passJet && !passGJets ) ? true : false ;
-       bool isSignal = ( passHLT && passVtx  && passPho && passJet ) ? true : false ;
+       bool isSignal = ( passTrigger && passVtx  && passPho && passJet ) ? true : false ;
       
        return isSignal ;
+
+}
+
+void DPSelection::PrintCutFlow() {
+
+     printf(" Input: %d,  trig: %d,  vtx: %d,  photon: %d,  jetMET: %d \n"
+           , counter[0], counter[1], counter[2], counter[3], counter[4]) ;
+     printf(" Photon Input: %d, PtEta: %d, H/E: %d, sMin: %d, dR_trk: %d, Iso: %d, dR_jet: %d, MaxPt: %d \n"
+           , gCounter[0], gCounter[1], gCounter[2], gCounter[3], gCounter[4], gCounter[5], gCounter[6], gCounter[7] ) ;
 
 }
 

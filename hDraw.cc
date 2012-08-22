@@ -9,12 +9,12 @@ hDraw::hDraw( string datacardfile ){
 
   gSystem->mkdir( hfolder.c_str() );
 
-
   c1  = new TCanvas("c1","", 800, 600);
   c2  = new TCanvas("c2","", 800, 600);
   c3  = new TCanvas("c3","", 800, 600);
 
   func1 = NULL ;
+
 }
 
 hDraw::~hDraw(){
@@ -27,7 +27,10 @@ hDraw::~hDraw(){
 
 }
 
-void hDraw::Draw( TH1D* h1, string plotName, string xTitle, string yTitle, string logY, float statY, int color, TLegend* leg ) {
+void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, string logY, float statY, int color, double scale_, TLegend* leg ) {
+
+      TH1D* h1 = (TH1D*)h1_->Clone() ;
+      h1->Scale( scale_ ); 
 
       c1->Clear();
       c1->SetFillColor(10);
@@ -39,11 +42,12 @@ void hDraw::Draw( TH1D* h1, string plotName, string xTitle, string yTitle, strin
 
       gStyle->SetStatY( statY  );
       gStyle->SetStatTextColor( color );
-
+      gStyle->SetStatTextColor( color );
 
       h1->GetXaxis()->SetTitle( xTitle.c_str() );
       h1->GetYaxis()->SetTitle( yTitle.c_str() );
       h1->SetLineColor( color ) ;
+      h1_->SetLineColor( color ) ;
 
       c1->cd();
       h1->Draw() ;
@@ -51,7 +55,7 @@ void hDraw::Draw( TH1D* h1, string plotName, string xTitle, string yTitle, strin
 
       if ( leg != NULL ) leg->Draw("sames") ;
 
-      if ( plotName != "" || plotName != " " ) {
+      if ( plotName.size() > 0 ) {
          TString plotname1 = hfolder + plotName + "."+plotType ;
          c1->Print( plotname1 );
          //if ( func1 != NULL ) func1 = NULL ;
@@ -59,12 +63,16 @@ void hDraw::Draw( TH1D* h1, string plotName, string xTitle, string yTitle, strin
 
 }
 
-void hDraw::DrawAppend( TH1D* h1, string plotName, float statY, int color, TLegend* leg ) {
+void hDraw::DrawAppend( TH1D* h1_, string plotName, float statY, int color, double scale_, TLegend* leg ) {
+
+      TH1D* h1 = (TH1D*)h1_->Clone() ;
+      h1->Scale( scale_ ); 
 
       gStyle->SetStatY( statY  );
       gStyle->SetStatTextColor( color );
 
       h1->SetLineColor( color ) ;
+      h1_->SetLineColor( color ) ;
 
       c1->cd();
       h1->DrawCopy("sames") ;
@@ -72,11 +80,41 @@ void hDraw::DrawAppend( TH1D* h1, string plotName, float statY, int color, TLege
 
       if ( leg != NULL ) leg->Draw("sames") ;
 
-      if ( plotName != "" || plotName != " " ) {
+      if ( plotName.size() > 0 ) {
          TString plotname1 = hfolder + plotName + "."+plotType ;
          c1->Print( plotname1 );
          //if ( func1 != NULL ) func1 = NULL ;
       }
+}
+
+void hDraw::Draw2D( TH2D* h2, string plotName, string xTitle, string yTitle, string logZ, int nColor, float titleFontSize, float statFontSize ) {
+
+      TCanvas* c4  = new TCanvas("c4","", 800, 600 );
+      c4->SetFillColor(10);
+      c4->SetFillColor(10);
+      //c4->SetLogy(0);
+
+      if ( strncasecmp( "logZ", logZ.c_str(), logZ.size() ) ==0  && logZ.size() > 0 ) gPad->SetLogz(1) ;
+
+      SetHistoAtt( h2 ) ;
+      gStyle->SetPalette(1);
+      gStyle->SetStatFontSize( statFontSize ) ;
+      gStyle->SetTitleFontSize( titleFontSize ) ;
+      gStyle->SetNumberContours( nColor );
+      gStyle->SetStatX(0.9);
+
+      h2->GetXaxis()->SetTitle( xTitle.c_str() );
+      h2->GetYaxis()->SetTitle( yTitle.c_str() );
+
+      c4->cd() ;
+      h2->Draw("COLZ") ;
+      c4->Update();
+
+      if ( plotName.size() > 0 ) {
+         TString plotname1 = hfolder + plotName + "."+plotType ;
+         c4->Print( plotname1 );
+      }
+      delete c4 ;
 }
 
 void hDraw::CreateNxM( string plotName , int N, int M ) {
@@ -98,6 +136,7 @@ void hDraw::DrawNxM( int id, TH1D* h1, string xTitle, string yTitle, string logY
       gPad->SetLogy(0) ;
       if ( strncasecmp( "logY", logY.c_str(), logY.size() ) ==0  && logY.size() > 0 ) gPad->SetLogy(1) ;
 
+      //SetHistoAtt( h1 ) ;
       gStyle->SetStatTextColor( color );
       h1->SetLineColor( color ) ;
 
@@ -105,6 +144,29 @@ void hDraw::DrawNxM( int id, TH1D* h1, string xTitle, string yTitle, string logY
       h1->GetYaxis()->SetTitle( yTitle.c_str() );
 
       h1->Draw() ;
+      c2->Update();
+
+      if ( close ) {
+         c2->Print( plotname2 );
+      }
+}
+
+void hDraw::DrawNxM( int id, TH2D* h2, string xTitle, string yTitle, string logZ, int nColor, float titleFontSize, float statFontSize, bool close  ) {
+
+      c2->cd( id );
+
+      gPad->SetLogy(0) ;
+      if ( strncasecmp( "logZ", logZ.c_str(), logZ.size() ) ==0  && logZ.size() > 0 ) gPad->SetLogz(1) ;
+
+      SetHistoAtt( h2 ) ;
+      gStyle->SetStatFontSize( statFontSize ) ;
+      gStyle->SetTitleFontSize( titleFontSize ) ;
+      gStyle->SetNumberContours( nColor );
+
+      h2->GetXaxis()->SetTitle( xTitle.c_str() );
+      h2->GetYaxis()->SetTitle( yTitle.c_str() );
+
+      h2->Draw("COLZ") ;
       c2->Update();
 
       if ( close ) {
@@ -121,7 +183,7 @@ void hDraw::FitNDraw( TH1D* h1, string plotName, string xTitle, string yTitle, s
       c1->SetFillColor(10);
       c1->SetLogy(0);
 
-      gStyle->SetOptStat("emio");
+      //gStyle->SetOptStat("emio");
       if ( strncasecmp( "logY", logY.c_str(), logY.size() ) ==0 && logY.size() > 0 ) c1->SetLogy() ;
 
       gStyle->SetStatY( statY  );
@@ -165,7 +227,7 @@ void hDraw::FitNDrawAppend( TH1D* h1, string plotName, float statY, int color, T
 
       if ( leg != NULL ) leg->Draw("sames") ;
 
-      if ( plotName != "" || plotName != " " ) {
+      if ( plotName.size() > 0 ) {
          TString plotname1 = hfolder + plotName + "."+plotType ;
          c1->Print( plotname1 );
          if ( func1 != NULL ) func1 = NULL ;
@@ -221,7 +283,7 @@ void hDraw::SetFitParameter( string fitFunc_, TH1D* h1, double fitMin_, double f
 }
 
 // Drawing Efficiency Plot from two histograms    
-void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, int beginBin, int endBin, string graphName ) {
+void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent, int beginBin, int endBin, string graphName ) {
 
    endBin = ( endBin == -1 ) ? hAll->GetNbinsX() : endBin ;
 
@@ -237,7 +299,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, int beginBin,
    vector<double> errL;
    vector<double> errH;
    double bW = hCut->GetBinWidth(1) ;
-   cout<<" bin width = " << bW <<endl ;
+   cout<<" bin width = " << bW <<" end bin = "<< endBin << endl ;
    // Accumulate bin contain
    for ( int i= beginBin ; i<= endBin; i++ ) {
        double bc_ = hCut->GetBinContent(i) ;
@@ -249,9 +311,26 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, int beginBin,
           bc += bc_ ;
           x  +=  x_ ;
           rbin++ ;
+          if ( ba >= minBinContent && ba >= bc && rbin >= rbin_ ) {
+             bcV.push_back( bc ) ;
+	     baV.push_back( ba ) ;
+	     xV.push_back( x / rbin )  ;
+	     xW.push_back( rbin * bW / 2.) ;
+	     // sc's method to calculate error
+	     pair<double,double> errs = EffError( ba, bc ) ;
+	     errH.push_back( errs.first ) ;
+	     errL.push_back( errs.second ) ;
+	     rbin_ = rbin ;
+	     //cout<<" x: "<< x/rbin <<" rb: "<< rbin <<" bW:"<< (rbin*bW) / 2. << "  bc: "<< bc <<"  ba: "<< ba ;
+	     //cout<<" eff:"<< bc/ba <<" + "<< errs.first <<" - "<< errs.second << endl ;
+	     bc   = 0 ;
+	     ba   = 0 ;
+	     x    = 0 ;
+	     rbin = 0 ;
+          }
        }
-       //if ( ba >= minBinContent || i == endBin ) {
        else {
+
           bcV.push_back( bc ) ;
           baV.push_back( ba ) ;
           xV.push_back( x / rbin )  ;
@@ -321,14 +400,14 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, int beginBin,
    gr->SetMarkerSize(1);
    gr->SetLineWidth(2);
    gStyle->SetTitleFontSize(0.04) ;
-   gr->SetTitle(" Efficiency in time bins") ;
+   gr->SetTitle(" Efficiency") ;
    gr->GetXaxis()->SetTitleOffset(1.34);
    gr->GetYaxis()->SetTitleOffset(1.39);
    gr->GetXaxis()->SetTitleFont(42);
    gr->GetYaxis()->SetTitleFont(42);
    gr->GetXaxis()->SetTitleSize(0.04);
    gr->GetYaxis()->SetTitleSize(0.04);
-   gr->GetXaxis()->SetTitle(" ECAL Time (ns)") ;
+   gr->GetXaxis()->SetTitle( xlable.c_str() ) ;
    gr->GetYaxis()->SetTitle(" Efficiency ") ;
    gr->Draw("AP");
 
@@ -337,14 +416,14 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, int beginBin,
    c0->Print( plotname );
    
    c0->cd();
-   gr1->SetTitle(" Efficiency in time bins") ;
+   gr1->SetTitle(" Efficiency ") ;
    gr1->SetMaximum( 1.1 );
    gr1->SetMinimum( 0.0 );
    gr1->SetMarkerColor(4);
    gr1->SetMarkerStyle(22);
    gr1->SetMarkerSize(1);
    gr1->SetLineWidth(2);
-   gr1->GetXaxis()->SetTitle(" ECAL Time (ns)") ;
+   gr1->GetXaxis()->SetTitle( xlable.c_str() ) ;
    gr1->GetYaxis()->SetTitle(" Efficiency ") ;
    gr1->Draw("AP");
 
@@ -352,6 +431,11 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, int beginBin,
    plotname = hfolder + graphName + "Asym1."+plotType ;
    c0->Print( plotname );
    
+   delete hTop ;
+   delete hBot ;
+   delete c0 ;
+   delete gr ;
+   delete gr1 ;
 }
 
 // return asymmetry errors <H,L>
@@ -363,7 +447,7 @@ pair<double, double> hDraw::EffError( double N_all, double N_pass ) {
        theErr = make_pair( 0 , 0 );
        return theErr ;
     }
-    cout<<" N_All: "<<N_all <<"  N_pass: "<< N_pass << endl;
+    //cout<<" N_All: "<<N_all <<"  N_pass: "<< N_pass << endl;
     int nStep = 1000 ;
     double step = 1. / nStep ;
     //cout<<" step = "<< step <<endl;
@@ -470,5 +554,64 @@ void hDraw::EffProbPlot( double N_all, string graphName ){
 
    delete fn1 ;
    delete c0 ;
+}
+
+void hDraw::SetHistoAtt( string axis, float labelSize, float tickLength, float titleSize, float titleOffset ){
+
+     if ( axis == "x" || axis == "X" ) {
+        labelSize_x   = labelSize ;
+        tickLength_x  = tickLength ;
+        titleSize_x   = titleSize ;
+        titleOffset_x = titleOffset ;
+        if ( labelSize   == (float)0 ) labelSize_x   = 0.05 ;
+        if ( tickLength  == (float)0 ) tickLength_x  = 0.03 ;
+        if ( titleSize   == (float)0 ) titleSize_x   = 0.04 ;
+        if ( titleOffset == (float)0 ) titleOffset_x = 1.0 ;
+     }
+     if ( axis == "y" || axis == "Y" ) {
+        labelSize_y   = labelSize ;
+        tickLength_y  = tickLength ;
+        titleSize_y   = titleSize ;
+        titleOffset_y = titleOffset ;
+        if ( labelSize   == (float)0 ) labelSize_y   = 0.05 ;
+        if ( tickLength  == (float)0 ) tickLength_y  = 0.03 ;
+        if ( titleSize   == (float)0 ) titleSize_y   = 0.04 ;
+        if ( titleOffset == (float)0 ) titleOffset_y = 1.0 ;
+     }
+}
+
+void hDraw::SetHistoInfo( TH1D* h1, TString newTitle, int lineWidth ) {
+
+     if ( newTitle != "" ) h1->SetTitle( newTitle ) ;
+     h1->SetLineWidth( lineWidth );
+
+}
+
+void hDraw::SetHistoAtt( TH1D* h1 ){
+
+        h1->GetXaxis()->SetLabelSize( labelSize_x );
+        h1->GetXaxis()->SetTickLength( tickLength_x );
+        h1->GetXaxis()->SetTitleSize( titleSize_x );
+        h1->GetXaxis()->SetTitleOffset( titleOffset_x );
+        //h1->GetYaxis()->SetTitleFont(42);
+
+        h1->GetYaxis()->SetLabelSize( labelSize_y );
+        h1->GetYaxis()->SetTickLength( tickLength_y );
+        h1->GetYaxis()->SetTitleSize( titleSize_y );
+        h1->GetYaxis()->SetTitleOffset( titleOffset_y );
+}
+
+void hDraw::SetHistoAtt( TH2D* h2 ){
+
+        h2->GetXaxis()->SetLabelSize( labelSize_x );
+        h2->GetXaxis()->SetTickLength( tickLength_x );
+        h2->GetXaxis()->SetTitleSize( titleSize_x );
+        h2->GetXaxis()->SetTitleOffset( titleOffset_x );
+        //h1->GetYaxis()->SetTitleFont(42);
+
+        h2->GetYaxis()->SetLabelSize( labelSize_y );
+        h2->GetYaxis()->SetTickLength( tickLength_y );
+        h2->GetYaxis()->SetTitleSize( titleSize_y );
+        h2->GetYaxis()->SetTitleOffset( titleOffset_y );
 }
 

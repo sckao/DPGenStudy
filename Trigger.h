@@ -46,17 +46,16 @@ public:
    ~Trigger();     
    
    void ReadTree( string dataName ) ;
-   void EffPlot( TH1D* hCut, TH1D* hAll, double minBinContent, string graphName ) ;
-   void EffProbPlot( double N_pass, double N_all ) ;
-   //pair<double,double> EffError( double N_all, double N_pass ) ;
-   //static Double_t BinomialErr( Double_t* x, Double_t* par ) ;
-
 
 private:
 
    AnaInput*     Input;
    DPSelection*  select;
-   hDraw*        drawer ;
+   hDraw*        h_draw ;
+
+   vector<objID> phoV ;
+   vector<objID> jetV ;
+   vector<objID> muonV ;
 
    string hfolder  ;
    string plotType ;
@@ -64,6 +63,8 @@ private:
    int ProcessEvents ;
    int isData ;
    double TCut ;
+   vector<double> thresPhoMET ;
+   vector<int>  minBinContent ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
@@ -71,6 +72,7 @@ private:
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], dR_TrkPho[MAXPHO], pt_TrkPho[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
+   float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO] ;
    float fSpike[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;

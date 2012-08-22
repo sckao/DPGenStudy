@@ -8,14 +8,18 @@ RootFiles = rootfiles/
 
 # Folder to store results
 #Path = Results/
-Path = NoSpikeA/
+Path = DOE2012/
+#Path = HLT/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
+# Histogram files
+HFileName = TimeHistoEB_PhoHad
 
 # module 
-# 0 : TestGen, 1: Trigger
-Module = 0
+# 0 : TestGen, 1: Trigger, 2: TestGen Histogram Drawer
+Module = 2
+
 # MC = 0 , Data = 1
 IsData = 1
 # Files , '+' is the flag for TChain,  
@@ -24,27 +28,32 @@ IsData = 1
 TheData = ( data+ )
 #dataChain = ( Photon_2012B_test )
 #dataChain = ( run2012B_uncleaned )
-dataChain = ( run2012B_uncleaned_seed )
+dataChain = ( PhoHad2012B_uncleaned )
+#dataChain = ( pho2012B_uncleaned )
 
 # -1 : all of events
 ProcessEvents = -1
+SkipEvents = 0
 
 TCut = 2
 FitCtau = 100
 
 # trigger selection
 TriggerBits = ( 2, 3 )
-# Photon Cuts  Pt,  Eta,  hoverE,  dRgj, nPhotn, sMinMin, sMinMax, dR_trk, leadingPt  
-PhotonCuts = ( 45,  2.5,    0.05,   1.,    1,       0.1,     0.35,   0.5,  80  )
+UseL1 = 0
+
+# Photon Cuts  Pt,  Eta, hoverE,  dRgj, nPhotn, sMinMin, sMinMax, dR_trk, leadingPt  
+PhotonCuts = ( 45,  1.4,   0.05,    0.,     1,      0.1,     0.4,    0.,   80  )
 # Photon Iso   trk,  ecalEt, ecalR, hcalEt, hcalR   
-PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
+PhotonIso  = ( 0.9,    99.,   0.9,    99.,   0.9  )
+#PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 #PhotonIso  = ( 0.1,     2.4,   0.05,   2.4,   0.05 )
 # vertex cut   ndof,   z,  d0 
-VertexCuts = (    0,  24,   2 )
-#VertexCuts = (    4,  24,   2 )
+#VertexCuts = (    0,  24,   2 )
+VertexCuts = (    4,  24,   2 )
 
 # Jet/MET     Pt,  Eta,  NJets, MaxNJets,  MET,   MET < 0 : set a max value for the MET
-JetCuts = (   30.,  2.4,     0,      99,   0 )
+JetCuts = (   30.,  2.4,     0,      99,    0 )
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
 # muon       Pt  Eta  relIso  dRmj

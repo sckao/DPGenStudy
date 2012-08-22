@@ -49,6 +49,7 @@ public:
    void Init( TTree* tr ) ;
 
    bool HLTFilter();
+   bool L1Filter();
    bool PhotonFilter( bool doIso = true );
    bool JetMETFilter( bool usePFClean = false );
    bool VertexFilter();
@@ -67,6 +68,8 @@ public:
 
    void GetCollection( string collName, vector<objID>& coll ) ;
    void ResetCollection( string cutName = "All" ) ; // clean the storage containers 
+   void PrintCutFlow() ;
+   inline int GetPhotonCutFlow() { return photonCutFlow ; }
 
 private:
 
@@ -98,10 +101,16 @@ private:
    int   eleNLostHits[MAXELE] ;
 
    float metPx, metPy, metE ;
-   int   nJets, nPhotons, nElectrons, nVertices, nMuons, triggered ;
+   int   nJets, nPhotons, nElectrons, nVertices, nMuons, triggered, L1a ;
 
    int isData ;
+   int UseL1 ;
    vector<int> trigCuts ;
+
+   // counters for cutflow  
+   int counter[8] ;
+   int gCounter[8] ;
+   int photonCutFlow ;
 
    //ClassDef(DPSelection, 1);
 };

@@ -13,6 +13,7 @@
 #include "AnaInput.h"
 #include "TestGen.h"
 #include "Trigger.h"
+#include "Histogram.h"
 
 
 using namespace std; 
@@ -21,8 +22,6 @@ int main( int argc, const char* argv[] ) {
 
   string datacardfile = ( argc > 1 ) ? argv[1] : "DataCard.txt";
   AnaInput  *Input = new AnaInput( datacardfile );
-  TestGen   *tgen  = new TestGen( datacardfile ) ;
-  Trigger   *trg   = new Trigger( datacardfile ) ;
 
   // method to read root files
   Input->LinkForests("DPAnalysis");
@@ -32,16 +31,32 @@ int main( int argc, const char* argv[] ) {
   int module = -1 ;
   Input->GetParameters( "Module", & module ) ;
 
-  if ( module == 0 ) tgen->ReadTree( dataFileNames);
-  if ( module == 1 ) trg->ReadTree( dataFileNames);
+  if ( module == 0 ) {
+     TestGen   *tgen  = new TestGen( datacardfile ) ;
+     tgen->ReadTree( dataFileNames);
+     delete tgen ;
+  }
+  if ( module == 1 ) {
+     Trigger   *trg   = new Trigger( datacardfile ) ;
+     trg->ReadTree( dataFileNames);
+     delete trg ;
+  }
+  if ( module == 2 ) {
+     Histogram *histo = new Histogram( datacardfile ) ;
+     histo->DrawHistograms();
+     delete histo ;
+  }
+
+  cout<<" finished "<<endl ;
   //for ( size_t i =0 ; i< dataFileNames.size(); i++ ) {
   //    tgen->ReadTree( dataFileNames[i] );
   //} 
 
-  delete tgen ;
+  //delete histo ;
   delete Input ;
 
   return 0;
 
 }
+
 
