@@ -102,8 +102,8 @@ void Histogram::Open( ) {
      //hFile->cd() ;
      cout<<" file opened ! "<<endl ;
 
-     obsTime = (TH1D*) hFile->Get("obsTime")     ;
-     aveObsTime = (TH1D*) hFile->Get("aveObsTime") ;
+     obsTime     = (TH1D*) hFile->Get("obsTime")     ;
+     aveObsTime  = (TH1D*) hFile->Get("aveObsTime") ;
      aveObsTime1 = (TH1D*) hFile->Get("aveObsTime1") ;
      aveObsTime2 = (TH1D*) hFile->Get("aveObsTime2") ;
      obsEBTimeErr = (TH1D*) hFile->Get("obsEBTimeErr")  ;
@@ -138,12 +138,12 @@ void Histogram::Open( ) {
      h_aTimeRes1 = (TH1D*) hFile->Get("h_aTimeRes1")     ;
      h_aTimeRes2 = (TH1D*) hFile->Get("h_aTimeRes2")     ;
      h_aTimeRes3 = (TH1D*) hFile->Get("h_aTimeRes3")     ;
-     h_PtRes = (TH1D*) hFile->Get("h_PtRes")         ;
+     h_PtRes  = (TH1D*) hFile->Get("h_PtRes")         ;
 
-     h_Time = (TH1D*) hFile->Get("h_Time")   ;
-     h_nChi2 = (TH1D*) hFile->Get("h_nChi2")  ;
-     h_ctau = (TH1D*) hFile->Get("h_cta")   ;
-     h_xbeta = (TH1D*) hFile->Get("h_xbeta")  ;
+     h_Time   = (TH1D*) hFile->Get("h_Time")   ;
+     h_nChi2  = (TH1D*) hFile->Get("h_nChi2")  ;
+     h_ctau   = (TH1D*) hFile->Get("h_cta")   ;
+     h_xbeta  = (TH1D*) hFile->Get("h_xbeta")  ;
      h_TrkIso = (TH1D*) hFile->Get("h_TrkIso")   ;
      h_HcalIso = (TH1D*) hFile->Get("h_HcalIso")  ;
      h_EcalIso = (TH1D*) hFile->Get("h_EcalIso")  ;
@@ -164,10 +164,10 @@ void Histogram::Open( ) {
      h_gen1Pt = (TH1D*) hFile->Get("h_gen1Pt")     ;
      h_gen1RecoPt = (TH1D*) hFile->Get("h_gen1RecoPt") ;
 
-     h_nVtx = (TH1D*) hFile->Get("h_nVtx")       ;
-     h_nPhotons = (TH1D*) hFile->Get("h_nPhotons")   ;
+     h_nVtx        = (TH1D*) hFile->Get("h_nVtx")       ;
+     h_nPhotons    = (TH1D*) hFile->Get("h_nPhotons")   ;
      h_nGenPhotons = (TH1D*) hFile->Get("h_nGenPhotons");
-     h_nJets = (TH1D*) hFile->Get("h_nJets")      ;
+     h_nJets  = (TH1D*) hFile->Get("h_nJets")      ;
      h_nMuons = (TH1D*) hFile->Get("h_nMuons")     ;
      h_nElectrons = (TH1D*) hFile->Get("h_nElectrons") ;
 

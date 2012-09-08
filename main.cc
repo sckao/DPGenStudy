@@ -14,7 +14,7 @@
 #include "TestGen.h"
 #include "Trigger.h"
 #include "Histogram.h"
-
+#include "Background.h"
 
 using namespace std; 
 
@@ -42,9 +42,18 @@ int main( int argc, const char* argv[] ) {
      delete trg ;
   }
   if ( module == 2 ) {
+     TestGen   *tgen  = new TestGen( datacardfile ) ;
+     tgen->ReadTree( dataFileNames);
+     delete tgen ;
+
      Histogram *histo = new Histogram( datacardfile ) ;
      histo->DrawHistograms();
      delete histo ;
+  }
+  if ( module == 3 ) {
+     Background * bg = new Background( datacardfile ) ;
+     bg->SpikeShape() ;
+     delete bg ;
   }
 
   cout<<" finished "<<endl ;

@@ -60,6 +60,7 @@ class hDraw {
   void SetHistoInfo( TH1D* h1, TString newTitle = "", int lineWidth = 1) ;
   void SetHistoAtt( TH1D* h1 ) ;
   void SetHistoAtt( TH2D* h2 ) ;
+  void SetPlotStyle( bool StatBoxON_, float tMargin=0.1 , float bMargin=0.1 , float lMargin=0.1 , float rMargin=0.1 ) ;
 
 
   private:
@@ -91,6 +92,7 @@ class hDraw {
   float titleSize_y ;
   float titleOffset_y ;
 
+  bool StatBoxOn ;
 
 };
 

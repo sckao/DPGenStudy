@@ -14,6 +14,7 @@ hDraw::hDraw( string datacardfile ){
   c3  = new TCanvas("c3","", 800, 600);
 
   func1 = NULL ;
+  StatBoxOn = true ;
 
 }
 
@@ -614,4 +615,15 @@ void hDraw::SetHistoAtt( TH2D* h2 ){
         h2->GetYaxis()->SetTitleSize( titleSize_y );
         h2->GetYaxis()->SetTitleOffset( titleOffset_y );
 }
+
+void hDraw::SetPlotStyle( bool StatBoxOn_, float tMargin, float bMargin, float lMargin, float rMargin ) {
+
+     StatBoxOn = StatBoxOn_ ;
+     gStyle->SetPadTopMargin( tMargin );
+     gStyle->SetPadBottomMargin( bMargin );
+     gStyle->SetPadLeftMargin( lMargin );
+     gStyle->SetPadRightMargin( rMargin );
+
+}
+
 

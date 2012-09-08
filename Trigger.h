@@ -35,6 +35,7 @@
 
 #define MAXPHO 10
 #define MAXVTX 10
+#define MAXJET 15
 #define MAXGEN 20
 #define MAXMU 5
 
@@ -46,6 +47,7 @@ public:
    ~Trigger();     
    
    void ReadTree( string dataName ) ;
+   int TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV )  ;
 
 private:
 
@@ -71,14 +73,15 @@ private:
    int   pdgId[MAXGEN], momId[MAXGEN] ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], dR_TrkPho[MAXPHO], pt_TrkPho[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
-   float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO] ;
    float fSpike[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
-   float muE[MAXMU] ;
+   float jetPx[MAXJET], jetPy[MAXJET] ;
+   float muE[MAXMU], muPx[MAXMU], muPy[MAXMU] ;
 
-   float metPx, metPy, metE ;
+   float metPx, metPy, metE;
+   float t_metPx, t_metPy, t_metE, t_phoPx, t_phoPy, t_phoPz, t_phoE, t_metdR , t_phodR ;
    int   nGen, nPhotons, nJets, nMuons, nElectrons, nVertices, triggered, L1a ;
    int   runId ;
 

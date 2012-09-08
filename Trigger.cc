@@ -48,7 +48,21 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("metPy",       &metPy );
    tr->SetBranchAddress("met",         &metE );
 
+   tr->SetBranchAddress("t_metPx",     &t_metPx );
+   tr->SetBranchAddress("t_metPy",     &t_metPy );
+   tr->SetBranchAddress("t_met",       &t_metE );
+   tr->SetBranchAddress("t_metdR",     &t_metdR );
+   tr->SetBranchAddress("t_phoPx",     &t_phoPx );
+   tr->SetBranchAddress("t_phoPy",     &t_phoPy );
+   tr->SetBranchAddress("t_phoPz",     &t_phoPz );
+   tr->SetBranchAddress("t_phoE",      &t_phoE );
+   tr->SetBranchAddress("t_phodR",     &t_phodR );
+
    tr->SetBranchAddress("muE",         muE );
+   tr->SetBranchAddress("muPx",        muPx );
+   tr->SetBranchAddress("muPy",        muPy );
+   tr->SetBranchAddress("jetPx",       jetPx );
+   tr->SetBranchAddress("jetPy",       jetPy );
 
    tr->SetBranchAddress("phoPx",       phoPx );
    tr->SetBranchAddress("phoPy",       phoPy );
@@ -59,8 +73,6 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("seedTime",    seedTime );
    tr->SetBranchAddress("aveTime",     aveTime );
    tr->SetBranchAddress("aveTime1",    aveTime1 );
-   tr->SetBranchAddress("aveTimeErr",  aveTimeErr );
-   tr->SetBranchAddress("aveTimeErr1", aveTimeErr1 );
 
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("phoTrkIso",   phoTrkIso );
@@ -95,6 +107,7 @@ void Trigger::ReadTree( string dataName ) {
    TH1D* h_gPt      = new TH1D("h_gPt",     "Leading Photon Pt           ", 40,  50, 250);
    TH1D* h_gPt_hlt  = new TH1D("h_gPt_hlt", "Leading Photon Pt passed HLT", 40,  50, 250);
    TH1D* h_met      = new TH1D("h_met",     "MET distribution           ", 40,  0, 200);
+   TH1D* h_met_trg  = new TH1D("h_met_trg", "MET distribution passed hltPFMET25 ", 40,  0, 200);
    TH1D* h_met_hlt  = new TH1D("h_met_hlt", "MET distribution pssed HLT ", 40,  0, 200);
    TH1D* h_dRTrkPho = new TH1D("h_dRTrkPho", " mindR(track, photon )", 100,  0, 10);
    TH1D* h_ptTrkPho = new TH1D("h_ptTrkPho", " pt of track near photon ", 100,  0, 100 );
@@ -107,6 +120,13 @@ void Trigger::ReadTree( string dataName ) {
    TH1D* h_HcalIsoR = new TH1D("h_HcalIsoR", " HCAL Isolation Ratio", 110, 0, 1.1 );
    TH1D* h_EcalIsoR = new TH1D("h_EcalIsoR", " ECAL Isolation Ratio", 110, 0, 1.1 );
 
+   TH1D* dR_TrgReco_Pho = new TH1D("dR_TrgReco_Pho", " dR( trg, Reco ) Photon", 50, 0., 1. );
+   TH1D* dR_TrgReco_Met = new TH1D("dR_TrgReco_Met", " dR( trg, Reco ) PFMET", 50, 0., 1. );
+   TH1D* h_PhoPtRes = new TH1D("h_PhoPtRes", " Photon Pt Resolution ", 205, -2.05, 2.05 );
+   TH1D* h_MetPtRes = new TH1D("h_MetPtRes", " PF MET Resolution ", 205, -2.05, 2.05 );
+
+   TH2D* h_PhoPt_MET = new TH2D("h_PhoPt_MET", "Reco Photon Pt vs PF_MET ", 40, 50, 250, 40, 0, 200 );
+   TH2D* t_PhoPt_MET = new TH2D("t_PhoPt_MET", "Trig Photon Pt vs PF_MET ", 40, 50, 250, 40, 0, 200 );
 
    for ( int i=0; i< totalN ; i++ ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
@@ -137,48 +157,81 @@ void Trigger::ReadTree( string dataName ) {
        // only look at 1 photon events
        phoV.clear() ;
        select->GetCollection( "Photon", phoV );
-       if ( phoV.size() != 1 ) continue ; 
+       if ( phoV.size() < 1 ) continue ; 
        muonV.clear() ;
        select->GetCollection( "Muon", muonV );
        jetV.clear() ;
        select->GetCollection( "Jet", jetV );
        //if ( jetV.size() == 0 && muonV.size() == 0 ) continue ; 
        
+
        // Photon and MET information
        TLorentzVector met( metPx, metPy, 0, metE)  ;
+
        //TLorentzVector gP4 = TLorentzVector( phoV[0], phoPy[0], phoPz[0], phoE[0] ) ;
        TLorentzVector gP4 = phoV[0].second ;
        // reject spike photons
-       if ( fSpike[ phoV[0].first ] != 0 ) continue ;
-       //if ( fSpike[ phoV[0].first ] > 0.1 || fSpike[ phoV[0].first ] < -0.1 ) continue ;
-
-
+       //if ( fSpike[ phoV[0].first ] != 0 ) continue ;
+       if ( fSpike[ phoV[0].first ] > 0.1 || fSpike[ phoV[0].first ] < -0.1 ) continue ;
+       if ( nXtals[ phoV[0].first ] < 3 ) continue ;
+       //if ( seedTime[ phoV[0].first ] < -3. || seedTime[ phoV[0].first ] > 3 ) continue ;
 
        // min_dR( track, photon)
        h_dRTrkPho->Fill( dR_TrkPho[0] ) ;
        h_ptTrkPho->Fill( pt_TrkPho[0] ) ;
-
        // jet multiplicity
        h_nJets->Fill( jetV.size() ) ;
 
-       if ( gP4.Pt() > thresPhoMET[0] ) {
-          double theMET = ( met.Pt() > 199 ) ? 199.9 :  met.Pt() ;
+       // Trigger Matching dR 
+       dR_TrgReco_Pho->Fill( t_phodR ) ;
+       dR_TrgReco_Met->Fill( t_metdR ) ;
+
+       // Trigger Matching studies
+       TLorentzVector t_met = TLorentzVector( t_metPx, t_metPy, 0., t_metE ) ;
+       TLorentzVector t_gP4 = TLorentzVector( t_phoPx, t_phoPy, t_phoPz, t_phoE ) ;
+
+       // find matched reco photon
+       int itr = TrigRecoMatch( t_gP4, phoV ) ;
+       TLorentzVector r_gP4 = ( itr < 0 ) ? TLorentzVector(0,0,0,0) : phoV[itr].second ;
+       
+       // 2D plot for Photon Pt vs MET3
+       h_PhoPt_MET->Fill( gP4.Pt(),  metE ) ;
+       if ( t_phoE > 0.1 && t_metE > 0.1 && t_metdR < 0.7 ) t_PhoPt_MET->Fill( t_gP4.Pt(), t_metE ) ;
+
+       // Resolution studies
+       double g_PtRes = 99. ;
+       if ( t_gP4.Pt() > 0.01 && r_gP4.Pt() > 0.01 ) { 
+          g_PtRes = ( r_gP4.Pt() - t_gP4.Pt() )  / r_gP4.Pt() ;   
+          h_PhoPtRes->Fill( g_PtRes ) ;
+       }
+       double metRes = 99. ;
+       if ( t_met.Pt() > 0.01 && met.Pt() > 0.01 ) { 
+          metRes = ( met.Pt() - t_met.Pt() )  / met.Pt() ;   
+          h_MetPtRes->Fill( metRes ) ;
+       }
+
+       if ( t_metdR < 9. ) h_met_trg->Fill( t_metE );
+
+       // Trigger efficiency
+       if ( t_gP4.Pt() > thresPhoMET[0] ) {
+          double theMET = ( metE > 199 ) ? 199.9 :  metE ;
           h_met->Fill( theMET );
-	  if ( triggered == 3 ) h_met_hlt->Fill( theMET );
+	  if ( triggered > 2 ) h_met_hlt->Fill( theMET );
        }
-       // no actual jet requirement , only cut on MET
-       if ( met.Et() > thresPhoMET[1] ) { 
-	  double gammaPt = ( gP4.Pt() > 249 ) ? 249.9 : gP4.Pt() ;
+       if ( t_metE > thresPhoMET[1]  ) { 
+	  double gammaPt = ( r_gP4.Pt() > 249 ) ? 249.9 : r_gP4.Pt() ;
+          if ( itr < 0 ) gammaPt = gP4.Pt() ;
 	  h_gPt->Fill( gammaPt );
-	  if ( triggered == 3 ) h_gPt_hlt->Fill( gammaPt );
+	  if ( triggered > 2 && itr > -1 ) h_gPt_hlt->Fill( gammaPt );
        }
+       
 
    } // end of event looping
 
 
    TLegend* leg1  = new TLegend(.55, .73, .95, .90 );
    leg1->Clear();
-   TString IntStr0 = "HLT_PFMET150   = " ;
+   TString IntStr0 = "HLT_IsoMu24    = " ;
    TString IntStr1 = "HLT_DP65_MET25 = " ;
    Int_t nL1A = h_gPt->Integral() ;
    Int_t nHLT = h_gPt_hlt->Integral() ;
@@ -193,7 +246,7 @@ void Trigger::ReadTree( string dataName ) {
    h_draw->DrawAppend( h_gPt_hlt, "PhotonPt", 0.75, 4, 1,leg1 ) ;
 
    leg1->Clear();
-   IntStr0 = "HLT_Photon150  = " ;
+   IntStr0 = "HLT_IsoMu24    = " ;
    IntStr1 = "HLT_DP65_MET25 = " ;
    nL1A = h_met->Integral() ;
    nHLT = h_met_hlt->Integral() ;
@@ -215,6 +268,16 @@ void Trigger::ReadTree( string dataName ) {
    h_draw->DrawNxM( 1, h_dRTrkPho,   "",   "", "", 1, false );
    h_draw->DrawNxM( 2, h_ptTrkPho,   "",   "", "", 1, true );
 
+   // dR(Trigger, Reco) 
+   h_draw->CreateNxM( "TrgReco", 1,2 );
+   h_draw->DrawNxM( 1, dR_TrgReco_Pho,   "",   "", "", 1, false );
+   h_draw->DrawNxM( 2, dR_TrgReco_Met,   "",   "", "", 1, true );
+
+   // Pt Resolution 
+   h_draw->CreateNxM( "TrgResolution", 1,2 );
+   h_draw->DrawNxM( 1, h_PhoPtRes,   "",   "", "", 1, false );
+   h_draw->DrawNxM( 2, h_MetPtRes,   "",   "", "", 1, true );
+
    // Isolation
    h_draw->CreateNxM( "Isolations", 2,3 );
    h_draw->DrawNxM( 1, h_TrkIso,   "Track Isolation ",       "", "logY", 1, false );
@@ -226,6 +289,35 @@ void Trigger::ReadTree( string dataName ) {
 
    // jet multiplicity
    h_draw->Draw( h_nJets, "nJets", " Number of Jets ", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw( h_met_trg, "met_hltPFMET25", " MET passed hltPFMET25 ", "", "logY", 0.95, 1 ) ;
+
+   // Pt Resolution 
+   gStyle->SetStatX( 0.9 ) ;
+   h_draw->SetHistoAtt("X", 0.07, 0.07, 0.08, 1. ) ;
+   h_draw->SetHistoAtt("Y", 0.07, 0.02, 0.1, 0 ) ;
+   h_draw->SetPlotStyle( true, 0.1, 0.12, 0.1, 0.1 ) ;
+   h_draw->CreateNxM( "PhoPt_MET", 1,2 );
+   h_draw->DrawNxM( 1, h_PhoPt_MET,   "",   "", "", 5, 0.05, 0.05, false );
+   h_draw->DrawNxM( 2, t_PhoPt_MET,   "",   "", "", 5, 0.05, 0.05, true );
+
 }  
+
+int Trigger::TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV ) { 
+
+    if ( trgP4.E() < 0.001 ) return -1 ;
+
+    double mindR = 99. ;
+    int matchID = -1 ;
+
+    for ( size_t i=0; i< objV.size(); i++ ) {
+        double dR = trgP4.DeltaR( objV[i].second ) ;
+        if ( dR < mindR ) {
+           mindR   = dR ;
+           matchID = (int)(i) ;
+        }
+    }
+    if ( mindR > 0.5 )  matchID = -1  ;
+    return matchID ;
+}
 
 
