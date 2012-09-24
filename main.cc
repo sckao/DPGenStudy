@@ -42,9 +42,9 @@ int main( int argc, const char* argv[] ) {
      delete trg ;
   }
   if ( module == 2 ) {
-     TestGen   *tgen  = new TestGen( datacardfile ) ;
-     tgen->ReadTree( dataFileNames);
-     delete tgen ;
+     //TestGen   *tgen  = new TestGen( datacardfile ) ;
+     //tgen->ReadTree( dataFileNames);
+     //delete tgen ;
 
      Histogram *histo = new Histogram( datacardfile ) ;
      histo->DrawHistograms();

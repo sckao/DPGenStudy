@@ -190,8 +190,8 @@ void hDraw::FitNDraw( TH1D* h1, string plotName, string xTitle, string yTitle, s
       gStyle->SetStatY( statY  );
       gStyle->SetStatTextColor( color );
 
-      h1->GetXaxis()->SetTitle( xTitle.c_str() );
-      h1->GetYaxis()->SetTitle( yTitle.c_str() );
+      if ( xTitle.size() > 0 ) h1->GetXaxis()->SetTitle( xTitle.c_str() );
+      if ( yTitle.size() > 0 ) h1->GetYaxis()->SetTitle( yTitle.c_str() );
       h1->SetLineColor( color ) ;
 
       c1->cd();

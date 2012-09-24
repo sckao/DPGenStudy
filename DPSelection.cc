@@ -1,5 +1,8 @@
 #include "DPSelection.h"
 
+static bool PtDecreasing( objID s1, objID s2) { return ( s1.second.Pt() > s2.second.Pt() ); }
+
+
 DPSelection::DPSelection( string datacardfile ){
 
   // SC's getParameters method
@@ -177,6 +180,7 @@ bool DPSelection::PhotonFilter( bool doIso ) {
        }
 
        if ( (int)phoV.size() < photonCuts[4] || maxPt < photonCuts[8] ) pass = false ;
+       if ( phoV.size() > 1 ) sort( phoV.begin(), phoV.end(), PtDecreasing );
        if ( pass ) photonCutFlow = 8 ;
 
        return pass ;
@@ -234,6 +238,7 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
      TLorentzVector metp4( metPx, metPy, 0., metE ) ;
      if ( jetCuts[4] >= 0 &&  metp4.Et() < jetCuts[4] )         pass = false ;
      if ( jetCuts[4]  < 0 &&  metp4.Et() > fabs( jetCuts[4] ) ) pass = false ;
+     if ( jetV.size() > 1 ) sort( jetV.begin(), jetV.end(), PtDecreasing );
  
      return pass ;
 }

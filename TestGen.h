@@ -33,6 +33,7 @@
 #include "DPSelection.h"
 #include "hDraw.h"
 #include "Histogram.h"
+#include "Rtuple.h"
 
 #define MAXPHO 10
 #define MAXVTX 10
@@ -61,8 +62,6 @@ public:
    bool Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
    bool Propagator1( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
 
-   void HistoWrite( string theFolder , TFile* file ) ;
-
    //vector<int> GlobalDRMatch( vector<objID> vr, vector<objID> vg, vector<double>& v_dr ) ;
    vector<iMatch> GlobalDRMatch( vector<objID> vr, vector<objID> vg ) ;
 
@@ -70,7 +69,7 @@ private:
 
    AnaInput*     Input;
    DPSelection*  select;
-   hDraw*        h_draw ;
+   Histogram*    Hist ;
 
    string hfolder  ;
    string plotType ;
@@ -80,6 +79,7 @@ private:
    int isData ;
    double TCut ;
    double FitCtau ;
+   int unBinned ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
@@ -90,11 +90,14 @@ private:
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO] ;
    float fSpike[MAXPHO], maxSwissX[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
+   float sigmaEta[MAXPHO], sigmaIeta[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 
    float metPx, metPy, metE ;
    int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
+   int   nHaloHits , nHaloTracks ;
+   float haloPhi , haloRho ;
 
    vector<objID> selectJets ;
    vector<objID> selectPho ;
@@ -108,79 +111,14 @@ private:
 
    double decayR ;
   
-   // histogram definition
+   // Root File for Rootuple or histograms
    TFile *theFile ;
    string hfName ;
-
-   TH1D* obsTime     ;
-   TH1D* aveObsTime  ;
-   TH1D* aveObsTime1 ;
-   TH1D* aveObsTime2 ;
-   TH1D* obsEBTimeErr  ;
-   TH1D* obsEETimeErr  ;
-   TH1D* aveObsEBTimeErr ;
-   TH1D* aveObsEETimeErr ;
-   TH1D* aveObsEBTimeErr1 ;
-   TH1D* aveObsEETimeErr1 ;
-
-   TH2D* seedTime_Chi2  ;
-
-   TH1D* badPhoTime     ;
-   TH1D* TimeLT3Jets    ;
-   TH1D* TimeGE3Jets    ;
-   TH1D* TimeLowMET     ;
-   TH1D* TimeBigMET     ;
-
-   TH1D* SpikeEtaP      ;
-   TH1D* SpikeEtaN      ;
-   TH1D* Vz_P           ;
-   TH1D* Vz_N           ;
-
-   TH1D* h_matchRecoTime ;
-   TH1D* h_matchGenTime  ;
-   TH1D* h_matchTime     ;
-   TH1D* h_genTime       ;
-   TH1D* h_TimeRes1      ;
-   TH1D* h_TimeRes2      ;
-   TH1D* h_TimeRes3      ;
-   TH1D* h_aTimeRes1     ;
-   TH1D* h_aTimeRes2     ;
-   TH1D* h_aTimeRes3     ;
-   TH1D* h_PtRes         ;
-
-   TH2D* Time_R  ;
-   TH2D* Time_Z  ;
-
-   TH1D* h_Time   ;
-   TH1D* h_nChi2  ;
-   TH1D* h_ctau   ;
-   TH1D* h_xbeta  ;
-   TH1D* h_TrkIso   ;
-   TH1D* h_HcalIso  ;
-   TH1D* h_EcalIso  ;
-   TH1D* h_TrkIsoR  ;
-   TH1D* h_HcalIsoR ;
-   TH1D* h_EcalIsoR ;
-
-   TH1D* h_maxSwissEB ;
-   TH1D* h_maxSwissEE ;
-   TH1D* h_seedSwiss  ;
-   TH1D* h_fSpike    ;
-   TH1D* h_nXtals    ;
-   TH1D* h_nBC       ;
-   TH1D* h_sMin      ;
-
-   TH1D* h_met        ;
-   TH1D* h_g1Pt       ;
-   TH1D* h_gen1Pt     ;
-   TH1D* h_gen1RecoPt ;
-
-   TH1D* h_nVtx       ;
-   TH1D* h_nPhotons   ;
-   TH1D* h_nGenPhotons;
-   TH1D* h_nJets      ;
-   TH1D* h_nMuons     ;
-   TH1D* h_nElectrons ;
+   // NTuple for RooStats
+   TTree *Rtree ;
+   Rtuple Rleaves ;
+   // Histograms set
+   hSet   h ;
 
    //ClassDef(TestGen, 1);
 };

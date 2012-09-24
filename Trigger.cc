@@ -105,6 +105,7 @@ void Trigger::ReadTree( string dataName ) {
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
    TH1D* h_gPt      = new TH1D("h_gPt",     "Leading Photon Pt           ", 40,  50, 250);
+   TH1D* h_gPt_trg  = new TH1D("h_gPt_trg", "Leading Photon Pt passed hltPhoton65Filter", 40,  50, 250);
    TH1D* h_gPt_hlt  = new TH1D("h_gPt_hlt", "Leading Photon Pt passed HLT", 40,  50, 250);
    TH1D* h_met      = new TH1D("h_met",     "MET distribution           ", 40,  0, 200);
    TH1D* h_met_trg  = new TH1D("h_met_trg", "MET distribution passed hltPFMET25 ", 40,  0, 200);
@@ -123,7 +124,7 @@ void Trigger::ReadTree( string dataName ) {
    TH1D* dR_TrgReco_Pho = new TH1D("dR_TrgReco_Pho", " dR( trg, Reco ) Photon", 50, 0., 1. );
    TH1D* dR_TrgReco_Met = new TH1D("dR_TrgReco_Met", " dR( trg, Reco ) PFMET", 50, 0., 1. );
    TH1D* h_PhoPtRes = new TH1D("h_PhoPtRes", " Photon Pt Resolution ", 205, -2.05, 2.05 );
-   TH1D* h_MetPtRes = new TH1D("h_MetPtRes", " PF MET Resolution ", 205, -2.05, 2.05 );
+   TH1D* h_MetPtRes = new TH1D("h_MetPtRes", " PF MET Resolution ", 205, -50.5, 50.5 );
 
    TH2D* h_PhoPt_MET = new TH2D("h_PhoPt_MET", "Reco Photon Pt vs PF_MET ", 40, 50, 250, 40, 0, 200 );
    TH2D* t_PhoPt_MET = new TH2D("t_PhoPt_MET", "Trig Photon Pt vs PF_MET ", 40, 50, 250, 40, 0, 200 );
@@ -163,7 +164,6 @@ void Trigger::ReadTree( string dataName ) {
        jetV.clear() ;
        select->GetCollection( "Jet", jetV );
        //if ( jetV.size() == 0 && muonV.size() == 0 ) continue ; 
-       
 
        // Photon and MET information
        TLorentzVector met( metPx, metPy, 0, metE)  ;
@@ -171,10 +171,8 @@ void Trigger::ReadTree( string dataName ) {
        //TLorentzVector gP4 = TLorentzVector( phoV[0], phoPy[0], phoPz[0], phoE[0] ) ;
        TLorentzVector gP4 = phoV[0].second ;
        // reject spike photons
-       //if ( fSpike[ phoV[0].first ] != 0 ) continue ;
-       if ( fSpike[ phoV[0].first ] > 0.1 || fSpike[ phoV[0].first ] < -0.1 ) continue ;
+       if ( fSpike[ phoV[0].first ] > 0.01 || fSpike[ phoV[0].first ] < -0.01 ) continue ;
        if ( nXtals[ phoV[0].first ] < 3 ) continue ;
-       //if ( seedTime[ phoV[0].first ] < -3. || seedTime[ phoV[0].first ] > 3 ) continue ;
 
        // min_dR( track, photon)
        h_dRTrkPho->Fill( dR_TrkPho[0] ) ;
@@ -206,24 +204,35 @@ void Trigger::ReadTree( string dataName ) {
        }
        double metRes = 99. ;
        if ( t_met.Pt() > 0.01 && met.Pt() > 0.01 ) { 
-          metRes = ( met.Pt() - t_met.Pt() )  / met.Pt() ;   
+          metRes =  met.Pt() - t_met.Pt()  ;   
           h_MetPtRes->Fill( metRes ) ;
        }
 
        if ( t_metdR < 9. ) h_met_trg->Fill( t_metE );
+       if ( t_phodR < 9. ) h_gPt_trg->Fill( t_gP4.Pt() );
 
        // Trigger efficiency
        if ( t_gP4.Pt() > thresPhoMET[0] ) {
           double theMET = ( metE > 199 ) ? 199.9 :  metE ;
           h_met->Fill( theMET );
 	  if ( triggered > 2 ) h_met_hlt->Fill( theMET );
+	  //if ( t_metdR < 90. ) h_met_hlt->Fill( theMET );
        }
+       
        if ( t_metE > thresPhoMET[1]  ) { 
 	  double gammaPt = ( r_gP4.Pt() > 249 ) ? 249.9 : r_gP4.Pt() ;
           if ( itr < 0 ) gammaPt = gP4.Pt() ;
 	  h_gPt->Fill( gammaPt );
 	  if ( triggered > 2 && itr > -1 ) h_gPt_hlt->Fill( gammaPt );
        }
+       
+       //if ( metE > thresPhoMET[1]  ) { 
+       //if ( seedTime[ phoV[0].first ] > -3 ) {
+       //if ( t_phodR < 90. ) {
+       //   double gammaPt = ( gP4.Pt() > 249 ) ? 249.9 : gP4.Pt() ;
+       //   h_gPt->Fill( gammaPt );
+       //   if ( t_phodR < 90. ) h_gPt_hlt->Fill( gammaPt );
+       //}
        
 
    } // end of event looping
@@ -290,6 +299,7 @@ void Trigger::ReadTree( string dataName ) {
    // jet multiplicity
    h_draw->Draw( h_nJets, "nJets", " Number of Jets ", "", "logY", 0.95, 1 ) ;
    h_draw->Draw( h_met_trg, "met_hltPFMET25", " MET passed hltPFMET25 ", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw( h_gPt_trg, "phot_hltPhoton65", "Photon passed hltPhoton65CaloIdVLIsoLTrackIsoFilter", "", "logY", 0.95, 1 ) ;
 
    // Pt Resolution 
    gStyle->SetStatX( 0.9 ) ;

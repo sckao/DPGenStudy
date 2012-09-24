@@ -3,7 +3,7 @@ ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags`
 LIB=`${ROOTSYS}/bin/root-config --libs`
 GLIB=`${ROOTSYS}/bin/root-config --glibs`
 
-OBJECTS=AnaInput.o hDraw.o Histogram.o DPSelection.o TestGen.o Background.o Trigger.o 
+OBJECTS=AnaInput.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o Trigger.o 
 
 all:test.exe
 
@@ -14,6 +14,9 @@ hDraw.o : hDraw.cc hDraw.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 Histogram.o : Histogram.cc Histogram.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+Rtuple.o : Rtuple.cc Rtuple.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 DPSelection.o : DPSelection.cc DPSelection.h

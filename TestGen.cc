@@ -4,38 +4,44 @@ TestGen::TestGen( string datacardfile ) {
 
   Input  = new AnaInput( datacardfile );
   select = new DPSelection( datacardfile ) ;
-  h_draw = new hDraw( datacardfile ) ; 
+  Hist   = new Histogram( datacardfile ) ;
 
   SkipEvents = 0 ;
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 
   Input->GetParameters("SkipEvents",    &SkipEvents ) ; 
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
-  Input->GetParameters("RootFiles",     &rfolder ) ; 
   Input->GetParameters("HFileName",     &hfName ) ; 
   Input->GetParameters("IsData",        &isData ) ; 
   Input->GetParameters("TCut",          &TCut ) ; 
   Input->GetParameters("FitCtau",       &FitCtau) ; 
   Input->GetParameters("PhotonCuts",    &photonCuts ) ; 
   Input->GetParameters("JetCuts",       &jetCuts ) ; 
+  Input->GetParameters("UnBinned",       &unBinned ) ;
   if ( isData == 0 ) Input->GetParameters("DecayR",  &decayR ) ; 
 
   TString Path_fName = hfolder + hfName + ".root" ; 
   theFile = new TFile( Path_fName, "RECREATE" );
   theFile->cd() ;
 
+  Rtree = new TTree( "DP", "DP" ) ;
+  setRtupleBranches( Rtree, Rleaves );
 }
+
 
 TestGen::~TestGen(){
 
   theFile->cd() ;
-  HistoWrite( "", theFile ) ;
-  cout<<" historams written ! "<<endl ;
+  if ( unBinned == 1 ) Rtree->Write() ;
+  cout<<" RTree written ! "<<endl ;
+  if ( unBinned == 0 ) Hist->Write( "", theFile ) ;
+  cout<<" Output historams written ! "<<endl ;
   theFile->Close() ;
+  cout<<" File closed ! "<<endl ;
 
   delete select ;
   delete Input ;
-  delete h_draw ;
+  delete Hist ;
   cout<<" done ! "<<endl ;
 
 }
@@ -57,10 +63,14 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("nVertices",   &nVertices);
    tr->SetBranchAddress("totalNVtx",   &totalNVtx);
 
+   tr->SetBranchAddress("nOutTimeHits", &nHaloHits ) ;
+   tr->SetBranchAddress("nHaloTrack",   &nHaloTracks ) ;
+   tr->SetBranchAddress("haloPhi",      &haloPhi ) ;
+   tr->SetBranchAddress("haloRho",      &haloRho ) ;
+
    tr->SetBranchAddress("metPx",       &metPx );
    tr->SetBranchAddress("metPy",       &metPy );
    tr->SetBranchAddress("met",         &metE );
-
    tr->SetBranchAddress("muE",         muE );
 
    tr->SetBranchAddress("phoPx",       phoPx );
@@ -74,6 +84,8 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("aveTimeErr",  aveTimeErr );
    tr->SetBranchAddress("aveTimeErr1", aveTimeErr1 );
    tr->SetBranchAddress("timeChi2",    timeChi2 );
+   tr->SetBranchAddress("sigmaEta",    sigmaEta );
+   tr->SetBranchAddress("sigmaIeta",   sigmaIeta );
 
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("phoTrkIso",   phoTrkIso );
@@ -103,80 +115,14 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("pdgId",       pdgId );
    tr->SetBranchAddress("momId",       momId );
 
+   // initialize selection
    select->Init( tr1 ) ;
 
    int totalN = tr->GetEntries();
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
-
-   obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -14.5, 25.5);
-   aveObsTime  = new TH1D("aveObsTime", "Photon Time from clusters", 160,  -14.5, 25.5);
-   aveObsTime1 = new TH1D("aveObsTime1", "Photon Time from clusters chi2 < 5", 160,  -14.5, 25.5);
-   aveObsTime2 = new TH1D("aveObsTime2", "Photon Time from clusters chi2 < 5", 160,  -14.5, 25.5);
-   obsEBTimeErr  = new TH1D("obsEBTimeErr", "Photon Time Error from seed", 100,  0, 2.0);
-   obsEETimeErr  = new TH1D("obsEETimeErr", "Photon Time Error from seed", 100,  0, 2.0);
-   aveObsEBTimeErr  = new TH1D("aveObsEBTimeErr", "Photon Time Error from clusters", 100,  0, 2.0);
-   aveObsEETimeErr  = new TH1D("aveObsEETimeErr", "Photon Time Error from clusters", 100,  0, 2.0);
-   aveObsEBTimeErr1 = new TH1D("aveObsEBTimeErr1", "Photon Time Error from clusters", 100,  0, 2.0);
-   aveObsEETimeErr1 = new TH1D("aveObsEETimeErr1", "Photon Time Error from clusters", 100,  0, 2.0);
-
-   seedTime_Chi2  = new TH2D("seedTime_Chi2", "Seed Time vs Chi2 ", 160,  -14.5, 25.5, 50, 0, 100);
-
-   badPhoTime     = new TH1D("badPhoTime", "bad channel time", 102,  -25.5, 25.5);
-   TimeLT3Jets    = new TH1D("TimeLT3Jets", "Ecal Time from  < 3 Jets Events", 160,  -14.5, 25.5);
-   TimeGE3Jets    = new TH1D("TimeGE3Jets", "Ecal Time from >= 3 Jets Events", 160,  -14.5, 25.5);
-   TimeLowMET     = new TH1D("TimeLowMET", "Ecal Time from  MET  < 60 GeV Events", 160,  -14.5, 25.5);
-   TimeBigMET     = new TH1D("TimeBigMET", "Ecal Time from  MET >= 60 GeV Events", 160,  -14.5, 25.5);
-
-   SpikeEtaP      = new TH1D("SpikeEtaP", "#eta distribution for spike like photon ( t > 10 )", 24, 0, 2.4);
-   SpikeEtaN      = new TH1D("SpikeEtaN", "#eta distribution for spike like photon ( t < -10)", 24, 0, 2.4);
-   Vz_P           = new TH1D("Vz_P", " z of vertices for events with photon ( t >  10)", 65, -32.5, 32.5);
-   Vz_N           = new TH1D("Vz_N", " z of vertices for events with photon ( t < -10)", 65, -32.5, 32.5);
-
-   h_matchRecoTime = new TH1D("h_matchRecoTime", "Matched Reco Photon Time", 160,  -14.5, 25.5);
-   h_matchGenTime  = new TH1D("h_matchGenTime", "Matched Gen Photon Time", 160,  -14.5, 25.5);
-   h_matchTime     = new TH1D("h_matchTime", "Time Matched Gen Photon Time", 160,  -14.5, 25.5);
-   h_genTime       = new TH1D("h_genTime",   "Photon Time ", 160,  -14.5, 25.5);
-   h_TimeRes1   = new TH1D("h_TimeRes1", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
-   h_TimeRes2   = new TH1D("h_TimeRes2", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
-   h_TimeRes3   = new TH1D("h_TimeRes3", "Seed Photon Time Resolution",  50,  -2.5, 2.5 );
-   h_aTimeRes1   = new TH1D("h_aTimeRes1", "Weighted Ave. Photon Time Resolution", 100,  -2.5, 2.5 );
-   h_aTimeRes2   = new TH1D("h_aTimeRes2", "Weighted Ave. Photon Time Resolution", 100,  -2.5, 2.5 );
-   h_aTimeRes3   = new TH1D("h_aTimeRes3", "Weighted Ave. Photon Time Resolution",  50,  -2.5, 2.5 );
-   h_PtRes     = new TH1D("h_PtRes",   " Photon Pt Resolution", 200,  -1., 1.);
-
-   Time_R   = new TH2D("Time_R", "Gen Photon Time vs R ", 160,  -14.5, 25.5, 25, 0, 175);
-   Time_Z   = new TH2D("Time_Z", "Gen Photon Time vs Z ", 160,  -14.5, 25.5, 30, 0, 390);
-
-   h_Time    = new TH1D("h_Time", "Expected Photon Time", 160,  -14.5, 25.5);
-   h_nChi2   = new TH1D("h_nChi2", "normalized chi2 of seed xtals", 100,  0, 50.0);
-   h_ctau    = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
-   h_xbeta   = new TH1D("h_xbeta", "Beta of Neutrlino ", 55,  0, 1.1);
-   h_TrkIso  = new TH1D("h_TrkIso", " Track Isolation ", 100, 0, 10. );
-   h_HcalIso = new TH1D("h_HcalIso", " HCAL Isolation ", 100, 0, 10. );
-   h_EcalIso = new TH1D("h_EcalIso", " ECAL Isolation ", 100, 0, 10. );
-   h_TrkIsoR  = new TH1D("h_TrkIsoR", " Track Isolation Ratio", 110, 0, 1.1 );
-   h_HcalIsoR = new TH1D("h_HcalIsoR", " HCAL Isolation Ratio", 110, 0, 1.1 );
-   h_EcalIsoR = new TH1D("h_EcalIsoR", " ECAL Isolation Ratio", 110, 0, 1.1 );
-
-   h_maxSwissEB = new TH1D("h_maxSwissEB", " max SwissCross value from seed EB BC ", 150,  0., 1.5 );
-   h_maxSwissEE = new TH1D("h_maxSwissEE", " max SwissCross value from seed EE BC ", 150,  0., 1.5 );
-   h_seedSwiss = new TH1D("h_seedSwiss", " seed SwissCross value ", 150,  0., 1.5 );
-   h_fSpike   = new TH1D("h_fSpike", "fraction of spike crystals in seed cluster ", 220,  -1.1, 1.1 );
-   h_nXtals   = new TH1D("h_nXtals", "N of crystals of the photon ", 100,  0, 100 );
-   h_nBC      = new TH1D("h_nBC",    "N of basic cluster of the photon ", 12,  0, 12 );
-   h_sMin     = new TH1D("h_sMin",    " sMinor distribution ", 105,  -0.05, 1 );
-
-   h_met      = new TH1D("h_met",  "MET distribution ", 40,  0, 800);
-   h_g1Pt     = new TH1D("h_g1Pt", "Leading Photon Pt ", 50,  0, 500);
-   h_gen1Pt     = new TH1D("h_gen1Pt", "Leading GenPhoton Pt ", 50,  0, 500);
-   h_gen1RecoPt = new TH1D("h_gen1RecoPt", "Leading GenPhoton Reco Pt ", 50,  0, 500);
-
-   h_nVtx       = new TH1D("h_nVtx",    "N of vertices", 51,  -0.5, 50.5 );
-   h_nPhotons   = new TH1D("h_nPhotons", "N of Photons  ", 10,  -0.5, 9.5);
-   h_nGenPhotons = new TH1D("h_nGenPhotons", "N of GenPhotons  ", 10,  -0.5, 9.5);
-   h_nJets      = new TH1D("h_nJets", "N of Jets  ", 10,  -0.5, 9.5);
-   h_nMuons     = new TH1D("h_nMuons", "N of Muons  ", 10,  -0.5, 9.5);
-   h_nElectrons = new TH1D("h_nElectrons", "N of Electrons  ", 10,  -0.5, 9.5);
+ 
+   // initial histograms  
+   Hist->Init( h ) ;
 
    int nEvt = 0 ;
    int EscapedPhoton = 0 ;
@@ -186,7 +132,9 @@ void TestGen::ReadTree( string dataName ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
        tr->GetEntry( i );
        tr1->GetEntry( i );
-
+        
+       // init Rtuple for RooStats
+       initRtuple( Rtree, Rleaves ) ;
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
@@ -202,20 +150,20 @@ void TestGen::ReadTree( string dataName ) {
 
           nEvt++; 
 	  // multiplicity
-	  h_nVtx->Fill( totalNVtx ) ;
-	  h_nJets->Fill( nJets ) ;
-	  h_nPhotons->Fill( nPhotons ) ;
-	  h_nMuons->Fill( nMuons ) ;
-	  h_nElectrons->Fill( nElectrons ) ;
+	  h.h_nVtx->Fill( totalNVtx ) ;
+	  h.h_nJets->Fill( selectJets.size() ) ;
+	  h.h_nPhotons->Fill( selectPho.size() ) ;
+	  h.h_nMuons->Fill( nMuons ) ;
+	  h.h_nElectrons->Fill( nElectrons ) ;
 
 	  // MET information
 	  TLorentzVector met( metPx, metPy, 0, metE)  ;
-	  h_met->Fill( met.Pt() );
+	  h.h_met->Fill( met.Pt() );
 
 	  //cout<<" EVT# : "<< nEvt <<endl ;
 	  TLorentzVector g1P4(0,0,0,0)  ;
 	  double max_gPt  = 0 ;
-	  //for ( int k=0; k< nPhotons; k++) {
+          int ik = 0 ;
 	  for ( size_t kk =0; kk < selectPho.size() ; kk++) {
               int k = selectPho[kk].first ;
               
@@ -230,71 +178,112 @@ void TestGen::ReadTree( string dataName ) {
 	      recoPho.push_back( make_pair( k , gP4_) );
 	      recoTs.push_back( seedTime[k] );
 
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h_maxSwissEB->Fill( maxSwissX[k] );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h_maxSwissEE->Fill( maxSwissX[k] );
-	      h_fSpike->Fill( fSpike[k] ) ;
-	      h_sMin->Fill( sMinPho[k] ) ;
+	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.h_maxSwissEB->Fill( maxSwissX[k] );
+	      if ( fabs( gP4_.Eta())  > 1.479 ) h.h_maxSwissEE->Fill( maxSwissX[k] );
+	      h.h_fSpike->Fill( fSpike[k] ) ;
+	      h.h_sMin->Fill( sMinPho[k] ) ;
 
               // exclude spike-like photons
-	      if ( fabs(fSpike[k]) > 0.001 ) badPhoTime->Fill( seedTime[k] ) ;
+	      if ( fabs(fSpike[k]) > 0.001 ) h.badPhoTime->Fill( seedTime[k] ) ;
 	      if ( fabs(fSpike[k]) > 0.001 ) continue ;
 	      //if ( maxSwissX[k] > 0.95 ) continue ;
-	      h_seedSwiss->Fill( seedSwissX[k] );
-	      h_nXtals->Fill( nXtals[k] ) ;
+	      h.h_seedSwiss->Fill( seedSwissX[k] );
+	      h.h_nXtals->Fill( nXtals[k] ) ;
+	      if ( nXtals[k] < 3 ) continue ;
 
-	      obsTime->Fill( seedTime[k] );
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) obsEBTimeErr->Fill( seedTimeErr[k] );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) obsEETimeErr->Fill( seedTimeErr[k] );
+	      h.obsTime->Fill( seedTime[k] );
+	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.obsEBTimeErr->Fill( seedTimeErr[k] );
+	      if ( fabs( gP4_.Eta())  > 1.479 ) h.obsEETimeErr->Fill( seedTimeErr[k] );
 
-	      aveObsTime->Fill( aveTime[k] );
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) aveObsEBTimeErr->Fill( aveTimeErr[k] );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) aveObsEETimeErr->Fill( aveTimeErr[k] );
+	      h.aveObsTime->Fill( aveTime[k] );
+	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.aveObsEBTimeErr->Fill( aveTimeErr[k] );
+	      if ( fabs( gP4_.Eta())  > 1.479 ) h.aveObsEETimeErr->Fill( aveTimeErr[k] );
 
               // timing in different kinematic features
-              if ( selectJets.size()  < 3 ) TimeLT3Jets->Fill( seedTime[k] ) ;
-              if ( selectJets.size() >= 3 ) TimeGE3Jets->Fill( seedTime[k] ) ;
-              if ( met.Et() < 60.00001 )    TimeLowMET->Fill( seedTime[k] ) ;
-              if ( met.Et() > 60.      )    TimeBigMET->Fill( seedTime[k] ) ;
+              if ( selectJets.size()  < 3 ) h.TimeLT3Jets->Fill( seedTime[k] ) ;
+              if ( selectJets.size() >= 3 ) h.TimeGE3Jets->Fill( seedTime[k] ) ;
+              if ( met.Et() < 60.00001 )    h.TimeLowMET->Fill( seedTime[k] ) ;
+              if ( met.Et() > 60.      )    h.TimeBigMET->Fill( seedTime[k] ) ;
 
-              if ( aveTime1[k] >  10.5 ) SpikeEtaP->Fill( fabs( gP4_.Eta() ) );
-              if ( aveTime1[k] < -10.5 ) SpikeEtaN->Fill( fabs( gP4_.Eta() ) );
+              if ( aveTime1[k] >  10.5 ) h.SpikeEtaP->Fill( fabs( gP4_.Eta() ) );
+              if ( aveTime1[k] < -10.5 ) h.SpikeEtaN->Fill( fabs( gP4_.Eta() ) );
               if ( fabs( aveTime1[k]) >  10.5 ) {
                  double maxVz = 0 ;
                  for (size_t iv =0; iv< MAXVTX ; iv++ ) { 
                      maxVz = (fabs(vtxZ[iv]) >  maxVz ) ? fabs(vtxZ[iv]) : maxVz ;
                  }
-                 if ( aveTime1[k] >  10.5 ) Vz_P->Fill( maxVz ) ;
-                 if ( aveTime1[k] < -10.5 ) Vz_N->Fill( maxVz ) ;
+                 if ( aveTime1[k] >  10.5 ) h.Vz_P->Fill( maxVz ) ;
+                 if ( aveTime1[k] < -10.5 ) h.Vz_N->Fill( maxVz ) ;
               }
               
 
-	      if ( nXtals[k] < 3 ) continue ;
-	      if ( timeChi2[k] < 5 )  aveObsTime1->Fill( aveTime1[k] );
-	      if ( timeChi2[k] < 5 )  aveObsTime2->Fill( seedTime[k] );
+	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] );
+	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] );
 
-	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta()) <= 1.479 )  aveObsEBTimeErr1->Fill( aveTimeErr1[k] );
-	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta())  > 1.479 )  aveObsEETimeErr1->Fill( aveTimeErr1[k] );
+	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta()) <= 1.479 )  h.aveObsEBTimeErr1->Fill( aveTimeErr1[k] );
+	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta())  > 1.479 )  h.aveObsEETimeErr1->Fill( aveTimeErr1[k] );
 
-              seedTime_Chi2->Fill( seedTime[k], timeChi2[k] ) ;
+              h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] ) ;
 
-	      h_nChi2->Fill( timeChi2[k] ) ;
-	      h_TrkIso->Fill( phoTrkIso[k] );
-	      h_EcalIso->Fill( phoEcalIso[k] );
-	      h_HcalIso->Fill( phoHcalIso[k] );
-	      h_TrkIsoR->Fill( phoTrkIso[k] / gP4_.Pt() );
-	      h_EcalIsoR->Fill( phoEcalIso[k] / gP4_.E() );
-	      h_HcalIsoR->Fill( phoHcalIso[k] / gP4_.E() );
-	      h_nBC->Fill( nBC[k] ) ;
+	      h.h_nChi2->Fill( timeChi2[k] ) ;
+	      h.h_TrkIso->Fill( phoTrkIso[k] );
+	      h.h_EcalIso->Fill( phoEcalIso[k] );
+	      h.h_HcalIso->Fill( phoHcalIso[k] );
+	      h.h_TrkIsoR->Fill( phoTrkIso[k] / gP4_.Pt() );
+	      h.h_EcalIsoR->Fill( phoEcalIso[k] / gP4_.E() );
+	      h.h_HcalIsoR->Fill( phoHcalIso[k] / gP4_.E() );
+	      h.h_nBC->Fill( nBC[k] ) ;
+              h.h_Eta_Time->Fill( gP4_.Eta() , seedTime[k] );
+              h.h_Phi_Time->Fill( gP4_.Phi() , seedTime[k] );
+
+              bool haloPhoton = false ;
+              if ( nHaloTracks > 0  && haloRho > 0 ) {
+                 h.h_RhoPhi_Halo->Fill( haloPhi, haloRho ) ;
+                 h.h_nHaloTracks->Fill( nHaloTracks ) ;
+                 h.h_nHaloHits->Fill( nHaloHits ) ;
+                 double dphi = fabs( haloPhi - gP4_.Phi() ) ;
+                 dphi = ( dphi > 3.1416 ) ? 6.2832 - dphi : dphi ;
+                 //double drho = fabs( haloRho - gP4_.Rho() ) ;
+                 if (  dphi < 0.5  ) {   
+                    h.h_PhiTimeHalo->Fill( gP4_.Phi(), seedTime[k] ) ;
+                    h.h_EtaTimeHalo->Fill( gP4_.Eta(), seedTime[k] ) ;
+                    haloPhoton = true ;
+                    h.h_SigEtaHalo->Fill( sigmaEta[k] ) ;
+                    h.h_SigIetaHalo->Fill( sigmaIeta[k] ) ;
+                 }
+              }
+              if (  !haloPhoton ) {
+                 h.h_TimeNoHalo->Fill( seedTime[k] ) ;
+                 h.h_EtaTimeNoHalo->Fill( gP4_.Eta(), seedTime[k] ) ;
+		 h.h_SigEta->Fill( sigmaEta[k] ) ;
+		 h.h_SigIeta->Fill( sigmaIeta[k] ) ;
+              }
+
+              if ( seedTime[k] <  -5. )  h.h_Phi_Time1->Fill( gP4_.Phi() , seedTime[k] );
+
+	      if ( ik == 0 ) Rleaves.g1Pt   = gP4_.Pt() ;
+	      if ( ik == 0 ) Rleaves.g1Time = seedTime[k] ;
+	      if ( ik == 1 ) Rleaves.g2Pt   = gP4_.Pt() ;
+	      if ( ik == 1 ) Rleaves.g2Time = seedTime[k] ;
+
+              ik++ ;
           }
-          h_g1Pt->Fill( max_gPt );
+          h.h_g1Pt->Fill( max_gPt );
+
+          Rleaves.nJets    = (int)( selectJets.size() );
+          Rleaves.nPhotons = ik  ;
+          Rleaves.met      = met.Et() ;
+          if ( selectJets.size() > 0 && selectJets.size() < 3 ) Rleaves.bgTime = seedTime[ selectPho[0].first ] ;
        }
+
+       if ( Rleaves.nPhotons > 0 ) Rtree->Fill() ;
 
        // look up gen information  
        //if ( nVertices > 0 ) cout<<" vtx  = ("<< vtxX[0] <<","<< vtxY[0] <<","<<vtxZ[0] <<")"<< endl;
        if ( isData == 1 ) continue ;
 
        genPho.clear() ; // used for matching
-       genTs.clear() ; // used for matching
+       genTs.clear() ;  // used for matching
        double maxGenPt = 0. ;
        int nGenPho = 0;
        for ( int k=0; k< nGen ; k++) {
@@ -342,8 +331,8 @@ void TestGen::ReadTree( string dataName ) {
            //double dT = ( EcalTime < -24.9 ) ? -4 : EcalTime  - t0 ;
            double dT = EcalTime  - t0 ;
 
-           Time_R->Fill( dT, sqrt( (genVx[k]*genVx[k]) + ( genVy[k]*genVy[k]) ) );
-           Time_Z->Fill( dT, fabs( genVz[k] )  );
+           h.Time_R->Fill( dT, sqrt( (genVx[k]*genVx[k]) + ( genVy[k]*genVy[k]) ) );
+           h.Time_Z->Fill( dT, fabs( genVz[k] )  );
 
            // build the P4 for gen photon from reconstruction point of view 
            // skip the escaped photon 
@@ -375,11 +364,11 @@ void TestGen::ReadTree( string dataName ) {
            }
            */        
     
-           h_Time->Fill( dT ) ;
+           h.h_Time->Fill( dT ) ;
           
            if ( dT > -3.999999 ) EscapedPhoton++ ;
-           h_ctau->Fill( genT[mId]*300. /  xP4.Gamma()) ;
-           h_xbeta->Fill( xP4.Beta() ) ;
+           h.h_ctau->Fill( genT[mId]*300. /  xP4.Gamma()) ;
+           h.h_xbeta->Fill( xP4.Beta() ) ;
            //cout<<" PID:"<<pdgId[k] ;
            //cout<<" T_X: "<< genT[k] <<" EcalTime: "<<  EcalTime <<" dT = "<< dT << endl; 
        }
@@ -401,12 +390,12 @@ void TestGen::ReadTree( string dataName ) {
 
        bool genPass =  ( nGoodGenPho > 0 && maxGen_RecoPt >= photonCuts[8] + 10 ) ? true : false ;
        if ( genPass )  {
-          h_gen1RecoPt->Fill( maxGen_RecoPt ) ;
-          for ( size_t j=0; j< genTs.size() ; j++ ) h_genTime->Fill( genTs[j] ) ;
+          h.h_gen1RecoPt->Fill( maxGen_RecoPt ) ;
+          for ( size_t j=0; j< genTs.size() ; j++ ) h.h_genTime->Fill( genTs[j] ) ;
        }       
 
-       h_gen1Pt->Fill( maxGenPt ) ;
-       h_nGenPhotons->Fill( nGenPho ) ;
+       h.h_gen1Pt->Fill( maxGenPt ) ;
+       h.h_nGenPhotons->Fill( nGenPho ) ;
 
        // * Matching Process  *
        vector<iMatch> mlist = GlobalDRMatch( recoPho, genPho );
@@ -415,16 +404,16 @@ void TestGen::ReadTree( string dataName ) {
            double recoTime  = seedTime[ mlist[k].ir ] ;
            double recoTime1 = aveTime1[ mlist[k].ir ] ;
            double genTime  = genTs[ mlist[k].idg ] ;
-           h_matchRecoTime->Fill( recoTime ) ;
-           h_matchGenTime->Fill( genTime ) ;
-           if ( fabs( recoTime - genTime + 0.16 ) < 1. ) h_matchTime->Fill( genTime ) ;
-           if ( genTime < 2                 ) h_TimeRes1->Fill( recoTime - genTime ) ;
-           if ( genTime >=2  && genTime < 6 ) h_TimeRes2->Fill( recoTime - genTime ) ;
-           if ( genTime >=6                 ) h_TimeRes3->Fill( recoTime - genTime ) ;
-           if ( genTime < 2                 ) h_aTimeRes1->Fill( recoTime1 - genTime ) ;
-           if ( genTime >=2  && genTime < 6 ) h_aTimeRes2->Fill( recoTime1 - genTime ) ;
-           if ( genTime >=6                 ) h_aTimeRes3->Fill( recoTime1 - genTime ) ;
-           h_PtRes->Fill( mlist[k].dPt ) ;
+           h.h_matchRecoTime->Fill( recoTime ) ;
+           h.h_matchGenTime->Fill( genTime ) ;
+           if ( fabs( recoTime - genTime + 0.16 ) < 1. ) h.h_matchTime->Fill( genTime ) ;
+           if ( genTime < 2                 ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
+           if ( genTime >=2  && genTime < 6 ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
+           if ( genTime >=6                 ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
+           if ( genTime < 2                 ) h.h_aTimeRes1->Fill( recoTime1 - genTime ) ;
+           if ( genTime >=2  && genTime < 6 ) h.h_aTimeRes2->Fill( recoTime1 - genTime ) ;
+           if ( genTime >=6                 ) h.h_aTimeRes3->Fill( recoTime1 - genTime ) ;
+           h.h_PtRes->Fill( mlist[k].dPt ) ;
        }
        //for ( size_t k=0; k< mlist.size() ; k++ ) printf(" (%d) , dr: %f dPt: %f \n", (int)k , mlist[k].dr, mlist[k].dPt ) ;
 
@@ -575,80 +564,5 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
     } while (  next_permutation( pool.begin() ,pool.end() ) ) ;
  
     return vMatch ;
-}
-
-void TestGen::HistoWrite( string theFolder , TFile* file  ) {
-
-     if ( theFolder.size() > 0 ) file->cd( theFolder.c_str() );
-
-     obsTime->Write()     ;
-     aveObsTime->Write() ;
-     aveObsTime1->Write() ;
-     aveObsTime2->Write() ;
-     obsEBTimeErr->Write()  ;
-     obsEETimeErr->Write()  ;
-     aveObsEBTimeErr->Write() ;
-     aveObsEETimeErr->Write() ;
-     aveObsEBTimeErr1->Write() ;
-     aveObsEETimeErr1->Write() ;
-
-     seedTime_Chi2->Write()  ;
-     Time_R->Write()  ;
-     Time_Z->Write()  ;
-
-     badPhoTime->Write()     ;
-     TimeLT3Jets->Write()    ;
-     TimeGE3Jets->Write()    ;
-     TimeLowMET->Write()     ;
-     TimeBigMET->Write()     ;
-
-     SpikeEtaP->Write()      ;
-     SpikeEtaN->Write()      ;
-     Vz_P->Write()           ;
-     Vz_N->Write()           ;
-
-     h_matchRecoTime->Write() ;
-     h_matchGenTime->Write()  ;
-     h_matchTime->Write()     ;
-     h_genTime->Write()       ;
-     h_TimeRes1->Write()      ;
-     h_TimeRes2->Write()      ;
-     h_TimeRes3->Write()      ;
-     h_aTimeRes1->Write()     ;
-     h_aTimeRes2->Write()     ;
-     h_aTimeRes3->Write()     ;
-     h_PtRes->Write()         ;
-
-     h_Time->Write()   ;
-     h_nChi2->Write()  ;
-     h_ctau->Write()   ;
-     h_xbeta->Write()  ;
-     h_TrkIso->Write()   ;
-     h_HcalIso->Write()  ;
-     h_EcalIso->Write()  ;
-     h_TrkIsoR->Write()  ;
-     h_HcalIsoR->Write() ;
-     h_EcalIsoR->Write() ;
-
-     h_maxSwissEB->Write() ;
-     h_maxSwissEE->Write() ;
-     h_seedSwiss->Write()  ;
-     h_fSpike->Write()    ;
-     h_nXtals->Write()    ;
-     h_nBC->Write()       ;
-     h_sMin->Write()      ;
-
-     h_met->Write()        ;
-     h_g1Pt->Write()       ;
-     h_gen1Pt->Write()     ;
-     h_gen1RecoPt->Write() ;
-
-     h_nVtx->Write()       ;
-     h_nPhotons->Write()   ;
-     h_nGenPhotons->Write();
-     h_nJets->Write()      ;
-     h_nMuons->Write()     ;
-     h_nElectrons->Write() ;
-
 }
 

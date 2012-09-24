@@ -28,108 +28,7 @@
 
 using namespace std;
 
-class Histogram {
-
-    public:
-
-    //friend class TestGen ;
-    Histogram( string datacardfile ) ;
-
-    ~Histogram() {
-        
-        delete Input ;
-        delete h_draw ;
-        //hFile->Close() ;
-        cout<<" exit histogram "<<endl ;
-/*
-        delete obsTime     ;
-	delete aveObsTime  ;
-	delete aveObsTime1 ;
-	delete aveObsTime2 ;
-	delete obsEBTimeErr  ;
-	delete obsEETimeErr  ;
-	delete aveObsEBTimeErr ;
-	delete aveObsEETimeErr ;
-	delete aveObsEBTimeErr1 ;
-	delete aveObsEETimeErr1 ;
-
-	delete seedTime_Chi2  ;
-	delete Time_R  ; 
-	delete Time_Z  ;
-
-	delete badPhoTime     ;
-	delete TimeLT3Jets    ;
-	delete TimeGE3Jets    ;
-	delete TimeLowMET     ;
-	delete TimeBigMET     ;
-
-	delete SpikeEtaP      ;
-	delete SpikeEtaN      ;
-	delete Vz_P           ;
-	delete Vz_N           ;
-
-	delete h_matchRecoTime ;
-	delete h_matchGenTime  ;
-	delete h_matchTime     ;
-	delete h_genTime       ;
-	delete h_TimeRes1      ;
-	delete h_TimeRes2      ;
-	delete h_TimeRes3      ;
-	delete h_aTimeRes1     ;
-	delete h_aTimeRes2     ;
-	delete h_aTimeRes3     ;
-	delete h_PtRes         ;
-
-	delete h_Time   ;
-	delete h_nChi2  ;
-	delete h_ctau   ;
-	delete h_xbeta  ;
-	delete h_TrkIso   ;
-	delete h_HcalIso  ;
-	delete h_EcalIso  ;
-	delete h_TrkIsoR  ;
-	delete h_HcalIsoR ;
-	delete h_EcalIsoR ;
-
-	delete h_maxSwissEB ; 
-	delete h_maxSwissEE ; 
-	delete h_seedSwiss  ;
-	delete h_fSpike    ;
-	delete h_nXtals    ;
-	delete h_nBC       ;
-	delete h_sMin      ;
-
-	delete h_met        ;
-	delete h_g1Pt       ;
-	delete h_gen1Pt     ; 
-	delete h_gen1RecoPt ;
-
-	delete h_nVtx       ;
-	delete h_nPhotons   ;
-	delete h_nGenPhotons; 
-	delete h_nJets      ; 
-	delete h_nMuons     ;
-	delete h_nElectrons ;
-*/
-    }
-
-    void Init() ;
-    void Open() ;
-    void DrawHistograms() ;
-    void Write( string theFolder , TFile* file  ) ;
-
-    private:
-
-    AnaInput*     Input ;
-    hDraw*        h_draw ;
-    TFile*        hFile ;
-
-    string hfolder  ;
-    string plotType ;
-    string hfName ;
-    int isData ;
-    double TCut ;
-    double FitCtau ;
+struct hSet {
 
     TH1D* obsTime     ;
     TH1D* aveObsTime  ;
@@ -200,6 +99,58 @@ class Histogram {
     TH1D* h_nMuons     ;
     TH1D* h_nElectrons ;
 
+    TH2D* h_Eta_Time ;
+    TH2D* h_Phi_Time ;
+    TH2D* h_Phi_Time1 ;
+
+    TH2D* h_RhoPhi_Halo ;
+    TH1D* h_nHaloHits ;
+    TH1D* h_nHaloTracks ;
+    TH2D* h_PhiTimeHalo ;
+    TH2D* h_EtaTimeHalo ;
+    TH2D* h_EtaTimeNoHalo ;
+    TH1D* h_TimeNoHalo ;
+    
+    TH1D* h_SigEtaHalo ;
+    TH1D* h_SigIetaHalo ;
+    TH1D* h_SigEta ;
+    TH1D* h_SigIeta ;
+
+} ;
+
+class Histogram {
+
+    public:
+
+    //friend class TestGen ;
+    Histogram( string datacardfile ) ;
+
+    ~Histogram() {
+        
+        delete Input ;
+        delete h_draw ;
+        //hFile->Close() ;
+        cout<<" exit histogram "<<endl ;
+    }
+
+    void Init( hSet& hs_ ) ;
+    void Open( ) ;
+    void DrawHistograms() ;
+    void Write( string theFolder , TFile* file  ) ;
+
+    private:
+
+    AnaInput*     Input ;
+    hDraw*        h_draw ;
+    TFile*        hFile ;
+    hSet          h ;
+ 
+    string hfolder  ;
+    string plotType ;
+    string hfName ;
+    int isData ;
+    double TCut ;
+    double FitCtau ;
 
 };
 

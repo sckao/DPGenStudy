@@ -7,17 +7,20 @@
 RootFiles = rootfiles/
 
 # Folder to store results
-#Path = Results/
-Path = DOE2012/
+Path = Run2012_0J/
+#Path = MC2012/
 #Path = HLT/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
+
 # Histogram files
-HFileName = TimeHistoEB_PhoHad
+HFileName = Hists
+# set up the input for Roostats , 1:Ntuple(unbinned data) 0:Histogram(binned data)
+UnBinned = 0
 
 # module 
-# 0 : TestGen, 1: Trigger, 2: TestGen Histogram Drawer
+# 0 : TestGen, 1: Trigger, 2: TestGen Histogram Drawer 3:Background studies
 Module = 2
 
 # MC = 0 , Data = 1
@@ -26,10 +29,10 @@ IsData = 1
 #TheData = ( mc+ )
 
 TheData = ( data+ )
-#dataChain = ( Photon_2012B_test )
 #dataChain = ( run2012B_uncleaned )
-dataChain = ( PhoHad2012B_uncleaned )
-#dataChain = ( pho2012B_uncleaned )
+#dataChain = ( run2012B_trgMatch, run2012C_trgMatch )
+dataChain = ( run2012C_halo )
+#dataChain = ( mu2012_uncleaned, mu2012C_uncleaned )
 
 # -1 : all of events
 ProcessEvents = -1
@@ -43,17 +46,17 @@ TriggerBits = ( 2, 3 )
 UseL1 = 0
 
 # Photon Cuts  Pt,  Eta, hoverE,  dRgj, nPhotn, sMinMin, sMinMax, dR_trk, leadingPt  
-PhotonCuts = ( 45,  1.4,   0.05,    0.,     1,      0.1,     0.4,    0.,   80  )
+PhotonCuts = ( 45,  2.4,   0.05,    0.3,     1,      0.1,    0.35,   0.6,   80  )
 # Photon Iso   trk,  ecalEt, ecalR, hcalEt, hcalR   
-PhotonIso  = ( 0.9,    99.,   0.9,    99.,   0.9  )
+#PhotonIso  = ( 0.9,    99.,   0.9,    99.,   0.9  )
 #PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
-#PhotonIso  = ( 0.1,     2.4,   0.05,   2.4,   0.05 )
+PhotonIso  = ( 0.1,     2.4,   0.05,   2.4,   0.05 )
 # vertex cut   ndof,   z,  d0 
 #VertexCuts = (    0,  24,   2 )
 VertexCuts = (    4,  24,   2 )
 
-# Jet/MET     Pt,  Eta,  NJets, MaxNJets,  MET,   MET < 0 : set a max value for the MET
-JetCuts = (   30.,  2.4,     0,      99,    0 )
+# Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET,   MET < 0 : set a max value for the MET
+JetCuts = (   35.,  2.4,      0,       99,    0 )
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
 # muon       Pt  Eta  relIso  dRmj
