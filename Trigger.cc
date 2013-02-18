@@ -87,26 +87,22 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("vtxY",       vtxY );
    tr->SetBranchAddress("vtxZ",       vtxZ );
    
-   tr->SetBranchAddress("genPx",       genPx );
-   tr->SetBranchAddress("genPy",       genPy );
-   tr->SetBranchAddress("genPz",       genPz );
-   tr->SetBranchAddress("genE",        genE );
-   tr->SetBranchAddress("genM",        genM );
-   tr->SetBranchAddress("genVx",       genVx );
-   tr->SetBranchAddress("genVy",       genVy );
-   tr->SetBranchAddress("genVz",       genVz );
-   tr->SetBranchAddress("genT",        genT );  // tau*gamma*beta
-   tr->SetBranchAddress("pdgId",       pdgId );
-   tr->SetBranchAddress("momId",       momId );
+   tr->SetBranchAddress("phoPx",       phoPx );
+   tr->SetBranchAddress("phoPy",       phoPy );
+   tr->SetBranchAddress("phoPz",       phoPz );
+   tr->SetBranchAddress("phoE",        phoE );
 
    select->Init( tr1 ) ;
 
    int totalN = tr->GetEntries();
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
-   TH1D* h_gPt      = new TH1D("h_gPt",     "Leading Photon Pt           ", 40,  50, 250);
-   TH1D* h_gPt_trg  = new TH1D("h_gPt_trg", "Leading Photon Pt passed hltPhoton65Filter", 40,  50, 250);
-   TH1D* h_gPt_hlt  = new TH1D("h_gPt_hlt", "Leading Photon Pt passed HLT", 40,  50, 250);
+   //TH1D* h_gPt0     = new TH1D("h_gPt0",    "Leading Photon Pt after pre-selection ", 41,  45, 250);
+   //TH1D* h_gPt1     = new TH1D("h_gPt1",    "Leading Photon Pt after MET cut ", 41,  45, 250);
+
+   TH1D* h_gPt      = new TH1D("h_gPt",     "Leading Photon Pt           ", 41,  45, 250);
+   TH1D* h_gPt_trg  = new TH1D("h_gPt_trg", "Leading Photon Pt passed hltPhoton65Filter", 41,  45, 250);
+   TH1D* h_gPt_hlt  = new TH1D("h_gPt_hlt", "Leading Photon Pt passed HLT", 41,  45, 250);
    TH1D* h_met      = new TH1D("h_met",     "MET distribution           ", 40,  0, 200);
    TH1D* h_met_trg  = new TH1D("h_met_trg", "MET distribution passed hltPFMET25 ", 40,  0, 200);
    TH1D* h_met_hlt  = new TH1D("h_met_hlt", "MET distribution pssed HLT ", 40,  0, 200);
@@ -126,8 +122,9 @@ void Trigger::ReadTree( string dataName ) {
    TH1D* h_PhoPtRes = new TH1D("h_PhoPtRes", " Photon Pt Resolution ", 205, -2.05, 2.05 );
    TH1D* h_MetPtRes = new TH1D("h_MetPtRes", " PF MET Resolution ", 205, -50.5, 50.5 );
 
-   TH2D* h_PhoPt_MET = new TH2D("h_PhoPt_MET", "Reco Photon Pt vs PF_MET ", 40, 50, 250, 40, 0, 200 );
-   TH2D* t_PhoPt_MET = new TH2D("t_PhoPt_MET", "Trig Photon Pt vs PF_MET ", 40, 50, 250, 40, 0, 200 );
+   TH2D* h_PhoPt_MET = new TH2D("h_PhoPt_MET", "Reco Photon Pt vs HLT_PFMET ( HLT_PFMET > 25 GeV) ", 42, 40, 250, 40, 0, 200 );
+   TH2D* t_PhoPt_MET = new TH2D("t_PhoPt_MET", "Reco Photon Pt vs HLT_PFMET ", 42, 40, 250, 40, 0, 200 );
+   //TH2D* t_PhoPt_MET = new TH2D("t_PhoPt_MET", "Trig Photon Pt vs PF_MET ", 42, 40, 250, 40, 0, 200 );
 
    for ( int i=0; i< totalN ; i++ ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
@@ -150,9 +147,15 @@ void Trigger::ReadTree( string dataName ) {
        select->ResetCollection() ;
        bool pass_vtx  = select->VertexFilter();
        bool pass_jet  = select->JetMETFilter();
-       bool pass_pho = select->PhotonFilter( true );  // true for applying Isolation 
+       bool pass_pho = select->PhotonFilter(); 
        bool pass_hlt = select->HLTFilter();
        //bool pass_mu  = select->MuonFilter();
+
+
+       // Raw Photon and MET information
+       TLorentzVector met( metPx, metPy, 0, metE)  ;
+       //TLorentzVector gP40 = TLorentzVector( phoPx[0], phoPy[0], phoPz[0], phoE[0] ) ;
+
        select->MuonFilter();
        if ( !pass_hlt || !pass_pho || !pass_vtx || !pass_jet ) continue ;
        // only look at 1 photon events
@@ -165,10 +168,7 @@ void Trigger::ReadTree( string dataName ) {
        select->GetCollection( "Jet", jetV );
        //if ( jetV.size() == 0 && muonV.size() == 0 ) continue ; 
 
-       // Photon and MET information
-       TLorentzVector met( metPx, metPy, 0, metE)  ;
 
-       //TLorentzVector gP4 = TLorentzVector( phoV[0], phoPy[0], phoPz[0], phoE[0] ) ;
        TLorentzVector gP4 = phoV[0].second ;
        // reject spike photons
        if ( fSpike[ phoV[0].first ] > 0.01 || fSpike[ phoV[0].first ] < -0.01 ) continue ;
@@ -193,8 +193,9 @@ void Trigger::ReadTree( string dataName ) {
        TLorentzVector r_gP4 = ( itr < 0 ) ? TLorentzVector(0,0,0,0) : phoV[itr].second ;
        
        // 2D plot for Photon Pt vs MET3
-       h_PhoPt_MET->Fill( gP4.Pt(),  metE ) ;
-       if ( t_phoE > 0.1 && t_metE > 0.1 && t_metdR < 0.7 ) t_PhoPt_MET->Fill( t_gP4.Pt(), t_metE ) ;
+       //if ( t_phoE > 0.1 && t_metE > 0.1 && t_metdR < 0.7 ) t_PhoPt_MET->Fill( t_gP4.Pt(), t_metE ) ;
+       if ( t_metE > 25. ) h_PhoPt_MET->Fill( gP4.Pt(),  t_metE ) ;
+       if ( t_metE > -1. ) t_PhoPt_MET->Fill( gP4.Pt(),  t_metE ) ;
 
        // Resolution studies
        double g_PtRes = 99. ;
@@ -224,6 +225,7 @@ void Trigger::ReadTree( string dataName ) {
           if ( itr < 0 ) gammaPt = gP4.Pt() ;
 	  h_gPt->Fill( gammaPt );
 	  if ( triggered > 2 && itr > -1 ) h_gPt_hlt->Fill( gammaPt );
+	  //if ( triggered > 2 && t_phodR < 9. ) h_gPt_hlt->Fill( gammaPt );
        }
        
        //if ( metE > thresPhoMET[1]  ) { 
@@ -233,7 +235,6 @@ void Trigger::ReadTree( string dataName ) {
        //   h_gPt->Fill( gammaPt );
        //   if ( t_phodR < 90. ) h_gPt_hlt->Fill( gammaPt );
        //}
-       
 
    } // end of event looping
 
@@ -266,11 +267,20 @@ void Trigger::ReadTree( string dataName ) {
    leg1->AddEntry( h_met,     IntStr0,  "L");
    leg1->AddEntry( h_met_hlt, IntStr1,  "L");
    h_draw->Draw(       h_met, "", " MET (GeV)", "", "logY", 0.95, 2 ) ;
-   h_draw->DrawAppend( h_met_hlt, " MET", 0.75, 4, 1, leg1 ) ;
+   h_draw->DrawAppend( h_met_hlt, "MET", 0.75, 4, 1, leg1 ) ;
 
    // Efficiency
-   h_draw->EffPlot( h_gPt_hlt, h_gPt, "Photon Pt (GeV/c) ", minBinContent[0], 1, -1,  "PhotonPtEff" );
-   h_draw->EffPlot( h_met_hlt, h_met, "MET (GeV)    ",      minBinContent[1], 1, -1,  "PFMETEff" );
+   TPaveText* tex = new TPaveText(0.50, 0.27, 0.87,0.39, "NDC"); // NDC sets coords
+   tex->SetFillColor(0); // text is black on white
+   tex->SetBorderSize(1);
+   tex->SetTextSize(0.035);
+   tex->SetTextAlign(12);
+   tex->AddText("    65 GeV HLT Photon");
+   
+   h_draw->EffPlot( h_gPt_hlt, h_gPt, "Photon P_{T} (GeV/c) ", minBinContent[0], 1, -1,  "PhotonPtEff", tex );
+   tex->Clear() ;
+   tex->AddText("25 GeV HLT PF MET ");
+   h_draw->EffPlot( h_met_hlt, h_met, "PF MET (GeV) ",   minBinContent[1], 1, -1,  "PFMETEff", tex );
 
    // mindR(Track,photon)
    h_draw->CreateNxM( "TrkPho", 1,2 );
@@ -303,12 +313,12 @@ void Trigger::ReadTree( string dataName ) {
 
    // Pt Resolution 
    gStyle->SetStatX( 0.9 ) ;
-   h_draw->SetHistoAtt("X", 0.07, 0.07, 0.08, 1. ) ;
+   h_draw->SetHistoAtt("X", 0.07, 0.07, 0.06, 1. ) ;
    h_draw->SetHistoAtt("Y", 0.07, 0.02, 0.1, 0 ) ;
    h_draw->SetPlotStyle( true, 0.1, 0.12, 0.1, 0.1 ) ;
    h_draw->CreateNxM( "PhoPt_MET", 1,2 );
-   h_draw->DrawNxM( 1, h_PhoPt_MET,   "",   "", "", 5, 0.05, 0.05, false );
-   h_draw->DrawNxM( 2, t_PhoPt_MET,   "",   "", "", 5, 0.05, 0.05, true );
+   h_draw->DrawNxM( 1, h_PhoPt_MET,   "Photon P_{T}",   "PF MET", "",  5, 0.05, 0.05, false );
+   h_draw->DrawNxM( 2, t_PhoPt_MET,   "Photon P_{T}",   "PF MET", "", 10, 0.05, 0.05, true );
 
 }  
 

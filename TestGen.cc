@@ -17,24 +17,26 @@ TestGen::TestGen( string datacardfile ) {
   Input->GetParameters("FitCtau",       &FitCtau) ; 
   Input->GetParameters("PhotonCuts",    &photonCuts ) ; 
   Input->GetParameters("JetCuts",       &jetCuts ) ; 
-  Input->GetParameters("UnBinned",       &unBinned ) ;
+  Input->GetParameters("TimeCalib",     &timeCalib ) ;
+
   if ( isData == 0 ) Input->GetParameters("DecayR",  &decayR ) ; 
+
+  gSystem->mkdir( hfolder.c_str() );
 
   TString Path_fName = hfolder + hfName + ".root" ; 
   theFile = new TFile( Path_fName, "RECREATE" );
   theFile->cd() ;
 
-  Rtree = new TTree( "DP", "DP" ) ;
-  setRtupleBranches( Rtree, Rleaves );
+  // initial histograms  
+  Hist->Init( h ) ;
+
 }
 
 
 TestGen::~TestGen(){
 
   theFile->cd() ;
-  if ( unBinned == 1 ) Rtree->Write() ;
-  cout<<" RTree written ! "<<endl ;
-  if ( unBinned == 0 ) Hist->Write( "", theFile ) ;
+  Hist->Write( "", theFile ) ;
   cout<<" Output historams written ! "<<endl ;
   theFile->Close() ;
   cout<<" File closed ! "<<endl ;
@@ -47,7 +49,7 @@ TestGen::~TestGen(){
 }
 
 // analysis template
-void TestGen::ReadTree( string dataName ) { 
+void TestGen::ReadTree( string dataName, double weight ) { 
 
    TTree* tr = Input->TreeMap( dataName );
 
@@ -62,7 +64,7 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("triggered",   &triggered);
    tr->SetBranchAddress("nVertices",   &nVertices);
    tr->SetBranchAddress("totalNVtx",   &totalNVtx);
-
+   
    tr->SetBranchAddress("nOutTimeHits", &nHaloHits ) ;
    tr->SetBranchAddress("nHaloTrack",   &nHaloTracks ) ;
    tr->SetBranchAddress("haloPhi",      &haloPhi ) ;
@@ -86,12 +88,18 @@ void TestGen::ReadTree( string dataName ) {
    tr->SetBranchAddress("timeChi2",    timeChi2 );
    tr->SetBranchAddress("sigmaEta",    sigmaEta );
    tr->SetBranchAddress("sigmaIeta",   sigmaIeta );
+   tr->SetBranchAddress("cscdPhi",     cscdPhi );
 
    tr->SetBranchAddress("sMinPho",     sMinPho );
+   tr->SetBranchAddress("sMajPho",     sMajPho );
    tr->SetBranchAddress("phoTrkIso",   phoTrkIso );
    tr->SetBranchAddress("phoEcalIso",  phoEcalIso );
    tr->SetBranchAddress("phoHcalIso",  phoHcalIso );
    tr->SetBranchAddress("dR_TrkPho",   dR_TrkPho );
+   tr->SetBranchAddress("cHadIso",     cHadIso );
+   tr->SetBranchAddress("nHadIso",     nHadIso );
+   tr->SetBranchAddress("photIso",     photIso );
+   tr->SetBranchAddress("phoHoverE",   phoHoverE );
 
    tr->SetBranchAddress("maxSwissX",   maxSwissX );
    tr->SetBranchAddress("seedSwissX",  seedSwissX );
@@ -118,23 +126,24 @@ void TestGen::ReadTree( string dataName ) {
    // initialize selection
    select->Init( tr1 ) ;
 
+   // Prepare a random number generator for gen Time smearing 
+   TRandom3* tRan = new TRandom3();
+   tRan->SetSeed( 0 );
+
    int totalN = tr->GetEntries();
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
  
-   // initial histograms  
-   Hist->Init( h ) ;
-
    int nEvt = 0 ;
    int EscapedPhoton = 0 ;
    int beginEvent = SkipEvents + 1 ;
    cout<<" Event start from : "<< beginEvent << endl ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
+
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
        tr->GetEntry( i );
        tr1->GetEntry( i );
-        
-       // init Rtuple for RooStats
-       initRtuple( Rtree, Rleaves ) ;
+       if ( i % 100000 == 0 && i > 99999 ) printf(" ----- processed %8d Events \n", i ) ;
+    
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
@@ -143,27 +152,53 @@ void TestGen::ReadTree( string dataName ) {
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
        select->GetCollection("Photon", selectPho ) ;
+       // testing for raw information 
+       for ( int g=0 ; g < nPhotons ; g++ ) {
+	   TLorentzVector gP4_ = TLorentzVector( phoPx[g], phoPy[g], phoPz[g], phoE[g] ) ;
+           if ( fabs(gP4_.Eta()) > 1.47 ) continue ;
+           h.h_Eta_Time->Fill( gP4_.Eta() , seedTime[g] , weight );
+	   h.h_Phi_Time->Fill( gP4_.Phi() , seedTime[g] , weight );
+	   h.h_sMin_Time->Fill( sMinPho[g] , seedTime[g] , weight );
+	   h.h_sMaj_Time->Fill( sMajPho[g] , seedTime[g] , weight );
+	   h.h_sMaj_Eta->Fill(sMajPho[g] , gP4_.Eta() , weight ) ;
+	   h.h_sMaj_sMin->Fill( sMajPho[g] , sMinPho[g] , weight );
+	   h.h_nXtl_Eta->Fill( nXtals[g],  gP4_.Eta() , weight );
+	   h.h_nXtl_Pt->Fill( nXtals[g],  gP4_.Pt() , weight );
+	   h.h_cscdPhi_Time->Fill( cscdPhi[g], seedTime[g] , weight  ) ;
+	   h.h_sigIeta_Time->Fill( sigmaIeta[g], seedTime[g] , weight  ) ;
+	   h.h_HoverE_Time->Fill( phoHoverE[g], seedTime[g] , weight  ) ;
+	   if ( sMajPho[g] > 0.4 ) h.h_sMaj_Phi->Fill(sMajPho[g] , gP4_.Phi() , weight ) ;
+           h.h_HoverE->Fill( phoHoverE[g] , weight ) ;
+           h.h_sigIeta->Fill( sigmaIeta[g] , weight ) ;
+           h.h_cHadIso->Fill( cHadIso[g] , weight ) ;
+           h.h_nHadIso->Fill( nHadIso[g] , weight ) ;
+           h.h_photIso->Fill( photIso[g] , weight ) ;
+           double nHIso = max( nHadIso[g] - (0.04*gP4_.Pt()) , 0. ) ; 
+           double phIso = max( photIso[g] - (0.005*gP4_.Pt()) , 0. ) ; 
+           h.h_cHadIso_t->Fill( cHadIso[g] , seedTime[g] , weight ) ;
+           h.h_nHadIso_t->Fill( nHIso , seedTime[g] , weight ) ;
+           h.h_photIso_t->Fill( phIso , seedTime[g] , weight ) ;
+       }
 
        recoPho.clear() ; // used for matching
-       recoTs.clear() ; // used for matching
+       recoTs.clear() ;  // used for matching
        if ( pass ) {
 
           nEvt++; 
 	  // multiplicity
-	  h.h_nVtx->Fill( totalNVtx ) ;
-	  h.h_nJets->Fill( selectJets.size() ) ;
-	  h.h_nPhotons->Fill( selectPho.size() ) ;
-	  h.h_nMuons->Fill( nMuons ) ;
-	  h.h_nElectrons->Fill( nElectrons ) ;
+	  h.h_nVtx->Fill(  totalNVtx , weight ) ;
+	  h.h_nJets->Fill( selectJets.size() , weight ) ;
+	  h.h_nPhotons->Fill( selectPho.size() , weight ) ;
+	  h.h_nMuons->Fill( nMuons , weight ) ;
+	  h.h_nElectrons->Fill( nElectrons , weight ) ;
 
 	  // MET information
 	  TLorentzVector met( metPx, metPy, 0, metE)  ;
-	  h.h_met->Fill( met.Pt() );
+	  h.h_met->Fill( met.Pt() , weight );
 
 	  //cout<<" EVT# : "<< nEvt <<endl ;
 	  TLorentzVector g1P4(0,0,0,0)  ;
 	  double max_gPt  = 0 ;
-          int ik = 0 ;
 	  for ( size_t kk =0; kk < selectPho.size() ; kk++) {
               int k = selectPho[kk].first ;
               
@@ -178,108 +213,234 @@ void TestGen::ReadTree( string dataName ) {
 	      recoPho.push_back( make_pair( k , gP4_) );
 	      recoTs.push_back( seedTime[k] );
 
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.h_maxSwissEB->Fill( maxSwissX[k] );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h.h_maxSwissEE->Fill( maxSwissX[k] );
-	      h.h_fSpike->Fill( fSpike[k] ) ;
-	      h.h_sMin->Fill( sMinPho[k] ) ;
+	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.h_maxSwissEB->Fill( maxSwissX[k] , weight );
+	      if ( fabs( gP4_.Eta())  > 1.479 ) h.h_maxSwissEE->Fill( maxSwissX[k] , weight );
+	      h.h_fSpike->Fill( fSpike[k] , weight ) ;
+	      h.h_sMin->Fill( sMinPho[k] , weight ) ;
 
               // exclude spike-like photons
-	      if ( fabs(fSpike[k]) > 0.001 ) h.badPhoTime->Fill( seedTime[k] ) ;
+	      if ( fabs(fSpike[k]) > 0.001 ) h.badPhoTime->Fill( seedTime[k] , weight ) ;
 	      if ( fabs(fSpike[k]) > 0.001 ) continue ;
 	      //if ( maxSwissX[k] > 0.95 ) continue ;
-	      h.h_seedSwiss->Fill( seedSwissX[k] );
-	      h.h_nXtals->Fill( nXtals[k] ) ;
+	      h.h_seedSwiss->Fill( seedSwissX[k] , weight );
+	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
 	      if ( nXtals[k] < 3 ) continue ;
 
-	      h.obsTime->Fill( seedTime[k] );
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.obsEBTimeErr->Fill( seedTimeErr[k] );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h.obsEETimeErr->Fill( seedTimeErr[k] );
+	      h.obsTime->Fill( seedTime[k], weight );
+	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.obsEBTimeErr->Fill( seedTimeErr[k] , weight );
+	      if ( fabs( gP4_.Eta())  > 1.479 ) h.obsEETimeErr->Fill( seedTimeErr[k] , weight );
 
-	      h.aveObsTime->Fill( aveTime[k] );
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.aveObsEBTimeErr->Fill( aveTimeErr[k] );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h.aveObsEETimeErr->Fill( aveTimeErr[k] );
+	      h.aveObsTime->Fill( aveTime[k], weight );
+	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.aveObsEBTimeErr->Fill( aveTimeErr[k] , weight );
+	      if ( fabs( gP4_.Eta())  > 1.479 ) h.aveObsEETimeErr->Fill( aveTimeErr[k] , weight );
 
               // timing in different kinematic features
-              if ( selectJets.size()  < 3 ) h.TimeLT3Jets->Fill( seedTime[k] ) ;
-              if ( selectJets.size() >= 3 ) h.TimeGE3Jets->Fill( seedTime[k] ) ;
-              if ( met.Et() < 60.00001 )    h.TimeLowMET->Fill( seedTime[k] ) ;
-              if ( met.Et() > 60.      )    h.TimeBigMET->Fill( seedTime[k] ) ;
+              if ( met.Et() > 60. && selectJets.size()  < 1 )  h.TimeLT3Jets->Fill( seedTime[k] , weight ) ;
+              if ( met.Et() > 60. && selectJets.size()  > 0 )  h.TimeGE3Jets->Fill( seedTime[k] , weight ) ;
+              if ( selectJets.size() > 0 && met.Et() < 60.  )  h.TimeLowMET->Fill( seedTime[k] , weight ) ;
+              if ( selectJets.size() > 0 && met.Et() > 60.  )  h.TimeBigMET->Fill( seedTime[k] , weight ) ;
 
-              if ( aveTime1[k] >  10.5 ) h.SpikeEtaP->Fill( fabs( gP4_.Eta() ) );
-              if ( aveTime1[k] < -10.5 ) h.SpikeEtaN->Fill( fabs( gP4_.Eta() ) );
-              if ( fabs( aveTime1[k]) >  10.5 ) {
-                 double maxVz = 0 ;
-                 for (size_t iv =0; iv< MAXVTX ; iv++ ) { 
-                     maxVz = (fabs(vtxZ[iv]) >  maxVz ) ? fabs(vtxZ[iv]) : maxVz ;
+	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] , weight );
+	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] , weight );
+
+	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta()) <= 1.479 )  h.aveObsEBTimeErr1->Fill( aveTimeErr1[k] , weight );
+	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta())  > 1.479 )  h.aveObsEETimeErr1->Fill( aveTimeErr1[k] , weight );
+
+              h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] , weight ) ;
+	      h.h_nChi2->Fill( timeChi2[k] , weight ) ;
+	      h.h_nBC->Fill( nBC[k] , weight ) ;
+              // Isolation properties          
+	      h.h_TrkIso->Fill( phoTrkIso[k] , weight );
+	      h.h_EcalIso->Fill( phoEcalIso[k] , weight );
+	      h.h_HcalIso->Fill( phoHcalIso[k] , weight );
+	      h.h_TrkIsoR->Fill( phoTrkIso[k] / gP4_.Pt() , weight );
+	      h.h_EcalIsoR->Fill( phoEcalIso[k] / gP4_.E() , weight );
+	      h.h_HcalIsoR->Fill( phoHcalIso[k] / gP4_.E() , weight );
+
+              // *************************
+              // *     Ghost Studies     *
+              // *************************
+              /*
+              h.h_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+              h.h_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+              h.h_sMin_Time->Fill( sMinPho[k] , seedTime[k] , weight );
+              h.h_sMaj_Time->Fill( sMajPho[k] , seedTime[k] , weight );
+	      h.h_sMaj_Eta->Fill(sMajPho[k] , gP4_.Eta() , weight ) ;
+	      h.h_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k] , weight );
+              h.h_nXtl_Eta->Fill( nXtals[k],  gP4_.Eta() , weight );
+              h.h_nXtl_Pt->Fill( nXtals[k],  gP4_.Pt() , weight );
+              h.h_cscdPhi_Time->Fill( cscdPhi[k], seedTime[k] , weight  ) ;
+	      if ( sMajPho[k] > 0.4 ) h.h_sMaj_Phi->Fill(sMajPho[k] , gP4_.Phi() , weight ) ;
+              */ 
+
+              // Only look at EB region 
+              //if ( fabs( gP4_.Eta()) > 1.47  ) continue ;
+              // Look at the sideband of time spectrum 
+              if ( fabs( seedTime[k] ) > 3. ) {
+     	         h.sideband_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k] , weight );
+		 h.sideband_sMaj_Phi->Fill( sMajPho[k] , gP4_.Phi() , weight );
+                 h.sideband_sMaj_Time->Fill( sMajPho[k] , seedTime[k] , weight );
+     	         h.sideband_sMaj_Eta->Fill( sMajPho[k] , gP4_.Eta() , weight );
+                 h.sideband_nXtl_Eta->Fill( nXtals[k], gP4_.Eta() , weight );
+                 h.sideband_nXtl->Fill( nXtals[k] , weight );
+                 if ( fabs( gP4_.Eta() ) < 1.4 ) { 
+                    h.sideband_sMaj_EB->Fill( sMajPho[k] , weight ) ;
+                    h.sideband_cscdPhi_EB->Fill( cscdPhi[k] , weight ) ;
+                 } else {
+                    h.sideband_sMaj_EE->Fill( sMajPho[k] , weight ) ;
+                    h.sideband_cscdPhi_EE->Fill( cscdPhi[k] , weight ) ;
                  }
-                 if ( aveTime1[k] >  10.5 ) h.Vz_P->Fill( maxVz ) ;
-                 if ( aveTime1[k] < -10.5 ) h.Vz_N->Fill( maxVz ) ;
               }
-              
 
-	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] );
-	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] );
-
-	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta()) <= 1.479 )  h.aveObsEBTimeErr1->Fill( aveTimeErr1[k] );
-	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta())  > 1.479 )  h.aveObsEETimeErr1->Fill( aveTimeErr1[k] );
-
-              h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] ) ;
-
-	      h.h_nChi2->Fill( timeChi2[k] ) ;
-	      h.h_TrkIso->Fill( phoTrkIso[k] );
-	      h.h_EcalIso->Fill( phoEcalIso[k] );
-	      h.h_HcalIso->Fill( phoHcalIso[k] );
-	      h.h_TrkIsoR->Fill( phoTrkIso[k] / gP4_.Pt() );
-	      h.h_EcalIsoR->Fill( phoEcalIso[k] / gP4_.E() );
-	      h.h_HcalIsoR->Fill( phoHcalIso[k] / gP4_.E() );
-	      h.h_nBC->Fill( nBC[k] ) ;
-              h.h_Eta_Time->Fill( gP4_.Eta() , seedTime[k] );
-              h.h_Phi_Time->Fill( gP4_.Phi() , seedTime[k] );
-
-              bool haloPhoton = false ;
+              // Using CMSSW CSC Halo Tagging
               if ( nHaloTracks > 0  && haloRho > 0 ) {
-                 h.h_RhoPhi_Halo->Fill( haloPhi, haloRho ) ;
-                 h.h_nHaloTracks->Fill( nHaloTracks ) ;
-                 h.h_nHaloHits->Fill( nHaloHits ) ;
-                 double dphi = fabs( haloPhi - gP4_.Phi() ) ;
-                 dphi = ( dphi > 3.1416 ) ? 6.2832 - dphi : dphi ;
+                 h.h_RhoPhi_Halo->Fill( haloPhi, haloRho , weight ) ;
+                 h.h_nHaloTracks->Fill( nHaloTracks , weight ) ;
+                 h.h_nHaloHits->Fill( nHaloHits , weight ) ;
+                 //double dphi = fabs( haloPhi - gP4_.Phi() ) ;
+                 //dphi = ( dphi > 3.1416 ) ? 6.2832 - dphi : dphi ;
                  //double drho = fabs( haloRho - gP4_.Rho() ) ;
-                 if (  dphi < 0.5  ) {   
-                    h.h_PhiTimeHalo->Fill( gP4_.Phi(), seedTime[k] ) ;
-                    h.h_EtaTimeHalo->Fill( gP4_.Eta(), seedTime[k] ) ;
-                    haloPhoton = true ;
-                    h.h_SigEtaHalo->Fill( sigmaEta[k] ) ;
-                    h.h_SigIetaHalo->Fill( sigmaIeta[k] ) ;
+              }
+
+              // Check the efficiency 
+              bool haloTag  = ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.05 && fabs( gP4_.Eta() ) < 1.4 ) ? true : false  ;
+              if ( fabs( gP4_.Eta() ) > 1.4 && cscdPhi[k] < 0.05 ) haloTag = true ;
+              bool spikeTag = ( nXtals[k] < 7 ) ? true : false  ;
+              bool ghostTag = ( haloTag || spikeTag ) ? true : false ;
+              // Current Halo-Control Sample
+              if ( fabs( gP4_.Phi() ) < 0.1 || fabs( fabs(gP4_.Phi()) - 3.14 ) < 0.1  ) {
+                 if ( fabs( gP4_.Eta() ) < 1.4 &&  seedTime[k]  < -3 ) {
+                     h.haloCS_sMaj_Eta->Fill(sMajPho[k] , gP4_.Eta() , weight ) ;
+		     h.haloCS_sMaj_Phi->Fill( sMajPho[k] , gP4_.Phi() , weight );
+		     h.haloCS_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+                     h.haloCS_cscdPhi->Fill( cscdPhi[k] , weight ) ;
+		     if ( haloTag ) h.haloCS_Eta_Time1->Fill( gP4_.Eta() , seedTime[k] , weight );
                  }
               }
-              if (  !haloPhoton ) {
-                 h.h_TimeNoHalo->Fill( seedTime[k] ) ;
-                 h.h_EtaTimeNoHalo->Fill( gP4_.Eta(), seedTime[k] ) ;
-		 h.h_SigEta->Fill( sigmaEta[k] ) ;
-		 h.h_SigIeta->Fill( sigmaIeta[k] ) ;
+              // Current Spike-Control sample
+              if ( fabs( gP4_.Eta() ) < 1.4 &&  seedTime[k]  < -3 && sMajPho[k] < 0.7 && cscdPhi[k] > 0.1 ) {
+                 h.spikeCS_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k] , weight ) ;
+                 h.spikeCS_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+                 h.spikeCS_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+                 h.spikeCS_nXtl_Eta->Fill( nXtals[k], gP4_.Eta() , weight ) ;
+                 h.spikeCS_nXtl->Fill( nXtals[k] , weight ) ;
+                 if ( spikeTag ) h.spikeCS_Eta_Time1->Fill( gP4_.Eta() , seedTime[k] , weight );
+              }
+              // Efficiency - Combined control sample
+              // Final ghost-hunting 
+              if ( fabs( gP4_.Eta() ) < 1.4 &&  seedTime[k]  < -3 ) {
+                  h.ghostCS_sMaj_sMin->Fill(sMajPho[k] , sMinPho[k] , weight ) ;
+                  h.ghostCS_sMaj_Eta->Fill(sMajPho[k] , gP4_.Eta() , weight ) ;
+		  h.ghostCS_Phi_Time->Fill(gP4_.Phi() , seedTime[k] , weight );
+		  h.ghostCS_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+		  if ( ghostTag ) h.ghostCS_Eta_Time1->Fill( gP4_.Eta() , seedTime[k] , weight );
               }
 
-              if ( seedTime[k] <  -5. )  h.h_Phi_Time1->Fill( gP4_.Phi() , seedTime[k] );
+              // Check mis-tagging rate from real photon
+              bool passCSSelect = false ;
+              if ( fabs(seedTime[k]) < 2 && isData == 1 && selectJets.size()  > 0 && met.Et() < 60.) passCSSelect = true ;
+              if (       seedTime[k] > 2 && isData == 0 ) passCSSelect = true ;
 
-	      if ( ik == 0 ) Rleaves.g1Pt   = gP4_.Pt() ;
-	      if ( ik == 0 ) Rleaves.g1Time = seedTime[k] ;
-	      if ( ik == 1 ) Rleaves.g2Pt   = gP4_.Pt() ;
-	      if ( ik == 1 ) Rleaves.g2Time = seedTime[k] ;
+              if ( passCSSelect ) {
+     	         h.gjCS_sMaj_Eta->Fill( sMajPho[k] , gP4_.Eta() , weight );
+                 h.gjCS_nXtl_Eta->Fill( nXtals[k], gP4_.Eta() , weight );
 
-              ik++ ;
+                 // For Halo
+                 if ( fabs(gP4_.Eta()) < 0.28 ) h.sMaj_eta[0]->Fill( sMajPho[k] ) ;
+		 if ( fabs(gP4_.Eta()) > 0.28 && fabs(gP4_.Eta()) < 0.56 ) h.sMaj_eta[1]->Fill( sMajPho[k] , weight ) ;
+		 if ( fabs(gP4_.Eta()) > 0.56 && fabs(gP4_.Eta()) < 0.84 ) h.sMaj_eta[2]->Fill( sMajPho[k] , weight ) ;
+		 if ( fabs(gP4_.Eta()) > 0.84 && fabs(gP4_.Eta()) < 1.12 ) h.sMaj_eta[3]->Fill( sMajPho[k] , weight ) ;
+		 if ( fabs(gP4_.Eta()) > 1.12 && fabs(gP4_.Eta()) < 1.40 ) h.sMaj_eta[4]->Fill( sMajPho[k] , weight ) ;
+		 if ( fabs(gP4_.Eta()) > 1.5  && fabs(gP4_.Eta()) < 2.0  ) h.sMaj_eta[5]->Fill( sMajPho[k] , weight ) ;
+		 if ( fabs(gP4_.Eta()) > 2.   && fabs(gP4_.Eta()) < 2.5  ) h.sMaj_eta[6]->Fill( sMajPho[k] , weight ) ;
+
+                 if ( cscdPhi[k] < 0.05 ) {
+                    if ( fabs(gP4_.Eta()) < 0.28 ) h.sMaj_eta_csc[0]->Fill( sMajPho[k] ) ;
+		    if ( fabs(gP4_.Eta()) > 0.28 && fabs(gP4_.Eta()) < 0.56 ) h.sMaj_eta_csc[1]->Fill( sMajPho[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 0.56 && fabs(gP4_.Eta()) < 0.84 ) h.sMaj_eta_csc[2]->Fill( sMajPho[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 0.84 && fabs(gP4_.Eta()) < 1.12 ) h.sMaj_eta_csc[3]->Fill( sMajPho[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 1.12 && fabs(gP4_.Eta()) < 1.40 ) h.sMaj_eta_csc[4]->Fill( sMajPho[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 1.5  && fabs(gP4_.Eta()) < 2.0  ) h.sMaj_eta_csc[5]->Fill( sMajPho[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 2.   && fabs(gP4_.Eta()) < 2.5  ) h.sMaj_eta_csc[6]->Fill( sMajPho[k] , weight ) ;
+                 }
+
+                 h.nCS_Eta->Fill( fabs(gP4_.Eta()) , weight )  ;
+                 // For Halo
+                 if ( haloTag ) h.nHL_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
+                 // For Spike -  need to exclude halo
+                 if ( spikeTag ) h.nSpk_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
+                 // For Ghost
+                 if ( ghostTag ) h.nGhS_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
+
+                 if ( sMajPho[k] < 0.7 && cscdPhi[k] > 0.1 ) h.notSpike_nXtl->Fill( nXtals[k] , weight );
+
+              }
+ 
+              // The result of halo tagging and spike tagging 
+              if ( haloTag ) {
+                 h.halo_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+                 h.halo_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+                 h.halo_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
+                 h.halo_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
+                 h.halo_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
+                 h.halo_sigEta->Fill( sigmaEta[k] , weight ) ;
+                 h.halo_sigIeta->Fill( sigmaIeta[k] , weight ) ;
+                 h.halo_Time->Fill( seedTime[k] , weight ) ;
+
+              } else {
+                 h.noHalo_Eta_Time->Fill( gP4_.Eta(), seedTime[k] , weight ) ;
+                 h.noHalo_Phi_Time->Fill( gP4_.Phi(), seedTime[k] , weight ) ;
+                 h.noHalo_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
+                 h.noHalo_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
+                 h.noHalo_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
+		 h.noHalo_sigEta->Fill( sigmaEta[k] , weight ) ;
+		 h.noHalo_sigIeta->Fill( sigmaIeta[k] , weight ) ;
+                 h.noHalo_Time->Fill( seedTime[k] , weight ) ;
+
+                 if ( fabs( seedTime[k] ) > 3. ) {
+                    h.noHalo_nXtl_side->Fill( nXtals[k] , weight ) ;
+                 } else  {
+                    h.noHalo_nXtl_center->Fill( nXtals[k] , weight ) ;
+                 }
+                 
+                 if ( spikeTag ) {
+                    h.spike_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+		    h.spike_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+		    h.spike_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
+		    h.spike_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
+		    h.spike_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
+		    h.spike_sigEta->Fill( sigmaEta[k] , weight ) ;
+		    h.spike_sigIeta->Fill( sigmaIeta[k] , weight ) ;
+		    h.spike_Time->Fill( seedTime[k] , weight ) ;
+                 } else {
+                    h.noSpike_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+		    h.noSpike_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+		    h.noSpike_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
+		    h.noSpike_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
+		    h.noSpike_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
+		    h.noSpike_sigEta->Fill( sigmaEta[k] , weight ) ;
+		    h.noSpike_sigIeta->Fill( sigmaIeta[k] , weight ) ;
+		    h.noSpike_Time->Fill( seedTime[k] , weight ) ;
+                 }
+              }
+ 
+              if ( ghostTag ) {
+                 h.ghost_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
+                 h.ghost_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+                 h.ghost_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+                 h.ghost_Time->Fill( seedTime[k] );
+              } else {
+                 h.pure_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
+                 h.pure_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
+                 h.pure_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
+                 h.pure_Time->Fill( seedTime[k] , weight );
+              }
+
           }
-          h.h_g1Pt->Fill( max_gPt );
-
-          Rleaves.nJets    = (int)( selectJets.size() );
-          Rleaves.nPhotons = ik  ;
-          Rleaves.met      = met.Et() ;
-          if ( selectJets.size() > 0 && selectJets.size() < 3 ) Rleaves.bgTime = seedTime[ selectPho[0].first ] ;
+          h.h_g1Pt->Fill( max_gPt , weight );
        }
 
-       if ( Rleaves.nPhotons > 0 ) Rtree->Fill() ;
-
-       // look up gen information  
-       //if ( nVertices > 0 ) cout<<" vtx  = ("<< vtxX[0] <<","<< vtxY[0] <<","<<vtxZ[0] <<")"<< endl;
+       // look up gen information for signal MC  
        if ( isData == 1 ) continue ;
 
        genPho.clear() ; // used for matching
@@ -331,8 +492,8 @@ void TestGen::ReadTree( string dataName ) {
            //double dT = ( EcalTime < -24.9 ) ? -4 : EcalTime  - t0 ;
            double dT = EcalTime  - t0 ;
 
-           h.Time_R->Fill( dT, sqrt( (genVx[k]*genVx[k]) + ( genVy[k]*genVy[k]) ) );
-           h.Time_Z->Fill( dT, fabs( genVz[k] )  );
+           h.Time_R->Fill( dT, sqrt( (genVx[k]*genVx[k]) + ( genVy[k]*genVy[k]) ) , weight );
+           h.Time_Z->Fill( dT, fabs( genVz[k] ) , weight );
 
            // build the P4 for gen photon from reconstruction point of view 
            // skip the escaped photon 
@@ -367,7 +528,7 @@ void TestGen::ReadTree( string dataName ) {
            h.h_Time->Fill( dT ) ;
           
            if ( dT > -3.999999 ) EscapedPhoton++ ;
-           h.h_ctau->Fill( genT[mId]*300. /  xP4.Gamma()) ;
+           h.h_ctau->Fill( genT[mId]*300. / xP4.Gamma()  ) ;
            h.h_xbeta->Fill( xP4.Beta() ) ;
            //cout<<" PID:"<<pdgId[k] ;
            //cout<<" T_X: "<< genT[k] <<" EcalTime: "<<  EcalTime <<" dT = "<< dT << endl; 
@@ -378,7 +539,7 @@ void TestGen::ReadTree( string dataName ) {
        int    nGoodGenPho = 0 ;
        for ( size_t j = 0 ; j < genPho.size() ; j++ ) { 
            maxGen_RecoPt = ( genPho[j].second.Pt() > maxGen_RecoPt ) ? genPho[j].second.Pt() : maxGen_RecoPt ;
-           bool pass1 = ( genPho[j].second.Pt() > photonCuts[0] + 10 && fabs(genPho[j].second.Eta()) < photonCuts[1] - 0.2 ) ;
+           bool pass1 = ( genPho[j].second.Pt() > photonCuts[0] && fabs(genPho[j].second.Eta()) < photonCuts[1]  ) ;
            //if  ( !pass1 && (photonCuts[0] - genPho[j].second.Pt())  < 15. ) pass1 = true ;
            bool pass2 = true ;
            for ( size_t m =0; m< selectJets.size() ; m++ ) {
@@ -388,10 +549,14 @@ void TestGen::ReadTree( string dataName ) {
            if ( pass1 && pass2 ) nGoodGenPho++ ;
        }
 
-       bool genPass =  ( nGoodGenPho > 0 && maxGen_RecoPt >= photonCuts[8] + 10 ) ? true : false ;
+       bool genPass =  ( nGoodGenPho > 0 && maxGen_RecoPt >= photonCuts[8] ) ? true : false ;
        if ( genPass )  {
           h.h_gen1RecoPt->Fill( maxGen_RecoPt ) ;
-          for ( size_t j=0; j< genTs.size() ; j++ ) h.h_genTime->Fill( genTs[j] ) ;
+          for ( size_t j=0; j< genTs.size() ; j++ ) {
+              // the smearing according to reconstruction resolution
+              double genT_corr = tRan->Gaus( genTs[j] , timeCalib[1] ) - timeCalib[0] ;
+              h.h_genTime->Fill( genT_corr, weight ) ;
+          } 
        }       
 
        h.h_gen1Pt->Fill( maxGenPt ) ;
@@ -406,13 +571,13 @@ void TestGen::ReadTree( string dataName ) {
            double genTime  = genTs[ mlist[k].idg ] ;
            h.h_matchRecoTime->Fill( recoTime ) ;
            h.h_matchGenTime->Fill( genTime ) ;
-           if ( fabs( recoTime - genTime + 0.16 ) < 1. ) h.h_matchTime->Fill( genTime ) ;
+           if ( fabs( recoTime - genTime + timeCalib[0] ) < 1. ) h.h_matchTime->Fill( genTime ) ;
            if ( genTime < 2                 ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
-           if ( genTime >=2  && genTime < 6 ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
-           if ( genTime >=6                 ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
+           if ( genTime >=2  && genTime < 5 ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
+           if ( genTime >=5                 ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
            if ( genTime < 2                 ) h.h_aTimeRes1->Fill( recoTime1 - genTime ) ;
-           if ( genTime >=2  && genTime < 6 ) h.h_aTimeRes2->Fill( recoTime1 - genTime ) ;
-           if ( genTime >=6                 ) h.h_aTimeRes3->Fill( recoTime1 - genTime ) ;
+           if ( genTime >=2  && genTime < 5 ) h.h_aTimeRes2->Fill( recoTime1 - genTime ) ;
+           if ( genTime >=5                 ) h.h_aTimeRes3->Fill( recoTime1 - genTime ) ;
            h.h_PtRes->Fill( mlist[k].dPt ) ;
        }
        //for ( size_t k=0; k< mlist.size() ; k++ ) printf(" (%d) , dr: %f dPt: %f \n", (int)k , mlist[k].dr, mlist[k].dPt ) ;

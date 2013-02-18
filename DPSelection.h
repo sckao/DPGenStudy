@@ -2,31 +2,13 @@
 #define DPSelection_H
 
 #include "TObject.h"
-#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
-#include <string>
-#include <TMath.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <THStack.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TBranch.h>
-#include <TLeaf.h>
-#include <TString.h>
-#include <TSystem.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-#include <TFrame.h>
-#include <TLegend.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
 #include "TLorentzVector.h"
 
 #include "AnaInput.h"
-//#include "MathFunctions.h"
 
 #define MAXPHO 10
 #define MAXVTX 10
@@ -50,7 +32,7 @@ public:
 
    bool HLTFilter();
    bool L1Filter();
-   bool PhotonFilter( bool doIso = true );
+   bool PhotonFilter();
    bool JetMETFilter( bool usePFClean = false );
    bool VertexFilter();
    bool ElectronFilter();
@@ -59,12 +41,14 @@ public:
    bool GammaJetsBackground() ; 
 
    bool SignalSelection( bool isTightPhoton = false ) ; 
+   bool MCSignalSelection( bool isTightPhoton = false ) ; 
    bool GammaJetsControlSample( bool isTightPhoton = true ) ; 
    bool QCDControlSample() ; 
 
    void ResetCuts( string cutName, vector<int>& cutId, vector<double>& newValue ) ;
    void ResetCuts( string cutName, int cutId, double newValue ) ;
    void ResetCuts( string cutName = "All" ) ; // set cuts to default values from datacard 
+   void ResetCounter() ;
 
    void GetCollection( string collName, vector<objID>& coll ) ;
    void ResetCollection( string cutName = "All" ) ; // clean the storage containers 
@@ -82,6 +66,7 @@ private:
 
    vector<double> photonCuts ;
    vector<double> photonIso ;
+   vector<double> photonPFIso ;
    vector<double> vtxCuts ;
    vector<double> jetCuts ;
    vector<double> electronCuts ;
@@ -89,22 +74,30 @@ private:
    vector<int>    trigBits ;
 
    unsigned int eventId ;
+   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
+   float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO], fSpike[MAXPHO] ;
+   float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO] ;
+   float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
+   float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
+
    float vtxX[MAXVTX],    vtxY[MAXVTX],  vtxZ[MAXVTX],   vtxChi2[MAXVTX], vtxNdof[MAXVTX];
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
    float jetNDau[MAXJET], jetCM[MAXJET], jetCEF[MAXJET], jetCHF[MAXJET], jetNHF[MAXJET], jetNEF[MAXJET];
-   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO] ;
-   float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO] ;
+   float jecUnc[MAXJET],  jerUnc[MAXJET] ;
+
    float muPx[MAXMU], muPy[MAXMU], muPz[MAXMU], muE[MAXMU] ;
    //float muEcalIso[MAXOBJ], muHcalIso[MAXOBJ], muTrkIso[MAXOBJ] ;
    float elePx[MAXELE], elePy[MAXELE], elePz[MAXELE], eleE[MAXELE] ;
    float eleEcalIso[MAXELE], eleHcalIso[MAXELE], eleTrkIso[MAXELE] ;
    int   eleNLostHits[MAXELE] ;
 
-   float metPx, metPy, metE ;
+   float metPx, metPy, metE, met_dx1, met_dy1, met_dx2, met_dy2, met_dx3, met_dy3 ;
    int   nJets, nPhotons, nElectrons, nVertices, nMuons, triggered, L1a ;
 
    int isData ;
    int UseL1 ;
+   int systType ;
+   int usePFIso ;
    vector<int> trigCuts ;
 
    // counters for cutflow  

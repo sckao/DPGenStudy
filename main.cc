@@ -15,6 +15,8 @@
 #include "Trigger.h"
 #include "Histogram.h"
 #include "Background.h"
+#include "Systematic.h"
+#include "Output.h"
 
 using namespace std; 
 
@@ -27,6 +29,8 @@ int main( int argc, const char* argv[] ) {
   Input->LinkForests("DPAnalysis");
   string dataFileNames ;
   Input->GetParameters( "TheData", &dataFileNames );
+  vector<string> mcFileNames ;
+  Input->GetParameters( "TheMC",   &mcFileNames );
 
   int module = -1 ;
   Input->GetParameters( "Module", & module ) ;
@@ -42,17 +46,35 @@ int main( int argc, const char* argv[] ) {
      delete trg ;
   }
   if ( module == 2 ) {
-     //TestGen   *tgen  = new TestGen( datacardfile ) ;
-     //tgen->ReadTree( dataFileNames);
-     //delete tgen ;
-
      Histogram *histo = new Histogram( datacardfile ) ;
      histo->DrawHistograms();
      delete histo ;
   }
   if ( module == 3 ) {
+     TestGen   *tgen  = new TestGen( datacardfile ) ;
+     vector<double >normV = Input->NormalizeComponents( datacardfile );
+
+     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) { 
+         tgen->ReadTree( mcFileNames[i] , normV[i] );
+     }
+     delete tgen ;
+  }
+  if ( module == 4 ) {
+
+     Output* out = new Output( datacardfile ) ;
+     out->Produce() ;
+
+     delete out ;
+  }
+  if ( module == 5 ) {
+     Systematic* syst  = new Systematic( datacardfile ) ;
+     syst->McDataCompare() ;
+     delete syst ;
+  }
+  if ( module == 6 ) {
      Background * bg = new Background( datacardfile ) ;
-     bg->SpikeShape() ;
+     //bg->SpikeShape() ;
+     bg->RunEstimation( dataFileNames ) ;
      delete bg ;
   }
 

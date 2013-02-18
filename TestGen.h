@@ -15,7 +15,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
-#include <TRandom.h>
+#include <TRandom3.h>
 #include <TLeaf.h>
 #include <TString.h>
 #include <TSystem.h>
@@ -33,7 +33,6 @@
 #include "DPSelection.h"
 #include "hDraw.h"
 #include "Histogram.h"
-#include "Rtuple.h"
 
 #define MAXPHO 10
 #define MAXVTX 10
@@ -58,7 +57,7 @@ public:
    TestGen( string datacardfile = "DataCard.txt");     
    ~TestGen();     
    
-   void ReadTree( string dataName ) ;
+   void ReadTree( string dataName, double weight = 1. ) ;
    bool Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
    bool Propagator1( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
 
@@ -79,7 +78,6 @@ private:
    int isData ;
    double TCut ;
    double FitCtau ;
-   int unBinned ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
@@ -87,10 +85,11 @@ private:
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
-   float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO] ;
+   float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO];
+   float photIso[MAXPHO] , cHadIso[MAXPHO], nHadIso[MAXPHO], phoHoverE[MAXPHO] ;
    float fSpike[MAXPHO], maxSwissX[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
-   float sigmaEta[MAXPHO], sigmaIeta[MAXPHO] ;
+   float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 
@@ -108,15 +107,13 @@ private:
  
    vector<double> photonCuts ;
    vector<double> jetCuts ;
+   vector<double> timeCalib ;
 
    double decayR ;
   
    // Root File for Rootuple or histograms
    TFile *theFile ;
    string hfName ;
-   // NTuple for RooStats
-   TTree *Rtree ;
-   Rtuple Rleaves ;
    // Histograms set
    hSet   h ;
 

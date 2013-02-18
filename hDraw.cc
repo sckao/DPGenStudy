@@ -175,6 +175,42 @@ void hDraw::DrawNxM( int id, TH2D* h2, string xTitle, string yTitle, string logZ
       }
 }
 
+void hDraw::FitNDraw( TH1D* h1, TF1* ffn, string plotName, string xTitle, string yTitle, string logY, float statY, int color, TLegend* leg ) {
+
+      // Plot the histogram
+      c1->Clear();
+      c1->SetFillColor(10);
+      c1->SetFillColor(10);
+      c1->SetLogy(0);
+
+      //gStyle->SetOptStat("emio");
+      if ( strncasecmp( "logY", logY.c_str(), logY.size() ) ==0 && logY.size() > 0 ) c1->SetLogy() ;
+
+      gStyle->SetOptFit(0011);
+      gStyle->SetStatY( statY  );
+      gStyle->SetStatTextColor( color );
+      gStyle->SetStatFontSize( 0.015 ) ;
+
+      if ( xTitle.size() > 0 ) h1->GetXaxis()->SetTitle( xTitle.c_str() );
+      if ( yTitle.size() > 0 ) h1->GetYaxis()->SetTitle( yTitle.c_str() );
+      h1->SetLineColor( color ) ;
+
+      c1->cd();
+      h1->Draw() ;
+      c1->Update();
+
+      // Define the fitting function and fit
+      h1->Fit( ffn, "R", "sames" );
+      //func1->Draw("same") ;
+      c1->Update();
+
+      if ( leg != NULL ) leg->Draw("sames") ;
+
+      if ( plotName.size() > 0 ) {
+         TString plotname1 = hfolder + plotName + "."+plotType ;
+         c1->Print( plotname1 );
+      }
+}
 
 void hDraw::FitNDraw( TH1D* h1, string plotName, string xTitle, string yTitle, string logY, float statY, int color, TLegend* leg ) {
 
@@ -199,13 +235,13 @@ void hDraw::FitNDraw( TH1D* h1, string plotName, string xTitle, string yTitle, s
       c1->Update();
 
       // Define the fitting function and fit
-      h1->Fit( func1, "R" );
-      func1->Draw("same") ;
+      h1->Fit( func1, "R", "sames" );
+      //func1->Draw("same") ;
       c1->Update();
 
       if ( leg != NULL ) leg->Draw("sames") ;
 
-      if ( plotName != "" || plotName != " " ) {
+      if ( plotName.size() > 0 ) {
          TString plotname1 = hfolder + plotName + "."+plotType ;
          c1->Print( plotname1 );
       }
@@ -222,8 +258,32 @@ void hDraw::FitNDrawAppend( TH1D* h1, string plotName, float statY, int color, T
       h1->DrawCopy("sames") ;
       c1->Update();
 
-      h1->Fit( func1, "R" );
-      func1->Draw("same") ;
+      h1->Fit( func1, "R", "sames" );
+      c1->Update();
+
+      if ( leg != NULL ) leg->Draw("sames") ;
+
+      if ( plotName.size() > 0 ) {
+         TString plotname1 = hfolder + plotName + "."+plotType ;
+         c1->Print( plotname1 );
+         if ( func1 != NULL ) func1 = NULL ;
+      }
+}
+
+void hDraw::FitNDrawAppend( TH1D* h1, TF1* ffn, string plotName, float statY, int color, TLegend* leg ) {
+
+      gStyle->SetOptFit(0011);
+      gStyle->SetStatY( statY  );
+      gStyle->SetStatTextColor( color );
+      gStyle->SetStatFontSize( 0.012 ) ;
+
+      h1->SetLineColor( color ) ;
+
+      c1->cd();
+      h1->DrawCopy("sames") ;
+      c1->Update();
+
+      h1->Fit( ffn, "R", "sames" );
       c1->Update();
 
       if ( leg != NULL ) leg->Draw("sames") ;
@@ -284,7 +344,7 @@ void hDraw::SetFitParameter( string fitFunc_, TH1D* h1, double fitMin_, double f
 }
 
 // Drawing Efficiency Plot from two histograms    
-void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent, int beginBin, int endBin, string graphName ) {
+void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent, int beginBin, int endBin, string graphName, TPaveText* ttex ) {
 
    endBin = ( endBin == -1 ) ? hAll->GetNbinsX() : endBin ;
 
@@ -301,18 +361,20 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
    vector<double> errH;
    double bW = hCut->GetBinWidth(1) ;
    cout<<" bin width = " << bW <<" end bin = "<< endBin << endl ;
+
    // Accumulate bin contain
    for ( int i= beginBin ; i<= endBin; i++ ) {
        double bc_ = hCut->GetBinContent(i) ;
        double ba_ = hAll->GetBinContent(i) ;
        double x_  = hAll->GetBinCenter(i) ;
+     
        // rebin the histogram in order to have consistence statistic for each bin
        if ( ba < minBinContent || ba < bc || rbin < rbin_ ) {
           ba += ba_ ;
           bc += bc_ ;
           x  +=  x_ ;
           rbin++ ;
-          if ( ba >= minBinContent && ba >= bc && rbin >= rbin_ ) {
+          if ( i < beginBin+3 || (ba >= minBinContent && ba >= bc && rbin >= rbin_ ) ) {
              bcV.push_back( bc ) ;
 	     baV.push_back( ba ) ;
 	     xV.push_back( x / rbin )  ;
@@ -378,6 +440,8 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
        eY_H[i] = errH[i] ;
    }
 
+   double xMax =  fX[sz-1] + (2*eX[sz-1]) ;
+
    TGraphAsymmErrors* gr  = new TGraphAsymmErrors( sz, fX, fY, eX, eX, eYL, eYH );
    TGraphAsymmErrors* gr1 = new TGraphAsymmErrors( sz, fX, yA, eX, eX, eY_L, eY_H ); // SC's result !
 
@@ -401,7 +465,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
    gr->SetMarkerSize(1);
    gr->SetLineWidth(2);
    gStyle->SetTitleFontSize(0.04) ;
-   gr->SetTitle(" Efficiency") ;
+   gr->SetTitle(" CMS Preliminary #sqrt{s} = 8 TeV ") ;
    gr->GetXaxis()->SetTitleOffset(1.34);
    gr->GetYaxis()->SetTitleOffset(1.39);
    gr->GetXaxis()->SetTitleFont(42);
@@ -410,25 +474,36 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
    gr->GetYaxis()->SetTitleSize(0.04);
    gr->GetXaxis()->SetTitle( xlable.c_str() ) ;
    gr->GetYaxis()->SetTitle(" Efficiency ") ;
+   gr->GetXaxis()->SetLimits( 0., xMax );
    gr->Draw("AP");
-
    c0->Update();
+   //if ( ttex != NULL ) {
+   //   ttex->Draw("same") ;
+   //   c0->Update();
+   //} 
    TString plotname = hfolder + graphName + "Asym."+plotType ;
    c0->Print( plotname );
    
    c0->cd();
-   gr1->SetTitle(" Efficiency ") ;
+   gr1->SetTitle(" CMS Preliminary #sqrt{s} = 8 TeV ") ;
    gr1->SetMaximum( 1.1 );
    gr1->SetMinimum( 0.0 );
    gr1->SetMarkerColor(4);
    gr1->SetMarkerStyle(22);
    gr1->SetMarkerSize(1);
    gr1->SetLineWidth(2);
+   gr1->GetXaxis()->SetTitleOffset(1.34);
+   gr1->GetYaxis()->SetTitleOffset(1.39);
    gr1->GetXaxis()->SetTitle( xlable.c_str() ) ;
    gr1->GetYaxis()->SetTitle(" Efficiency ") ;
+   gr1->GetXaxis()->SetLimits( 0., xMax );
    gr1->Draw("AP");
-
    c0->Update();
+   if ( ttex != NULL ) {
+      ttex->Draw("same") ;
+      c0->Update();
+   } 
+
    plotname = hfolder + graphName + "Asym1."+plotType ;
    c0->Print( plotname );
    
@@ -441,6 +516,11 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
 
 // return asymmetry errors <H,L>
 pair<double, double> hDraw::EffError( double N_all, double N_pass ) {
+
+    if ( N_all < 0.0001 ) {
+       pair<double,double> noErr  = make_pair( 0 , 0 );
+       return noErr ;
+    }
 
     double eff0 = N_pass / N_all ;
     pair<double,double> theErr ;

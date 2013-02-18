@@ -13,6 +13,7 @@ AnaInput::~AnaInput(){
 }
 
 vector<TTree*> forestData ;
+vector<TTree*> forestMC ;
 
 void AnaInput::LinkForests( TString treeName ){
 
@@ -23,6 +24,13 @@ void AnaInput::LinkForests( TString treeName ){
   for ( size_t i =0 ; i< fNamesData.size(); i++ ) {
       TTree* tr = GetTree( fNamesData[i], treeName ) ;
       forestData.push_back( tr );
+  }
+
+  vector<string> fNamesMC ;
+  GetParameters( "TheMC", &fNamesMC );
+  for ( size_t i =0 ; i< fNamesMC.size(); i++ ) {
+      TTree* tr = GetTree( fNamesMC[i], treeName ) ;
+      forestMC.push_back( tr );
   }
 
 }
@@ -41,15 +49,21 @@ void AnaInput::GetForest( string DataSet, TString treeName ) {
     }
 }
 
-TTree* AnaInput::TreeMap( string fileName ){
+TTree* AnaInput::TreeMap( string fileName ) {
 
     vector<string> f0Names ;
     GetParameters( "TheData", &f0Names );
+    vector<string> f1Names ;
+    GetParameters( "TheMC", &f1Names );
 
     TTree* theTr = 0;
     for ( size_t i=0; i< f0Names.size(); i++ ) {
         if ( f0Names[i] == fileName ) theTr = forestData[i] ;
     }
+    for ( size_t i=0; i< f1Names.size(); i++ ) {
+        if ( f1Names[i] == fileName ) theTr = forestMC[i] ;
+    }
+
 
     return theTr ;
 }
@@ -89,38 +103,31 @@ TTree* AnaInput::GetTree( string fName, TString treeName, TFile* file  ) {
 }
 
 
-double AnaInput::NormalizeComponents(  string theChannel, string cfgFile ){
+vector<double> AnaInput::NormalizeComponents( string cfgFile ){
 
   if ( cfgFile == "" ) cfgFile = datacardfile ;
 
   double lumi ;
-  double Scal = 1 ;
   GetParameters("Lumi", &lumi, cfgFile );
 
   vector<double> nEvents ;
-  GetParameters( "nEvents" , &nEvents, cfgFile );
+  GetParameters( "NEvents" , &nEvents, cfgFile );
   vector<double> xsec;
-  GetParameters("xsec", &xsec, cfgFile );
+  GetParameters("XSection", &xsec, cfgFile );
   vector<double> Eff;
   GetParameters("Eff", &Eff, cfgFile )  ;
-  vector<string>  channel;
-  GetParameters( "channel" , &channel, cfgFile );
 
-  int idx = -1;
-  for (size_t i =0; i< channel.size(); i++) {
-      if ( channel[i] == theChannel )  idx = i ;
-  }
+  vector<double> normV ;
+  for ( size_t i=0; i < xsec.size(); i++ ) {
+     double nBase = xsec[i]*Eff[i];
+     double Scal = (nBase*lumi) / nEvents[i] ;
+     cout<<" Normalization =  "<< Scal <<endl;
+     normV.push_back( Scal ) ;
+  } 
 
-  if ( idx >= 0 ) {
-     double nBase = xsec[idx]*Eff[idx];
-     Scal = (nBase*lumi) / nEvents[idx] ;
-     cout<<" Scal of "<< channel[idx]<< " = " << Scal <<endl;
-  
-  } else {
-     cout <<" No matched componenet !! " <<endl;
-  }
+  if ( normV.size() < 1) normV.push_back( 1. ) ;
 
-  return Scal;
+  return normV ;
 }
 
 // Methods to read DataCard.txt

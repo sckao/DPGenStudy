@@ -42,7 +42,7 @@ public:
 
    TTree* GetTree( string fName, TString treeName, TFile* file = NULL );
 
-   double NormalizeComponents( string theChhannel, string cfgFile = "" );
+   vector<double> NormalizeComponents( string cfgFile = "" );
    
    void GetParameters( string paraName, int* thePara, string cfgFile = "" );
    void GetParameters( string paraName, double* thePara, string cfgFile ="" );

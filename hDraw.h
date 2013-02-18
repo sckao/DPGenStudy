@@ -13,6 +13,7 @@
 #include <TGraphErrors.h>
 #include <TGraphAsymmErrors.h>
 #include <TLatex.h>
+#include <TPaveText.h>
 #include <TLegend.h>
 #include <TCanvas.h>
 #include <TSystem.h>
@@ -42,12 +43,16 @@ class hDraw {
   void DrawNxM( int id, TH2D* h2, string xTitle, string yTitle, string logZ, int nColor = 5, float titleFontSize =0.05, float statFontSize = 0.05, bool close = true ) ;
 
 
+  void FitNDraw( TH1D* h1, TF1* ffn, string plotName, string xTitle, string yTitle, string logY, float statY, int color = 1, TLegend* leg=NULL ) ;
   void FitNDraw( TH1D* h1, string plotName, string xTitle, string yTitle, string logY, float statY, int color = 1, TLegend* leg=NULL ) ;
   void FitNDrawAppend ( TH1D* h1, string plotName, float statY, int color = 4, TLegend* leg = NULL ) ;
+  void FitNDrawAppend ( TH1D* h1, TF1* ffn, string plotName, float statY, int color = 4, TLegend* leg = NULL ) ;
+
   void SetFitParameter( string fitFunc_ , double fitMin_, double fitMax_ , int nFitPara_,  double* initVals, int color = 2 ) ;
   void SetFitParameter( string fitFunc_ , TH1D* h1,  double fitMin_, double fitMax_ , int nFitPara_, int color = 2 ) ;
 
-  void EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent, int beginBin = 1, int endBin = -1 , string graphName = "Efficiency" ) ;
+  void EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent, int beginBin = 1, int endBin = -1 , string graphName = "Efficiency",  TPaveText* pavetex = NULL ) ;
+
   pair<double, double> EffError( double N_all, double N_pass ) ;
 
   static Double_t BinomialErr( Double_t* x, Double_t* par ) ;
