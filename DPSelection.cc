@@ -179,6 +179,10 @@ bool DPSelection::PhotonFilter() {
 	      if ( cHadIso[j] >= photonPFIso[0] ) continue ;  // photIso
 	      if ( nHadIso[j] >= photonPFIso[1] + ( 0.04*phoP4.Pt()   ) ) continue ;  // chargedHadron
 	      if ( photIso[j] >= photonPFIso[2] + ( 0.0005*phoP4.Pt() ) ) continue ;  // neutralHadron
+
+              if ( phoTrkIso[j] / phoP4.Pt()  >= photonIso[0] )                                continue ;
+              if ( phoEcalIso[j] >= photonIso[1] || phoEcalIso[j] / phoE[j] >= photonIso[2] )  continue ;
+              if ( phoHcalIso[j] >= photonIso[3] || phoHcalIso[j] / phoE[j] >= photonIso[4] )  continue ;
            } 
            if ( usePFIso == 2 ) {
               if ( phoTrkIso[j] / phoP4.Pt()  >= photonIso[0] )                                continue ;

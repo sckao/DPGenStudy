@@ -166,6 +166,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	   h.h_nXtl_Pt->Fill( nXtals[g],  gP4_.Pt() , weight );
 	   h.h_cscdPhi_Time->Fill( cscdPhi[g], seedTime[g] , weight  ) ;
 	   h.h_sigIeta_Time->Fill( sigmaIeta[g], seedTime[g] , weight  ) ;
+	   h.h_sigEta_sMaj->Fill( sigmaEta[g], sMajPho[g] , weight  ) ;
+	   if ( seedTime[g] > 2.99 ) h.h_sigEta_sMaj_late->Fill( sigmaEta[g], sMajPho[g] , weight  ) ;
 	   h.h_HoverE_Time->Fill( phoHoverE[g], seedTime[g] , weight  ) ;
 	   if ( sMajPho[g] > 0.4 ) h.h_sMaj_Phi->Fill(sMajPho[g] , gP4_.Phi() , weight ) ;
            h.h_HoverE->Fill( phoHoverE[g] , weight ) ;
@@ -246,6 +248,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta()) <= 1.479 )  h.aveObsEBTimeErr1->Fill( aveTimeErr1[k] , weight );
 	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta())  > 1.479 )  h.aveObsEETimeErr1->Fill( aveTimeErr1[k] , weight );
 
+	      h.h_sigIeta_Time1->Fill( sigmaIeta[k], seedTime[k] , weight  ) ;
               h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] , weight ) ;
 	      h.h_nChi2->Fill( timeChi2[k] , weight ) ;
 	      h.h_nBC->Fill( nBC[k] , weight ) ;

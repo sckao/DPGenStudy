@@ -101,6 +101,9 @@ void Histogram::Init( hSet& hS ) {
    hS.h_nXtl_Pt   = new TH2D( "h_nXtl_Pt", "N crystals vs #eta ", 50, 0, 50 ,  50,  0. , 500. ) ;
    hS.h_cscdPhi_Time  = new TH2D( "h_cscdPhi_Time", " d#Phi vs Ecal time", 64, 0, 3.2, 160, -20, 20 ) ;
    hS.h_sigIeta_Time  = new TH2D( "h_sigIeta_Time", " sigma_iEta vs Ecal time", 80, 0, 0.08, 120, -15, 15 ) ;
+   hS.h_sigIeta_Time1 = new TH2D( "h_sigIeta_Time1", " sigma_iEta vs Ecal time after cuts", 80, 0, 0.08, 120, -15, 15 ) ;
+   hS.h_sigEta_sMaj   = new TH2D( "h_sigEta_sMaj", " sigma_iEta vs sMaj ", 80, 0, 0.08, 100, 0, 2 ) ;
+   hS.h_sigEta_sMaj_late = new TH2D( "h_sigEta_sMaj_late", " sigma_iEta vs sMaj for late photon", 80, 0, 0.08, 100, 0, 2 ) ;
    hS.h_HoverE_Time   = new TH2D( "h_HoverE_Time",  " H/E vs Ecal time", 100, 0, 1, 120, -15, 15 ) ;
 
    hS.h_RhoPhi_Halo = new TH2D( "h_RhoPhi_Halo", " phi vs rho for halo tracks", 63, -3.15, 3.15, 50, 0, 500 ) ;
@@ -318,6 +321,9 @@ void Histogram::Open() {
      h.h_sMaj_sMin = (TH2D*) hFile->Get("h_sMaj_sMin")  ;
      h.h_cscdPhi_Time  = (TH2D*) hFile->Get("h_cscdPhi_Time")  ;
      h.h_sigIeta_Time  = (TH2D*) hFile->Get("h_sigIeta_Time")  ;
+     h.h_sigIeta_Time1 = (TH2D*) hFile->Get("h_sigIeta_Time1")  ;
+     h.h_sigEta_sMaj   = (TH2D*) hFile->Get("h_sigEta_sMaj")  ;
+     h.h_sigEta_sMaj_late  = (TH2D*) hFile->Get("h_sigEta_sMaj_late")  ;
      h.h_HoverE_Time   = (TH2D*) hFile->Get("h_HoverE_Time")  ;
 
      h.h_RhoPhi_Halo = (TH2D*) hFile->Get("h_RhoPhi_Halo")  ;
@@ -519,6 +525,9 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_sMaj_sMin->Write() ;
      h.h_cscdPhi_Time->Write() ;
      h.h_sigIeta_Time->Write() ;
+     h.h_sigIeta_Time1->Write() ;
+     h.h_sigEta_sMaj->Write() ;
+     h.h_sigEta_sMaj_late->Write() ;
      h.h_HoverE_Time->Write() ;
 
      h.haloCS_cscdPhi->Write();
@@ -813,6 +822,9 @@ void Histogram::DrawHistograms() {
    h_draw->Draw2D( h.h_sMaj_sMin,   "h_sMaj_sMin",   "sMaj", "sMin ",  "logZ", 8 ) ;
    h_draw->Draw2D( h.h_cscdPhi_Time,"h_cscdPhi_Time","d#phi", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_sigIeta_Time,"h_sigIeta_Time","#sigma_{i#eta i#eta}", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( h.h_sigIeta_Time1,"h_sigIeta_Time1","#sigma_{i#eta i#eta}", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( h.h_sigEta_sMaj, "h_sigEta_sMaj", "#sigma_{#eta #eta}", "s_{Maj}", "logZ" , 8 ) ;
+   h_draw->Draw2D( h.h_sigEta_sMaj_late, "h_sigEta_sMaj_late", "#sigma_{#eta #eta}", "s_{Maj}", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_HoverE_Time, "h_HoverE_Time", "H/E", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_cHadIso_t,   "h_cHadIso_t",   " Charged Hadronic Iso", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_nHadIso_t,   "h_nHadIso_t",   " Neutral Hadronic Iso", "EcalTime (ns)", "logZ" , 8 ) ;

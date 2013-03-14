@@ -45,6 +45,8 @@ public:
    void Produce() ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, pair<int, int> cw[] ) ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, double minBC ) ;
+   TH1D* RebinHistogram( TH1D* h1, string newHistoName, double center, double width ) ;
+
    void ShiftPeak( TH1D* h1, TH1D* h2 ) ;
 
    void WriteDataHisto() ;
@@ -81,15 +83,15 @@ private:
 
    TH1D* rh_dataTime  ;
    TH1D* rh_dataTimeA  ;
-   TH1D* rh_MET       ;
+   //TH1D* rh_MET       ;
    TH1D* rh_bgTime    ;
    TH1D* rh_bgTimeA   ;
-   TH1D* rh_bgMET       ;
+   //TH1D* rh_bgMET       ;
    TH1D* rh_sgTime    ;
    TH1D* rh_sgTimeA    ;
-   TH1D* rh_sgMET       ;
-   TH1D* rh_NJets     ;
-   TH1D* rh_sgNJets     ;
+   //TH1D* rh_sgMET       ;
+   //TH1D* rh_NJets     ;
+   //TH1D* rh_sgNJets     ;
 
    //ClassDef(Output, 1);
 };

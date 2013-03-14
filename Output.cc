@@ -19,24 +19,23 @@ Output::Output( string datacardfile ) {
   theFile = new TFile( Path_fName, "RECREATE" );
   theFile->cd() ;
 
-  h_dataTime   = new TH1D("h_dataTime", "Photon Seed Time from data", 80,  -4.5, 15.5);
+  h_dataTime   = new TH1D("h_dataTime",  "Photon Seed Time from data", 80,  -4.5, 15.5);
   h_dataTimeA  = new TH1D("h_dataTimeA", "Photon Ave. Cluster Time from data", 80,  -4.5, 15.5);
-  h_MET        = new TH1D("h_MET",  " MET  ", 50,  30, 530);
+  h_MET        = new TH1D("h_MET",       " MET  ", 50,  30, 530);
 
-  h_bgTime     = new TH1D("h_bgTime", "Photon Seed Time of background ", 80,  -4.5, 15.5);
+  h_bgTime     = new TH1D("h_bgTime",  "Photon Seed Time of background ", 80,  -4.5, 15.5);
   h_bgTimeA    = new TH1D("h_bgTimeA", "Photon Ave. Cluster Time of background ", 80,  -4.5, 15.5);
-  h_bgMET      = new TH1D("h_bgMET",  " MET of background sample  ", 50,  30, 530);
+  h_bgMET      = new TH1D("h_bgMET",   "MET of background sample  ", 50,  30, 530);
 
-  h_sgTime     = new TH1D("h_sgTime", "Photon Seed Time of signal ", 80,  -4.5, 15.5);
+  h_sgTime     = new TH1D("h_sgTime",  "Photon Seed Time of signal ", 80,  -4.5, 15.5);
   h_sgTimeA    = new TH1D("h_sgTimeA", "Photon Ave. Cluster Time of signal ", 80,  -4.5, 15.5);
-  h_sgMET      = new TH1D("h_sgMET",  " MET from signal MC ", 50,  30, 530);
+  h_sgMET      = new TH1D("h_sgMET",   "MET from signal MC ", 50,  30, 530);
 
-  h_NJets       = new TH1D("h_NJets",  " N of Jets from Data", 10,  0, 10);
-  h_sgNJets     = new TH1D("h_sgNJets",  " N of Jets from Signal MC", 10,  0, 10);
+  h_NJets      = new TH1D("h_NJets",   "N of Jets from Data", 10,  0, 10);
+  h_sgNJets    = new TH1D("h_sgNJets", "N of Jets from Signal MC", 10,  0, 10);
 
   theFile->cd() ;
 }
-
 
 Output::~Output(){
 
@@ -46,7 +45,6 @@ Output::~Output(){
   delete select ;
   delete Input ;
   cout<<" done ! "<<endl ;
-
 }
 
 // Produce Data and Background histogram for statistical test
@@ -104,7 +102,8 @@ void Output::RunData( string dataName ) {
        nEvt++; 
        //cout<<" EVT# : "<< nEvt <<endl ;
 
-       if ( selectJets.size() > 2 ) { 
+       // Signal Region
+       if ( selectJets.size() > 1 ) { 
           int k = selectPho[0].first ;
 	  h_dataTime->Fill( seedTime[k] ) ;
 	  h_MET->Fill( metE ) ;
@@ -116,7 +115,8 @@ void Output::RunData( string dataName ) {
              if ( timeChi2[m] < 5 ) h_dataTimeA->Fill( aveTime[m] ) ;
           }
        }
-       if ( selectJets.size() > 0 && selectJets.size() < 3 ) { 
+       // Background Region
+       if ( selectJets.size() > 0 && selectJets.size() < 2 ) { 
           int k = selectPho[0].first ;
 	  h_bgTime->Fill( seedTime[k] ) ;
 	  h_bgMET->Fill( metE ) ;
@@ -130,9 +130,9 @@ void Output::RunData( string dataName ) {
        }
        h_NJets->Fill( (int) selectJets.size() ) ;
 
-
    } // end of event looping
 
+   /*`
    pair<int, int> tRbin[3] = { make_pair(1,9), make_pair(9,1),  make_pair(27,54) };  ;
    rh_dataTime    = RebinHistogram( h_dataTime,   "rh_dataTime", tRbin ) ;
    rh_dataTimeA   = RebinHistogram( h_dataTimeA,  "rh_dataTimeA", tRbin ) ;
@@ -141,6 +141,15 @@ void Output::RunData( string dataName ) {
    rh_bgTimeA     = RebinHistogram( h_bgTimeA,    "rh_bgTimeA", tRbin ) ;
    rh_bgMET       = RebinHistogram( h_bgMET,      "rh_bgMET",   1 ) ;
    rh_NJets       = RebinHistogram( h_NJets,      "rh_NJets",   1 ) ;
+   */ 
+   rh_dataTime    = RebinHistogram( h_dataTime,   "rh_dataTime",  -0.2, 1.5 ) ;
+   rh_dataTimeA   = RebinHistogram( h_dataTimeA,  "rh_dataTimeA", -0.2, 1.5 ) ;
+   //rh_MET         = RebinHistogram( h_MET,        "rh_MET",   1 ) ;
+
+   rh_bgTime      = RebinHistogram( h_bgTime,     "rh_bgTime",  -0.2, 1.5 ) ;
+   rh_bgTimeA     = RebinHistogram( h_bgTimeA,    "rh_bgTimeA", -0.2, 1.5 ) ;
+   //rh_bgMET       = RebinHistogram( h_bgMET,      "rh_bgMET",   1 ) ;
+   //rh_NJets       = RebinHistogram( h_NJets,      "rh_NJets",   1 ) ;
 
    WriteDataHisto() ;
    cout<<" ======== CutFlow for Data ======== "<<endl ;
@@ -253,18 +262,22 @@ void Output::RunMC( string mcName, double weight ) {
    sprintf( rhName3, "rh_sgMET_%s",   mcTag.c_str() ) ;
    sprintf( rhName4, "rh_sgNJets_%s", mcTag.c_str() ) ;
 
+   /*
    pair<int, int> tRbin[3] = { make_pair(1,9), make_pair(9,1),  make_pair(27,54) };  ;
    rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, tRbin  ) ;
    rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, tRbin ) ;
    rh_sgMET     = RebinHistogram( h_sgMET,    rhName3, 1 ) ;
    rh_sgNJets   = RebinHistogram( h_sgNJets,  rhName4, 1 ) ;
-
+   */
    /*
    rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, 1 ) ;
    rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, 1 ) ;
    rh_sgMET     = RebinHistogram( h_sgMET,    rhName3, 1 ) ;
    rh_sgNJets   = RebinHistogram( h_sgNJets,  rhName4, 1 ) ;
    */
+
+   rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, -0.2, 1.5 ) ;
+   rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, -0.2, 1.5 ) ;
 
    WriteMcHisto() ;
    cout<<" ======== CutFlow for Signal MC ======== "<<endl ;
@@ -280,9 +293,9 @@ void Output::Produce() {
      Input->GetParameters( "TheMC",   &mcFileNames );
 
      RunData( dataFileNames ) ;
-     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
-         RunMC( mcFileNames[i], normV[i] ) ;
-     }
+     //for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
+     //    RunMC( mcFileNames[i], normV[i] ) ;
+     //}
 
 }
 
@@ -367,59 +380,53 @@ TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName,  pair<int, int> cw[
    return h1_new ;
 }
 
-/*
-TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName,  pair<int, int> cw[] ) {
+// rebin two-side tails
+TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName, double center, double width ) {
 
-   double b[3] = { cw[0].first,  cw[1].first,  cw[2].first } ;
-   double r[3] = { cw[0].second, cw[1].second, cw[2].second } ;
-   double c[4] , w[3] ; 
- 
-   // c: start bin, w: bin width
-   c[0] = h1->GetBinCenter( b[0] ) - ( h1->GetBinWidth( b[0] )/2 ) ;
-   w[0] = h1->GetBinWidth(  b[0] )*r[0]  ;
+     int lowBound = h1->FindBin( center - width ) ;
+     int  upBound = h1->FindBin( center + width ) ;
 
-   c[1] = h1->GetBinCenter( b[1] ) - ( h1->GetBinWidth( b[1] )/2 ) ;
-   w[1] = h1->GetBinWidth(  b[1] )*r[1] ;
+     double aveBC0 = 0 ;
+     double sumBC0 = 0 ;
+     double rbin0  = 0 ;
+     double aveBC1 = 0 ;
+     double sumBC1 = 0 ;
+     double rbin1  = 0 ;
+     for ( int i= 1 ; i<= h1->GetNbinsX() ; i++ ) {
 
-   c[2] = h1->GetBinCenter( b[2] ) - ( h1->GetBinWidth( b[2] )/2 ) ;
-   w[2] = h1->GetBinWidth(  b[2] )*r[2]  ;
+         double bc_   = h1->GetBinContent(i) ;
+         if ( i < lowBound ) {
+            sumBC0 += bc_ ;
+            rbin0 ++ ;
+            aveBC0 = sumBC0 /rbin0 ;
+         } 
+         if ( i > upBound ) {
+            sumBC1 += bc_ ;
+            rbin1 ++ ;
+            aveBC1 = sumBC1 /rbin1 ;
+         } 
+     }
 
-   int lastBin = h1->GetNbinsX() ;
-   c[3] = h1->GetBinCenter( lastBin ) - (h1->GetBinWidth( lastBin )/2) ;
+     TH1D* h2 = (TH1D*) h1->Clone() ;
+     h2->SetName( newHistoName.c_str() ) ;
+     for ( int i= 1 ; i<= h1->GetNbinsX() ; i++ ) {
+         // reset each bin
+         h2->SetBinContent(i, 0 ) ;
 
+         if ( i < lowBound ) {
+            h2->SetBinContent( i, aveBC0 ) ;
+         } else if ( i > upBound ) {
+            h2->SetBinContent( i, aveBC1 ) ;
+         } else {
+            h2->SetBinContent( i, h1->GetBinContent(i) ) ;
+         }
+     }
 
-   vector<double> cutV ;
-   for ( int i=0 ; i < 3 ; i++) {
-       printf(" c: %.2f  w: %.2f \n", c[i], w[i] ) ;
-       int j = 0 ;
-       bool fill = true ;
-       while ( fill ) {
-          double edge = c[i] + (w[i]*j);
-          if ( edge < c[i+1] ) {
-             cutV.push_back( edge )  ;
-             printf( " edge %d-%d: %.2f \n", i, j, edge ) ;
-          } else {
-            fill = false ;
-          }
-          j++ ;
-       }  ;
-   }
-   cutV.push_back( c[3] + h1->GetBinWidth( lastBin ) ) ;
-
-   const int nBin = cutV.size() - 1 ;
-   Double_t xbins[ nBin + 1 ] ;
-
-   printf(" nbin: %d , size: %d \n", nBin, (int)cutV.size() ) ;
-   for ( size_t i=0; i< cutV.size() ; i++ ) {
-       xbins[i] = cutV[i] ;
-       printf( " cut %d : %.2f \n", (int)i, cutV[i] ) ;
-   }
-
-   TH1D* h1_new = (TH1D*) h1->Rebin( nBin, newHistoName.c_str(), xbins );
-   return h1_new ;
+     return h2 ;
 }
-*/
 
+
+// Automatic rebin
 TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName, double minBC ) {
 
      // accumuate bin information
@@ -480,11 +487,11 @@ void Output::WriteDataHisto() {
 
      rh_dataTime->Write() ; 
      rh_dataTimeA->Write() ; 
-     rh_MET->Write() ;
+     //rh_MET->Write() ;
      rh_bgTime->Write() ;
      rh_bgTimeA->Write() ;
-     rh_bgMET->Write() ;
-     rh_NJets->Write() ;
+     //rh_bgMET->Write() ;
+     //rh_NJets->Write() ;
 
      h_NJets->Write() ;
 }
@@ -498,7 +505,7 @@ void Output::WriteMcHisto() {
 
      rh_sgTime->Write() ;
      rh_sgTimeA->Write() ;
-     rh_sgMET->Write() ;
-     rh_sgNJets->Write() ;
+     //rh_sgMET->Write() ;
+     //rh_sgNJets->Write() ;
 
 }

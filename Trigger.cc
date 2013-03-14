@@ -14,7 +14,9 @@ Trigger::Trigger( string datacardfile ){
   Input->GetParameters("TCut",          &TCut ) ; 
   Input->GetParameters("ThresPhoMET",   &thresPhoMET ) ; 
   Input->GetParameters("MinBinContent", &minBinContent ) ; 
+  Input->GetParameters( "UsePFIso",     &usePFIso ) ;
 
+  for( int i=0; i< 10; i++ ) purity[i] = 0 ;
 }
 
 Trigger::~Trigger() {
@@ -78,6 +80,13 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("phoTrkIso",   phoTrkIso );
    tr->SetBranchAddress("phoEcalIso",  phoEcalIso );
    tr->SetBranchAddress("phoHcalIso",  phoHcalIso );
+   // PFISO
+   if ( usePFIso == 1 ) {
+      tr->SetBranchAddress("cHadIso",     cHadIso );
+      tr->SetBranchAddress("nHadIso",     nHadIso );
+      tr->SetBranchAddress("photIso",     photIso );
+   }
+   tr->SetBranchAddress("phoHoverE",   phoHovE );
 
    tr->SetBranchAddress("fSpike",      fSpike );
    tr->SetBranchAddress("nXtals",      nXtals );
@@ -157,7 +166,8 @@ void Trigger::ReadTree( string dataName ) {
        //TLorentzVector gP40 = TLorentzVector( phoPx[0], phoPy[0], phoPz[0], phoE[0] ) ;
 
        select->MuonFilter();
-       if ( !pass_hlt || !pass_pho || !pass_vtx || !pass_jet ) continue ;
+       if ( !pass_hlt ) continue ;
+       //if ( !pass_hlt || !pass_pho || !pass_vtx || !pass_jet ) continue ;
        // only look at 1 photon events
        phoV.clear() ;
        select->GetCollection( "Photon", phoV );
@@ -171,8 +181,8 @@ void Trigger::ReadTree( string dataName ) {
 
        TLorentzVector gP4 = phoV[0].second ;
        // reject spike photons
-       if ( fSpike[ phoV[0].first ] > 0.01 || fSpike[ phoV[0].first ] < -0.01 ) continue ;
-       if ( nXtals[ phoV[0].first ] < 3 ) continue ;
+       //if ( fSpike[ phoV[0].first ] > 0.01 || fSpike[ phoV[0].first ] < -0.01 ) continue ;
+       //if ( nXtals[ phoV[0].first ] < 3 ) continue ;
 
        // min_dR( track, photon)
        h_dRTrkPho->Fill( dR_TrkPho[0] ) ;
@@ -191,7 +201,34 @@ void Trigger::ReadTree( string dataName ) {
        // find matched reco photon
        int itr = TrigRecoMatch( t_gP4, phoV ) ;
        TLorentzVector r_gP4 = ( itr < 0 ) ? TLorentzVector(0,0,0,0) : phoV[itr].second ;
-       
+ 
+       // calculate trigger purity
+       purity[0]++ ;  
+       if ( itr >= 0 ) {  
+          purity[1]++ ;
+          if ( r_gP4.Pt() >= 80.0 ) purity[2]++ ;
+          if ( fabs(r_gP4.Eta()) < 2.4 ) purity[3]++ ;
+          if ( sMinPho[itr] >= 0.1 && sMinPho[itr] <= 0.35 ) purity[4]++ ;
+          if ( phoHovE[itr] <= 0.05 ) purity[5]++ ;
+          bool isIso = true ;
+          if ( usePFIso == 1 ) {
+             Input->GetParameters( "PhotonPFIso",     &photonPFIso ) ;
+             if ( cHadIso[itr] > photonPFIso[0] ) isIso = false ;  // photIso
+             if ( nHadIso[itr] > photonPFIso[1] + ( 0.04*r_gP4.Pt()   ) ) isIso = false  ;  // chargedHadron
+             if ( photIso[itr] > photonPFIso[2] + ( 0.0005*r_gP4.Pt() ) ) isIso = false  ;  // neutralHadron
+             if ( isIso ) purity[6]++ ;
+          }
+          if ( r_gP4.Pt() >= 80.0 && fabs(r_gP4.Eta()) < 2.4 && sMinPho[itr] >= 0.1 && sMinPho[itr] <= 0.35 
+            && phoHovE[itr] <= 0.05  && isIso ) purity[7]++ ; 
+
+          if ( r_gP4.Pt() >= 80.0 && fabs(r_gP4.Eta()) < 2.4 && sMinPho[itr] >= 0.1 && sMinPho[itr] <= 0.35 
+            && phoHovE[itr] <= 0.05  && isIso && met.Et() >= 60.) purity[9]++ ; 
+
+       } 
+       if ( met.Et() >= 60. ) purity[8]++ ;
+
+       // un-mark this part if not doing purity test
+       /* 
        // 2D plot for Photon Pt vs MET3
        //if ( t_phoE > 0.1 && t_metE > 0.1 && t_metdR < 0.7 ) t_PhoPt_MET->Fill( t_gP4.Pt(), t_metE ) ;
        if ( t_metE > 25. ) h_PhoPt_MET->Fill( gP4.Pt(),  t_metE ) ;
@@ -227,7 +264,7 @@ void Trigger::ReadTree( string dataName ) {
 	  if ( triggered > 2 && itr > -1 ) h_gPt_hlt->Fill( gammaPt );
 	  //if ( triggered > 2 && t_phodR < 9. ) h_gPt_hlt->Fill( gammaPt );
        }
-       
+       */      
        //if ( metE > thresPhoMET[1]  ) { 
        //if ( seedTime[ phoV[0].first ] > -3 ) {
        //if ( t_phodR < 90. ) {
@@ -238,6 +275,10 @@ void Trigger::ReadTree( string dataName ) {
 
    } // end of event looping
 
+   printf( " total: %d, match: %d, pt: %d, eta: %d, sMin: %d , H/E: %d , iso: %d , pho: %d , met : %d , selected: %d \n", 
+             purity[0], purity[1], purity[2], purity[3], purity[4], purity[5], purity[6], purity[7],purity[8], purity[9] ) ;
+   printf( " match: %.3f, pt: %.3f, eta: %.3f, sMin: %.3f , H/E: %.3f , iso: %.3f , pho: %.3f , met : %.3f , selected: %.3f \n", 
+             (float)purity[1]/purity[0],  (float)purity[2]/purity[0],  (float)purity[3]/purity[0],  (float)purity[4]/purity[0],  (float)purity[5]/purity[0],  (float)purity[6]/purity[0],  (float)purity[7]/purity[0], (float)purity[8]/purity[0],  (float)purity[9]/purity[0] ) ;
 
    TLegend* leg1  = new TLegend(.55, .73, .95, .90 );
    leg1->Clear();

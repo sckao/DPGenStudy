@@ -66,6 +66,7 @@ struct hSet {
 
     TH1D* h_HoverE ;
     TH1D* h_sigIeta;
+    TH1D* h_sigEta;
     TH1D* h_Time   ;
     TH1D* h_nChi2  ;
     TH1D* h_ctau   ;
@@ -115,6 +116,9 @@ struct hSet {
     TH2D* h_sMaj_sMin ;
     TH2D* h_cscdPhi_Time ;
     TH2D* h_sigIeta_Time ;
+    TH2D* h_sigIeta_Time1 ;
+    TH2D* h_sigEta_sMaj ;
+    TH2D* h_sigEta_sMaj_late ;
     TH2D* h_HoverE_Time ;
 
     TH2D* h_RhoPhi_Halo ;
