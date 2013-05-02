@@ -34,6 +34,16 @@ DPSelection::DPSelection( string datacardfile ){
       gCounter[i] = 0 ;
   }
 
+  passL1      = false ;
+  passHLT     = false ;
+  passTrigger = false ;
+  passPho     = false ;
+  passVtx     = false ;
+  passJet     = false ;  
+  passMET     = false ;  
+  passJetMET  = false ;  
+
+  select_met = -1 ; 
 }
 
 DPSelection::~DPSelection(){
@@ -151,6 +161,9 @@ bool DPSelection::PhotonFilter() {
        // 0. photon cuts
        phoV.clear() ;
        double maxPt = 0 ;
+       vector<bool> shadow( nPhotons ,false );
+       vector<bool> skipPhoIso( nPhotons , false );
+       
        for ( int j=0 ; j< nPhotons; j++ ) {
            nG[0]++ ;
            TLorentzVector phoP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
@@ -158,6 +171,8 @@ bool DPSelection::PhotonFilter() {
            if ( systType == 5 ) egScale = ( fabs(phoP4.Eta()) < 1.479 ) ? 1.006 : 1.015 ;
            if ( systType == 6 ) egScale = ( fabs(phoP4.Eta()) < 1.479 ) ? 0.994 : 0.985 ;
            phoP4 = phoP4 * egScale ;
+
+           if ( shadow[j] ) continue ;
 
 	   if ( fabs(fSpike[j]) > 0.001 ) continue ;
            if (        phoP4.Pt() < photonCuts[0] )          continue ;
@@ -172,17 +187,28 @@ bool DPSelection::PhotonFilter() {
            if ( dR_TrkPho[j] < photonCuts[7] ) continue; 
            nG[4]++ ;
 
+           // Reject nearby photon 
+           /*
+           for ( int k = 1 ; k < nPhotons ; k++ ) {
+               if (  k == j || k < j ) continue ;
+                  TLorentzVector phoP4_( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
+                  phoP4_ = phoP4_ * egScale ;
+                  if ( phoP4.DeltaR( phoP4_ ) < 0.2 )  { 
+                     shadow[k]     = true ;
+                     skipPhoIso[j] = true ;
+                  }
+           }
+           */
+
            //if ( phoTime[j] < photonCuts[7] ) continue ; 
            // Isolation
            if ( usePFIso == 1 ) {
               Input->GetParameters( "PhotonPFIso",     &photonPFIso ) ;
 	      if ( cHadIso[j] >= photonPFIso[0] ) continue ;  // photIso
 	      if ( nHadIso[j] >= photonPFIso[1] + ( 0.04*phoP4.Pt()   ) ) continue ;  // chargedHadron
-	      if ( photIso[j] >= photonPFIso[2] + ( 0.0005*phoP4.Pt() ) ) continue ;  // neutralHadron
-
-              if ( phoTrkIso[j] / phoP4.Pt()  >= photonIso[0] )                                continue ;
-              if ( phoEcalIso[j] >= photonIso[1] || phoEcalIso[j] / phoE[j] >= photonIso[2] )  continue ;
-              if ( phoHcalIso[j] >= photonIso[3] || phoHcalIso[j] / phoE[j] >= photonIso[4] )  continue ;
+              if ( !skipPhoIso[j] ) {
+	         if ( photIso[j] >= photonPFIso[2] + ( 0.005*phoP4.Pt() ) ) continue ;  // neutralHadron
+              }
            } 
            if ( usePFIso == 2 ) {
               if ( phoTrkIso[j] / phoP4.Pt()  >= photonIso[0] )                                continue ;
@@ -301,6 +327,7 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
      }             
      met_E  =  sqrt( (met_X*met_X) + (met_Y*met_Y) ) ;
      TLorentzVector metp4 = TLorentzVector( met_X, met_Y, 0., met_E ) ;
+     select_met = metp4.Et() ;
 
      if ( jetCuts[4] >= 0 &&  metp4.Et() < jetCuts[4] )         pass = false ;
      if ( jetCuts[4]  < 0 &&  metp4.Et() > fabs( jetCuts[4] ) ) pass = false ;
@@ -383,8 +410,8 @@ bool DPSelection::GammaJetsBackground( ) {
 
 bool DPSelection::GammaJetsControlSample( bool isTightPhoton ) {
 
-       bool passHLT  = HLTFilter();
-       bool passVtx  = VertexFilter();
+       passHLT  = HLTFilter();
+       passVtx  = VertexFilter();
 
        // reset cuts to tight photon selection
        if ( isTightPhoton ) {
@@ -397,11 +424,11 @@ bool DPSelection::GammaJetsControlSample( bool isTightPhoton ) {
 	  ResetCuts( "PhotonIso",  3, 2.4 ) ;   // Hcal Et
 	  ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
        }
-       bool passPho = PhotonFilter();
+       passPho = PhotonFilter();
 
        ResetCuts( "JetCuts",  2, 1 ) ;  // Min Num of Jets
        ResetCuts( "JetCuts",  3, 2 ) ;  // Max Num of Jets
-       bool passJet = JetMETFilter();
+       passJet = JetMETFilter();
 
        //bool passGJets = GammaJetsBackground() ;
        bool passGJets = false ;
@@ -416,12 +443,12 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
 
        counter[0]++ ;
 
-       bool passL1  =  L1Filter() ;
-       bool passHLT  = HLTFilter();
-       bool passTrigger = ( UseL1 == 1 ) ? passL1 : passHLT ;
+       passL1  =  L1Filter() ;
+       passHLT  = HLTFilter();
+       passTrigger = ( UseL1 == 1 ) ? passL1 : passHLT ;
        if ( passTrigger ) counter[1]++ ;
 
-       bool passVtx  = VertexFilter();
+       passVtx  = VertexFilter();
        if ( passTrigger && passVtx ) counter[2]++ ;
 
        // reset cuts to tight photon selection
@@ -435,7 +462,7 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
 	  ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
 	  //ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
        }
-       bool passPho = PhotonFilter();  // true for selecting Isolation 
+       passPho = PhotonFilter();  // true for selecting Isolation 
        if ( passTrigger && passVtx ) {
           int photonStop = GetPhotonCutFlow() ;
           for ( int i=0; i< photonStop ; i++) { 
@@ -444,30 +471,74 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
        }
        if ( passTrigger && passVtx && passPho ) counter[3]++ ;
 
-       bool passJet = JetMETFilter();
+       passJetMET = JetMETFilter();
        if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
-
-       //bool passGJets = GammaJetsBackground() ;
 
        ResetCuts() ;  // reset cuts from Datacard
 
        //bool isSignal = ( passHLT && passVtx  && passPho && passJet && !passGJets ) ? true : false ;
-       bool isSignal = ( passTrigger && passVtx  && passPho && passJet ) ? true : false ;
+       bool isSignal = ( passTrigger && passVtx  && passPho && passJetMET ) ? true : false ;
       
        return isSignal ;
 
+}
+
+bool DPSelection::ControlSelection() {
+
+       counter[0]++ ;
+
+       passL1  =  L1Filter() ;
+       passHLT  = HLTFilter();
+       passTrigger = ( UseL1 == 1 ) ? passL1 : passHLT ;
+       passVtx  = VertexFilter();
+
+       // JER (systType 1 and 2 ) are only varied for MC  
+       if ( systType == 1 ||   systType == 2 )  systType = 0 ;
+
+       passPho = PhotonFilter();  // true for selecting Isolation 
+       if ( passTrigger && passVtx ) {
+          int photonStop = GetPhotonCutFlow() ;
+          for ( int i=0; i< photonStop ; i++) { 
+              gCounter[i]++ ;
+          }
+       }
+       JetMETFilter();
+
+       ResetCuts() ;  // reset cuts from Datacard
+
+       bool isSignal = ( passTrigger && passVtx  && passPho ) ? true : false ;
+      
+       return isSignal ;
+}
+
+bool DPSelection::GetEventStat( string flagName ) {
+
+     if ( flagName == "L1" )       return passL1 ;
+     else if ( flagName == "HLT" )      return passHLT ;
+     else if ( flagName == "Triggger" ) return passTrigger ;
+     else if ( flagName == "Vertex" )   return passVtx ;
+     else if ( flagName == "Photon" )   return passPho ;
+     else if ( flagName == "Jet" )      return passJet ;
+     else if ( flagName == "MET" )      return passMET ;
+     else if ( flagName == "JetMET" )   return passJetMET ;
+     else    return false ;
 }
 
 bool DPSelection::MCSignalSelection( bool isTightPhoton ) {
 
        counter[0]++ ;
 
-       bool passL1  =  L1Filter() ;
-       bool passTrigger = ( UseL1 == 1 ) ? passL1 : true ;
+       // Trigger Selection
+       passL1  =  L1Filter() ;
+       passTrigger = ( UseL1 == 1 ) ? passL1 : true ;
        if ( passTrigger ) counter[1]++ ;
 
-       bool passVtx  = VertexFilter();
+       // Vertex Selection
+       passVtx  = VertexFilter();
        if ( passTrigger && passVtx ) counter[2]++ ;
+
+       // Set systematic setting 
+       if ( systType != 1 ||   systType != 2 )  systType = 0 ;
 
        // reset cuts to tight photon selection
        if ( isTightPhoton ) {
@@ -480,7 +551,7 @@ bool DPSelection::MCSignalSelection( bool isTightPhoton ) {
 	  ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
 	  //ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
        }
-       bool passPho = PhotonFilter();  // true for selecting Isolation 
+       passPho = PhotonFilter();  // true for selecting Isolation 
        if ( passTrigger && passVtx ) {
           int photonStop = GetPhotonCutFlow() ;
           for ( int i=0; i< photonStop ; i++) { 
@@ -489,13 +560,17 @@ bool DPSelection::MCSignalSelection( bool isTightPhoton ) {
        }
        if ( passTrigger && passVtx && passPho ) counter[3]++ ;
 
-       bool passJet = JetMETFilter();
+       passJet = JetMETFilter();
        if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
 
        ResetCuts() ;  // reset cuts from Datacard
 
-       bool isSignal = ( passTrigger && passVtx  && passPho && passJet ) ? true : false ;
+       //bool isSignal = ( passTrigger && passVtx  && passPho && passJet ) ? true : false ;
+       bool isSignal = ( passTrigger && passVtx  && passPho ) ? true : false ;
       
+       // Reset systematic setting after MC selection
+       Input->GetParameters( "SystType",     &systType ) ;
+
        return isSignal ;
 
 }
@@ -511,8 +586,8 @@ void DPSelection::PrintCutFlow() {
 
 bool DPSelection::QCDControlSample() {
 
-       bool passHLT  = HLTFilter();
-       bool passVtx  = VertexFilter();
+       passHLT  = HLTFilter();
+       passVtx  = VertexFilter();
        // reset cuts to tight photon selection
        ResetCuts( "PhotonCuts", 0, 100. ) ;  // pt
        ResetCuts( "PhotonCuts", 1, 1.4 ) ;   // eta
@@ -531,10 +606,10 @@ bool DPSelection::QCDControlSample() {
        ResetCuts( "PhotonIso",  2, 0.1 ) ;  // Ecal Ratio
        ResetCuts( "PhotonIso",  3, 4.0 ) ;  // Hcal Et
        ResetCuts( "PhotonIso",  4, 0.1 ) ;  // Hcal Ratio
-       bool passPho = PhotonFilter();
+       passPho = PhotonFilter();
 
        ResetCuts( "JetCuts",  2, 3 ) ;  // Min Num of Jets
-       bool passJet = JetMETFilter();
+       passJet = JetMETFilter();
 
        //bool passGJets = GammaJetsBackground() ;
 
@@ -589,6 +664,7 @@ void DPSelection::ResetCollection( string cutName ) {
     if ( cutName == "Electron" || cutName == "All" ) eleV.clear() ;
     if ( cutName == "Jet"      || cutName == "All" ) jetV.clear() ;
     if ( cutName == "Muon"     || cutName == "All" ) muV.clear() ;
+    if ( cutName == "MET"      || cutName == "All" ) select_met = -1 ;
 
 }
 
@@ -619,8 +695,3 @@ void DPSelection::ResetCounter() {
    }
 }
 
-
-//TLorentzVector DPSelection::JetSystem( TLorentzVector jP4 ) { 
-
-
-//}

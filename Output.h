@@ -5,25 +5,13 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
-#include <string>
-//#include <TMath.h>
 #include <TF1.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <THStack.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TBranch.h>
-#include <TRandom3.h>
-#include <TLeaf.h>
-#include <TString.h>
-#include <TSystem.h>
-#include <TStyle.h>
-#include <TFrame.h>
 #include "TLorentzVector.h"
-
-#include <algorithm>
 
 #include "AnaInput.h"
 #include "DPSelection.h"
@@ -45,9 +33,13 @@ public:
    void Produce() ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, pair<int, int> cw[] ) ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, double minBC ) ;
-   TH1D* RebinHistogram( TH1D* h1, string newHistoName, double center, double width ) ;
+   TH1D* RebinHistogram( TH1D* h1, string newHistoName, double lowX, double upX ) ;
 
    void ShiftPeak( TH1D* h1, TH1D* h2 ) ;
+
+   double ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) ;
+   double GetEstimation( TH2D* hCount ) ;
+   vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12 ) ;
 
    void WriteDataHisto() ;
    void WriteMcHisto() ;
@@ -66,6 +58,9 @@ private:
 
    vector<double> normV ;
    vector<double> timeCalib ;
+   vector<double> jetCuts ;
+   vector<double> photonCuts ;
+
    vector<objID> selectJets ;
    vector<objID> selectPho ;
 
@@ -80,6 +75,11 @@ private:
    TH1D* h_sgMET       ;
    TH1D* h_NJets     ;
    TH1D* h_sgNJets     ;
+
+   TH2D* hBg_A ;
+   TH2D* hBg_B ;
+   TH2D* hBg_C ;
+   TH2D* hBg_D ;
 
    TH1D* rh_dataTime  ;
    TH1D* rh_dataTimeA  ;

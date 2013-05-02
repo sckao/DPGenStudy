@@ -15,7 +15,8 @@ hDraw::hDraw( string datacardfile ){
 
   func1 = NULL ;
   StatBoxOn = true ;
-
+  lineWidth = 1  ;
+  fillColor = -1 ;
 }
 
 hDraw::~hDraw(){
@@ -30,6 +31,10 @@ hDraw::~hDraw(){
 
 void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, string logY, float statY, int color, double scale_, TLegend* leg ) {
 
+      gStyle->SetOptStat("eoumi");
+      if ( !StatBoxOn ) gStyle->SetOptStat(kFALSE); 
+      if (  StatBoxOn ) gStyle->SetOptStat(kTRUE); 
+
       TH1D* h1 = (TH1D*)h1_->Clone() ;
       h1->Scale( scale_ ); 
 
@@ -38,7 +43,6 @@ void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, stri
       c1->SetFillColor(10);
       c1->SetLogy(0);
 
-      gStyle->SetOptStat("eoumi");
       if ( strncasecmp( "logY", logY.c_str(), logY.size() ) ==0 && logY.size() > 0 ) c1->SetLogy() ;
 
       gStyle->SetStatY( statY  );
@@ -49,6 +53,9 @@ void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, stri
       h1->GetYaxis()->SetTitle( yTitle.c_str() );
       h1->SetLineColor( color ) ;
       h1_->SetLineColor( color ) ;
+
+      h1->SetLineWidth( lineWidth ) ;
+      if ( fillColor > 0 ) h1->SetFillColor( fillColor ) ;
 
       c1->cd();
       h1->Draw() ;
@@ -74,6 +81,8 @@ void hDraw::DrawAppend( TH1D* h1_, string plotName, float statY, int color, doub
 
       h1->SetLineColor( color ) ;
       h1_->SetLineColor( color ) ;
+      h1->SetLineWidth( lineWidth ) ;
+      if ( fillColor > 0 ) h1->SetFillColor( fillColor ) ;
 
       c1->cd();
       h1->DrawCopy("sames") ;
@@ -94,6 +103,8 @@ void hDraw::Draw2D( TH2D* h2, string plotName, string xTitle, string yTitle, str
       c4->SetFillColor(10);
       c4->SetFillColor(10);
       //c4->SetLogy(0);
+      if ( !StatBoxOn ) gStyle->SetOptStat(kFALSE); 
+      if (  StatBoxOn ) gStyle->SetOptStat(kTRUE); 
 
       if ( strncasecmp( "logZ", logZ.c_str(), logZ.size() ) ==0  && logZ.size() > 0 ) gPad->SetLogz(1) ;
 
@@ -661,10 +672,10 @@ void hDraw::SetHistoAtt( string axis, float labelSize, float tickLength, float t
      }
 }
 
-void hDraw::SetHistoInfo( TH1D* h1, TString newTitle, int lineWidth ) {
+void hDraw::SetHistoInfo( int lineWidth_, int fillColor_ ) {
 
-     if ( newTitle != "" ) h1->SetTitle( newTitle ) ;
-     h1->SetLineWidth( lineWidth );
+     lineWidth = lineWidth_ ;
+     fillColor = fillColor_ ;
 
 }
 

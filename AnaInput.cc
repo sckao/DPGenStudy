@@ -12,9 +12,8 @@ AnaInput::~AnaInput(){
 
 }
 
-vector<TTree*> forestData ;
-vector<TTree*> forestMC ;
-
+//vector<TTree*> forestData ;
+//vector<TTree*> forestMC ;
 void AnaInput::LinkForests( TString treeName ){
 
   cout<<" Linking all trees !!!"<<endl;
@@ -117,11 +116,17 @@ vector<double> AnaInput::NormalizeComponents( string cfgFile ){
   vector<double> Eff;
   GetParameters("Eff", &Eff, cfgFile )  ;
 
+  vector<double> nSkim;
+  GetParameters("NSkim", &nSkim, cfgFile )  ;
+
   vector<double> normV ;
   for ( size_t i=0; i < xsec.size(); i++ ) {
-     double nBase = xsec[i]*Eff[i];
+
+     double skimEff = ( nSkim.size() > 0 ) ? nSkim[i]/nEvents[i] : 1. ;
+     double nBase = xsec[i]*Eff[i]*skimEff ;
      double Scal = (nBase*lumi) / nEvents[i] ;
-     cout<<" Normalization =  "<< Scal <<endl;
+     //printf(" N: %f , X: %f , Eff: %f \n", nEvents[i], xsec[i], Eff[i] ) ;
+     cout<<" Normalization =  "<< Scal << endl;
      normV.push_back( Scal ) ;
   } 
 

@@ -56,7 +56,15 @@ void Systematic::RunData( string dataName, int nSample ) {
    float metE ;
    int   nPhotons, nJets ;
 
-   TTree* tr = Input->TreeMap( dataName );
+   //TTree* tr = Input->TreeMap( dataName );
+   string dataFileNames ;
+   if ( dataName != "0" ) {
+      dataFileNames = dataName ;
+   } else {
+      Input->GetParameters( "TheData", &dataFileNames );
+   }
+   TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
+
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 

@@ -4,20 +4,20 @@
 #
 
 # root files directory
-RootFiles = rootfiles/
+RootFiles = /local/cms/user/sckao/DPStats/
 
 # Folder to store results
-Path = Skim2012_syst0J_metCorr/
+Path = /local/cms/user/sckao/DPStats/HaloTest/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
-HFileName = histo_data
+HFileName = hStats_phoPt80_syst3
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC
-#        4: Stats Output 5: Systematic, 6: background 
+#        4: Stats Output 5: Systematic, 6: background , 7: Halo Study 9: Halo Drawer
 ######################################
 Module = 4
 
@@ -25,14 +25,13 @@ Module = 4
 IsData = 1
 # Files , '+' is the flag for TChain,  
 TheData = ( data+ )
-dataChain = ( pf2012c_corr )
+dataChain = ( run2012d_1, run2012d_2, run2012c )
 #dataChain = ( sys2012b, sys2012c , sys2012c2 )
 #dataChain = ( json2012B_halo, json2012C_halo , json2012C1_halo)
 #dataChain = ( mu2012_uncleaned, mu2012C_uncleaned )
 
 # for use of Output class,
-TheMC = ( gmsb180_2000 )
-#TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000 ) 
+TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gmsb180_4000, gmsb180_6000 ) 
 #TheMC = ( gmsb140_250, gmsb140_500, gmsb140_1000, gmsb140_2000, gmsb140_3000 ) 
 #TheMC = ( mc+ )
 #mcChain = ( gjet_50-80, gjet_80-120, gjet_120-170, gjet_170-300, gjet_300-470, gjet_470-800 )
@@ -50,21 +49,26 @@ SkipEvents = 0
 TriggerBits = ( 2, 3 )
 UseL1 = 0
 
-# Isolation , 0 : no iso, 1: PFIso , 2: Detector Iso
-UsePFIso = 1
 # Photon Cuts  Pt,  Eta, hoverE,  dRgj, nPhotn, sMinMin, sMinMax, dR_trk, leadingPt, sigmaIeta  
-PhotonCuts = ( 45,  1.47,   0.05,    0.3,     1,    0.1,   0.35,   0.6,          80,    0.99  )
-# Photon Iso   trk,  ecalEt, ecalR, hcalEt, hcalR   
-#PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
-PhotonIso  = ( 0.1,     2.4,   0.05,   2.4,   0.05 )
+PhotonCuts = ( 45,  1.47,   0.05,    0.3,     1,    0.1,   0.38,   0.6,          45,    0.99  )
+
 # PFIso          cHad,  nHad,  phot
 PhotonPFIso  = (  2.6,   3.5,   1.3 )
+#PhotonPFIso  = (  1.5,   1.0,   0.7 )
+#PhotonPFIso  = (  0.7,   0.4,   0.5 )
+
 # vertex cut   ndof,   z,  d0 
 #VertexCuts = (    0,  24,   2 )
 VertexCuts = (    4,  24,   2 )
 
+# Isolation , 0 : no iso, 1: PFIso , 2: Detector Iso
+UsePFIso = 0
+# Photon Iso   trk,  ecalEt, ecalR, hcalEt, hcalR   
+PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
+#PhotonIso  = ( 0.1,     2.4,   0.05,   2.4,   0.05 )
+
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET,   MET < 0 : set a max value for the MET
-JetCuts = (   35.,  2.4,      1,       99,   0 )
+JetCuts = (   35.,  2.4,      0,       99,   60 )
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
 # muon       Pt  Eta  relIso  dRmj
@@ -76,11 +80,23 @@ MuonCuts = ( 25, 2.4,  0.15,  0.3 )
 FitCtau =-1
 TCut = 2
 
-#Lumi = 8800
-Lumi = 7635.5
-NEvents  = ( 50112 )
-XSection = ( 0.0145 )
-Eff      = (   1.0 )
+Lumi = 15000
+#NEvents  = ( 50112 )
+#XSection = ( 0.0145 )
+#Eff      = (   1.0 )
+
+# xsec for GMSB (pb)
+#                250,     500,   1000,    2000,    3000,   4000,  6000   
+NEvents  = (  50112,   50112,   50112,   50112,   50112,  46944, 50112  )
+XSection = ( 0.0145,  0.0145,  0.0145,  0.0145,  0.0145, 0.0145, 0.0145 )
+Eff      = (    1.0,     1.0,     1.0,     1.0,     1.0,    1.0,   1.0  )
+
+# xsec for gamma+jets (pb)
+#             50-80      80-120   120-170  170-300  300-470  470-800
+#XSection = ( 3322.31 ,  558.29,   108.01,   30.12,    2.14,    0.21 )
+#NEvents  = ( 1995062 , 1995062,  2000043, 2000069, 2000130, 1975231 )
+#Eff      = (     1.0,     1.0,      1.0,     1.0,     1.0,     1.0  )
+#NSkim    = ( 1251125   1556531   1744396  1870614  1973449  1970009 )
 
 ######################################
 #  Systematic Block
@@ -88,7 +104,8 @@ Eff      = (   1.0 )
 
 # Systematic Type 
 # 0: nominal , 1: JER up , 2: JER down, 3: JES up , 4: JES down , 5: Eg up , 6: Eg down
-
 SystType = 0
+
+# Calibration for MC
 #             Shift, Resol
 TimeCalib = (  0.127, 0.32 ) 

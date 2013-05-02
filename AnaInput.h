@@ -55,6 +55,10 @@ private:
 
    string datacardfile ;
 
+   vector<TTree*> forestData ;
+   vector<TTree*> forestMC ;
+
+
    //ClassDef(AnaInput, 1);
 
 };

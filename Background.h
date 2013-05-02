@@ -44,6 +44,7 @@ class Background {
     void RunEstimation( string dataName );
     vector<double> GetComponent( int eta_i, int B12, int h_B12, int s_B12 ) ;
     void GetScale( int h_O12, int s_O12, int h_O34, int s_O34, double S12, double H12, double Q12, double sc_Q ) ;
+    vector<double> GetScale( int O34[], int h_O34[], int s_O34[], int O12[], int h_O12[], int s_O12[] )  ; 
     void OpenHistograms() ;
     void KSTest( TH1D* h1, TH1D* h2, int minBin, int maxBin, double minX = 0. , double binWidth = 1. ) ;
     void SpikeShape() ;

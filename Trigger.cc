@@ -31,7 +31,8 @@ Trigger::~Trigger() {
 // analysis template
 void Trigger::ReadTree( string dataName ) { 
 
-   TTree* tr = Input->TreeMap( dataName );
+   //TTree* tr = Input->TreeMap( dataName );
+   TTree* tr   = Input->GetTree( dataName, "DPAnalysis" );
 
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;

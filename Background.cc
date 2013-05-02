@@ -6,6 +6,8 @@ Background::Background( string datacardfile ) {
   h_draw = new hDraw( datacardfile ) ; 
   select = new DPSelection( datacardfile ) ;
 
+  Input->GetParameters("ProcessEvents", &ProcessEvents ) ;
+  Input->GetParameters("SkipEvents",    &SkipEvents ) ;
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
   Input->GetParameters("IsData",        &isData ) ; 
@@ -41,7 +43,15 @@ void Background::RunEstimation( string dataName ) {
    float metE ;
    int   nPhotons, nJets ;
 
-   TTree* tr = Input->TreeMap( dataName );
+   //TTree* tr = Input->TreeMap( dataName );
+   string dataFileNames ;
+   if ( dataName != "0" ) {
+      dataFileNames = dataName ;
+   } else {
+      Input->GetParameters( "TheData", &dataFileNames );
+   }
+   TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
+
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 
@@ -71,18 +81,20 @@ void Background::RunEstimation( string dataName ) {
    cout<<" Event start from : "<< beginEvent << endl ;
 
    // Background counter
+   int O12[5]   = { 0 };
+   int O34[5]   = { 0 };
    int B12[5]   = { 0 };
    int B34[5]   = { 0 };
    int h_B12[5] = { 0 };
    int s_B12[5] = { 0 };
    int h_B34[5] = { 0 };
    int s_B34[5] = { 0 };
-   int Q12[5] = { 0 } ; 
-   int Q34[5] = { 0 } ; 
-   int h_O12 =  0 ;
-   int s_O12 =  0 ;
-   int h_O34 =  0 ;
-   int s_O34 =  0 ;
+   int h_O12[5] = { 0 };
+   int s_O12[5] = { 0 };
+   int h_O34[5] = { 0 };
+   int s_O34[5] = { 0 };
+   int Q_12  =  0 ; 
+   int Q_34  =  0 ; 
    for ( int i= beginEvent ; i< totalN ; i++ ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
        if ( i % 100000 == 0 && i > 99999 ) printf(" ----- processed %8d Events \n", i ) ;
@@ -100,6 +112,7 @@ void Background::RunEstimation( string dataName ) {
 
        if ( !pass )  continue ;
 
+       //cout<<" NJet : "<< selectJets.size() <<endl ;
        nEvt++;
        //cout<<" EVT# : "<< nEvt <<endl ;
        for ( size_t kk =0; kk < selectPho.size() ; kk++) {
@@ -113,11 +126,13 @@ void Background::RunEstimation( string dataName ) {
 
            int eta_i = (int) ( fabs( gP4_.Eta() ) / 0.28 )  ;
 
-           if ( selectJets.size() > 0 && selectJets.size() < 3 ) {
-              if ( fabs(seedTime[k]) < 2. )  Q12[eta_i]++ ;
+           // background control region 
+           if ( selectJets.size() > 0 && selectJets.size() < 2 ) {
+              if ( fabs(seedTime[k]) < 2. )  Q_12++ ;
               if ( seedTime[k] < -3 ) {
-                 if ( haloTag )  h_O12++ ;
-                 if ( spikeTag ) s_O12++ ;
+                 O12[eta_i]++ ;
+                 if ( haloTag )  h_O12[eta_i]++ ;
+                 if ( spikeTag ) s_O12[eta_i]++ ;
               }
               if ( seedTime[k] > 2 ) {
                  B12[eta_i]++ ;
@@ -125,11 +140,13 @@ void Background::RunEstimation( string dataName ) {
                  if ( spikeTag ) s_B12[eta_i]++ ;
               }
            }
-           if ( selectJets.size() > 2 ) {
-              if ( fabs(seedTime[k]) < 2. )  Q34[eta_i]++ ;
+           // signal region
+           if ( selectJets.size() > 1 ) {
+              if ( fabs(seedTime[k]) < 2. )  Q_34++ ;
               if ( seedTime[k] < -3 ) {
-                 if ( haloTag )  h_O34++ ;
-                 if ( spikeTag ) s_O34++ ;
+                 O34[eta_i]++ ;
+                 if ( haloTag )  h_O34[eta_i]++ ;
+                 if ( spikeTag ) s_O34[eta_i]++ ;
               }
               if ( seedTime[k] > 2 ) {
                  B34[eta_i]++ ;
@@ -138,22 +155,40 @@ void Background::RunEstimation( string dataName ) {
               }
            }
        } // end of photon looping
+       //cout<<" Q12 : "<< Q_12 <<" Q_34 : "<< Q_34 <<endl ;
+       //for(int j=0; j<5; j++ )  cout<<"("<<j<<") O12: "<< O12[j] <<" O34: "<< O34[j] <<endl ;
 
    } // end of event looping
- 
+
+   // Get the scaling factor 
+   vector<double> scV = GetScale( O34, h_O34, s_O34, O12,  h_O12, s_O12 ) ;
+   double sc_Q = ( Q_12 < 1. ) ? 0 : Q_34/Q_12 ;
+   printf(" scaling = S: %f , H: %f , Q: %f , Qpeak: %f \n", scV[0] , scV[1], scV[2], sc_Q ) ;
+
    for (int j=0; j< 5; j++ ) {
+       // get background components from bg control region at t > 2 ns 
        vector<double> C12 = GetComponent( j , B12[j], h_B12[j], s_B12[j] ) ;
-       double sc_Q12 = ( Q12[j] == 0 ) ? 0 : (double)Q34[j] / (double)Q12[j] ;
-       GetScale( h_O12, s_O12, h_O34, s_O34, C12[0], C12[1], C12[2], sc_Q12 ) ;
-       printf(" Real B34[%d] = %d, h_B34 = %d , s_B34 = %d \n", j , B34[j], h_B34[j], s_B34[j] ) ;
+
+       //double sc_Q12 = ( Q_12[j] == 0 ) ? 0 : (double)Q34[j] / (double)Q12[j] ;
+       //GetScale( h_O12, s_O12, h_O34, s_O34, C12[0], C12[1], C12[2], sc_Q12 ) ;
+       double predict_B34 = (C12[0]*scV[0]) + (C12[1]*scV[1]) + (C12[2]*sc_Q) ;
+       printf(" Real B34[%d] = %d, h_B34 = %d , s_B34 = %d ", j , B34[j], h_B34[j], s_B34[j] ) ;
+       printf(" Predict B34 : %f \n",  predict_B34 ) ;
    }
+
 }
 
+// Return the background components in background control region ( MET < 60 GeV )
+// Return [0]:spike , [1]:halo , [2]:QCD
+// Input : number of event in background control region at t > 2 ns region 
+// B12 : total background , h_B12 : halo-tagged events , s_B12 : spike tagged events
 vector<double> Background::GetComponent( int eta_i, int B12, int h_B12, int s_B12 ) {
 
        // Tagging efficiency 
-       double h = 0.88 ; // halo
-       double s = 0.79 ; // spike
+       double hEff[5] = { 0.88, 0.8, 0.8, 0.8, 0.8 } ; // halo
+       double sEff[5] = { 0.79, 0.8, 0.8, 0.8, 0.8 } ; // spike
+       double h = hEff[ eta_i ] ;   // halo
+       double s = sEff[ eta_i ] ;   // spike
 
        // Mis-tag rate
        double mA[5] = { 0.00035, 0.00029, 0.00022, 0.00059, 0.00133 } ;
@@ -180,6 +215,45 @@ vector<double> Background::GetComponent( int eta_i, int B12, int h_B12, int s_B1
        return C12 ; 
 }
 
+
+// Using t < -3 ns area to find out the scaling factor for spikes and halo components
+// O34 : total # of events at  t < -3ns in signal region 
+// h_O34 : # of events in O34 are tagged as halo
+// s_O34 : # of events in O34 are tagged as spike
+vector<double> Background::GetScale( int* O34, int*  h_O34, int* s_O34, int* O12, int*  h_O12, int* s_O12) {
+
+     double H34 = 0. ;
+     double H12 = 0. ;
+     double S34 = 0. ;
+     double S12 = 0. ;
+     double Q34 = 0. ;
+     double Q12 = 0. ;
+     for ( int j=0 ; j < 5 ; j++ ) {
+         cout<<" O12: "<< O12[j] <<" O34: "<< O34[j] <<endl ;
+         // get background components from bg control region at t < -3 ns 
+         vector<double> n12 = GetComponent( j , O12[j], h_O12[j], s_O12[j] ) ;
+         // get background components from sg control region at t < -3 ns 
+         vector<double> n34 = GetComponent( j , O34[j], h_O34[j], s_O34[j] ) ;
+	 H34 +=  n34[1] ;
+	 H12 +=  n12[1] ;
+	 S34 +=  n34[0] ;
+	 S12 +=  n12[0] ;
+         Q34 +=  n34[2] ;
+         Q12 +=  n12[2] ;
+     }
+     double sc_H = ( H12  < 1. ) ? 0 : H34/H12 ;
+     double sc_S = ( S12  < 1. ) ? 0 : S34/S12 ;
+     double sc_Q = ( Q12  < 1. ) ? 0 : Q34/Q12 ;
+ 
+     vector<double> scV ; 
+     scV.push_back( sc_S );
+     scV.push_back( sc_H );
+     scV.push_back( sc_Q );
+
+     return scV ;
+
+}
+
 void Background::GetScale( int h_O12, int s_O12, int h_O34, int s_O34, double S12, double H12, double Q12, double sc_Q ) {
 
        printf(" h_O34: %d , s_O34: %d , h_O12: %d  , s_O12: %d  \n ", h_O34, s_O34, h_O12, s_O12 ) ;
@@ -191,6 +265,8 @@ void Background::GetScale( int h_O12, int s_O12, int h_O34, int s_O34, double S1
        double predict = (sc_S*S12) + (sc_H*H12) + (sc_Q*Q12) ;
        printf(" predict 3+ backgroud = %.6f \n", predict ) ;
 }
+
+
 
 void Background::OpenHistograms() {
 

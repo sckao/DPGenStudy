@@ -71,9 +71,6 @@ struct hSet {
     TH1D* h_nChi2  ;
     TH1D* h_ctau   ;
     TH1D* h_xbeta  ;
-    TH1D* h_TrkIso   ;
-    TH1D* h_HcalIso  ;
-    TH1D* h_EcalIso  ;
     TH1D* h_TrkIsoR  ;
     TH1D* h_HcalIsoR ;
     TH1D* h_EcalIsoR ;
@@ -105,115 +102,21 @@ struct hSet {
     TH1D* h_nMuons     ;
     TH1D* h_nElectrons ;
 
-    TH2D* h_nXtl_Eta ;
-    TH2D* h_nXtl_Pt  ;
     TH2D* h_Eta_Time ;
     TH2D* h_Phi_Time ;
+    TH2D* h_Pt_Time ;
     TH2D* h_sMaj_Time ;
     TH2D* h_sMin_Time ;
-    TH2D* h_sMaj_Eta  ;
-    TH2D* h_sMaj_Phi  ;
-    TH2D* h_sMaj_sMin ;
     TH2D* h_cscdPhi_Time ;
     TH2D* h_sigIeta_Time ;
-    TH2D* h_sigIeta_Time1 ;
-    TH2D* h_sigEta_sMaj ;
-    TH2D* h_sigEta_sMaj_late ;
-    TH2D* h_HoverE_Time ;
 
     TH2D* h_RhoPhi_Halo ;
     TH1D* h_nHaloHits ;
     TH1D* h_nHaloTracks ;
 
-    TH1D* spike_sigEta ;
-    TH1D* spike_sigIeta ;
-    TH1D* spike_Time ;
-    TH2D* spike_Eta_Time ;
-    TH2D* spike_Phi_Time ;
-    TH2D* spike_sMaj_sMin ;
-    TH2D* spike_sMaj_Time ;
-    TH2D* spike_sMin_Time ;
+    TH1D* pureTime ;
+    TH1D* ghostTime ;
 
-    TH1D* noSpike_sigEta ;
-    TH1D* noSpike_sigIeta ;
-    TH1D* noSpike_Time ;
-    TH2D* noSpike_Phi_Time ;
-    TH2D* noSpike_Eta_Time ;
-    TH2D* noSpike_sMaj_sMin ;
-    TH2D* noSpike_sMaj_Time ;
-    TH2D* noSpike_sMin_Time ;
-
-    TH1D* halo_sigEta ;
-    TH1D* halo_sigIeta ;
-    TH1D* halo_Time ;
-    TH2D* halo_Eta_Time ;
-    TH2D* halo_Phi_Time ;
-    TH2D* halo_sMaj_sMin ;
-    TH2D* halo_sMaj_Time ;
-    TH2D* halo_sMin_Time ;
-
-    TH1D* noHalo_sigEta ;
-    TH1D* noHalo_sigIeta ;
-    TH1D* noHalo_Time ;
-    TH2D* noHalo_Phi_Time ;
-    TH2D* noHalo_Eta_Time ;
-    TH2D* noHalo_sMaj_sMin ;
-    TH2D* noHalo_sMaj_Time ;
-    TH2D* noHalo_sMin_Time ;
-
-    TH1D* noHalo_nXtl_side ;
-    TH1D* noHalo_nXtl_center ;
-    
-    TH1D* sideband_cscdPhi_EB ;
-    TH1D* sideband_sMaj_EB ;
-    TH1D* sideband_cscdPhi_EE ;
-    TH1D* sideband_sMaj_EE ;
-    TH2D* sideband_sMaj_Time ;
-    TH2D* sideband_sMaj_Phi ;
-    TH2D* sideband_sMaj_sMin ;
-    TH2D* sideband_sMaj_Eta ;
-    TH2D* sideband_nXtl_Eta ;
-    TH1D* sideband_nXtl ;
-
-    TH2D* gjCS_sMaj_Eta ;
-    TH2D* gjCS_nXtl_Eta ;
-
-    TH1D* sMaj_eta[7] ;
-    TH1D* sMaj_eta_csc[7] ;
-    TH1D* notSpike_nXtl ;
-
-    TH1D* haloCS_cscdPhi ;
-    TH2D* haloCS_sMaj_Eta ;
-    TH2D* haloCS_sMaj_Phi ;
-    TH2D* haloCS_Eta_Time ;
-    TH2D* haloCS_Eta_Time1 ;
-
-    TH2D* spikeCS_Eta_Time1 ;
-    TH2D* spikeCS_Eta_Time ;
-    TH2D* spikeCS_nXtl_Eta ;
-    TH2D* spikeCS_Phi_Time ;
-    TH2D* spikeCS_sMaj_sMin ;
-    TH1D* spikeCS_nXtl ;
-
-    TH2D* ghostCS_Eta_Time1 ;
-    TH2D* ghostCS_Eta_Time ;
-    TH2D* ghostCS_Phi_Time ;
-    TH2D* ghostCS_sMaj_sMin ;
-    TH2D* ghostCS_sMaj_Eta ;
-
-    TH1D* ghost_Time ;
-    TH2D* ghost_Eta_Time ;
-    TH2D* ghost_Phi_Time ;
-    TH2D* ghost_sMaj_sMin ;
-    TH1D* pure_Time ;
-    TH2D* pure_Eta_Time ;
-    TH2D* pure_Phi_Time ;
-    TH2D* pure_sMaj_sMin ;
-
-    TH1D* nHL_Eta ;
-    TH1D* nSpk_Eta ;
-    TH1D* nGhS_Eta ;
-    TH1D* nCS_Eta ;
 } ;
 
 class Histogram {

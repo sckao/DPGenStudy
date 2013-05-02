@@ -38,22 +38,35 @@ public:
    bool ElectronFilter();
    bool MuonFilter();
 
-   bool GammaJetsBackground() ; 
+   bool GetEventStat( string flagName ) ;
 
    bool SignalSelection( bool isTightPhoton = false ) ; 
    bool MCSignalSelection( bool isTightPhoton = false ) ; 
    bool GammaJetsControlSample( bool isTightPhoton = true ) ; 
+   bool ControlSelection() ; 
    bool QCDControlSample() ; 
+   bool GammaJetsBackground() ; 
 
    void ResetCuts( string cutName, vector<int>& cutId, vector<double>& newValue ) ;
    void ResetCuts( string cutName, int cutId, double newValue ) ;
    void ResetCuts( string cutName = "All" ) ; // set cuts to default values from datacard 
    void ResetCounter() ;
 
+   double GetMET() { return select_met ; } 
    void GetCollection( string collName, vector<objID>& coll ) ;
    void ResetCollection( string cutName = "All" ) ; // clean the storage containers 
    void PrintCutFlow() ;
    inline int GetPhotonCutFlow() { return photonCutFlow ; }
+
+   // results
+   bool passL1 ;
+   bool passHLT ;
+   bool passTrigger ;
+   bool passVtx ;
+   bool passPho ;
+   bool passJet ;
+   bool passMET ;
+   bool passJetMET ;
 
 private:
 
@@ -63,6 +76,7 @@ private:
    vector<objID> jetV ;
    vector<objID> eleV ;
    vector<objID> muV ;
+   double select_met ;
 
    vector<double> photonCuts ;
    vector<double> photonIso ;
@@ -101,9 +115,10 @@ private:
    vector<int> trigCuts ;
 
    // counters for cutflow  
-   int counter[8] ;
-   int gCounter[8] ;
+   int counter[9] ;
+   int gCounter[9] ;
    int photonCutFlow ;
+
 
    //ClassDef(DPSelection, 1);
 };
