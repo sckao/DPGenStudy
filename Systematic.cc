@@ -6,7 +6,7 @@ Systematic::Systematic( string datacardfile ) {
   select = new DPSelection( datacardfile ) ;
   h_draw = new hDraw( datacardfile ) ;
 
-  normV = Input->NormalizeComponents( datacardfile );
+  //normV = Input->NormalizeComponents( datacardfile );
 
   SkipEvents = 0 ;
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 
@@ -122,7 +122,7 @@ void Systematic::RunData( string dataName, int nSample ) {
              if ( timeChi2[m] < 5 ) h_dataTimeA->Fill( aveTime[m] ) ;
           }
           nEvt++; 
-          if ( nSample > 0 && nEvt >= nSample) break ;
+          //if ( nSample > 0 && nEvt >= nSample) break ;
        }
 
 
@@ -159,7 +159,6 @@ void Systematic::RunMC( string mcName, int nSample, double weight ) {
    float metE ;
    int   nPhotons, nJets ;
 
-   //TTree* tr   = Input->TreeMap( mcName );
    TTree* tr   = Input->GetTree( mcName, "DPAnalysis" );
    // clone the tree for event selection
    TChain* tr1   = (TChain*) tr->Clone() ;
@@ -182,15 +181,15 @@ void Systematic::RunMC( string mcName, int nSample, double weight ) {
    select->ResetCounter() ;
 
    int totalN = tr->GetEntries();
-   cout<<" **** from  "<< mcName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
+   cout<<" **** from  "<< mcName <<" total entries = "<< totalN <<" Process "<< nSample <<endl;
    TRandom3* tRan = new TRandom3();
    tRan->SetSeed( 0 );
 
-   int nEvt = 0 ;
    int beginEvent = SkipEvents + 1 ;
    cout<<" Event start from : "<< beginEvent << endl ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
-       if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
+       //if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
+       if ( nSample > 0 && i > ( nSample + beginEvent - 1 ) ) break;
        if ( i % 10000 == 0 && i > 9999 ) printf(" ----- processed %8d Events \n", i ) ;
        tr->GetEntry( i );
        tr1->GetEntry( i );
@@ -219,8 +218,6 @@ void Systematic::RunMC( string mcName, int nSample, double weight ) {
              int m = selectPho[1].first ;
              if ( timeChi2[m] < 5 ) h_mcTimeA->Fill( aveTime[m], weight ) ;
           }
-          nEvt++; 
-          if ( nSample > 0 && nEvt >= nSample ) break ;
        }
 
    } // end of event looping
@@ -242,11 +239,20 @@ void Systematic::McDataCompare() {
      Input->GetParameters( "TheData", &dataFileNames );
      vector<string> mcFileNames ;
      Input->GetParameters( "TheMC",   &mcFileNames );
-
-     RunData( dataFileNames, -1 ) ;
-     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {  
-         RunMC( mcFileNames[i], -1, normV[i] ) ;
+     vector<double> xSec ;
+     Input->GetParameters( "XSection", &xSec );
+     double totalXsec = 0 ; 
+     for ( size_t i=0; i< xSec.size(); i++ ) {
+         totalXsec += xSec[i] ;
      }
+
+     int nSample = 0 ;
+     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {  
+         nSample = ProcessEvents * xSec[i] / totalXsec  ;
+         
+         RunMC( mcFileNames[i], nSample , 1. ) ;
+     }
+     RunData( dataFileNames, -1 ) ;
 
      TH1D* hData = (TH1D*) h_dataTime->Clone() ;
      TH1D* hMC   = (TH1D*) h_mcTime->Clone() ;
@@ -284,8 +290,8 @@ void Systematic::ComparePlot( TH1D* hData, TH1D* hMC, string plotName ) {
      leg1->AddEntry( hData,  legStr0,  "L");
      leg1->AddEntry( hMC,    legStr1,  "L");
 
-     TF1* ffn2 = new TF1("ffn2", &hDraw::fitGS, -2, 2, 3 );
-     ffn2->SetParameter( 0, 25. );
+     TF1* ffn2 = new TF1("ffn2", &hDraw::fitGS, -1.5, 1.5, 3 );
+     ffn2->SetParameter( 0, hMC->GetBinContent( hMC->GetMaximumBin() ) );
      ffn2->SetParameter( 1,  0.  );
      ffn2->SetParameter( 2,  0.5 );
      ffn2->SetLineColor( 4 );
@@ -304,8 +310,8 @@ void Systematic::ComparePlot( TH1D* hData, TH1D* hMC, string plotName ) {
      hMC->Fit( "ffn2", "R", "sames" );
      c_a->Update();
 
-     TF1* ffn1 = new TF1("ffn1", &hDraw::fitGS, -2, 2, 3 );
-     ffn1->SetParameter( 0, 25. );
+     TF1* ffn1 = new TF1("ffn1", &hDraw::fitGS, -1.5, 1.5, 3 );
+     ffn1->SetParameter( 0,  hData->GetBinContent(hData->GetMaximumBin()) );
      ffn1->SetParameter( 1,  0.  );
      ffn1->SetParameter( 2,  0.5 );
      ffn1->SetLineColor( 2 );

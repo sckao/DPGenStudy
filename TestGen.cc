@@ -19,7 +19,7 @@ TestGen::TestGen( string datacardfile ) {
   Input->GetParameters("JetCuts",       &jetCuts ) ; 
   Input->GetParameters("TimeCalib",     &timeCalib ) ;
 
-  if ( isData == 0 ) Input->GetParameters("DecayR",  &decayR ) ; 
+  //if ( isData == 0 ) Input->GetParameters("DecayR",  &decayR ) ; 
 
   gSystem->mkdir( hfolder.c_str() );
 
@@ -29,9 +29,7 @@ TestGen::TestGen( string datacardfile ) {
 
   // initial histograms  
   Hist->Init( h ) ;
-
 }
-
 
 TestGen::~TestGen(){
 
@@ -45,7 +43,6 @@ TestGen::~TestGen(){
   delete Input ;
   delete Hist ;
   cout<<" done ! "<<endl ;
-
 }
 
 // analysis template
@@ -111,7 +108,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
    tr->SetBranchAddress("maxSwissX",   maxSwissX );
    tr->SetBranchAddress("seedSwissX",  seedSwissX );
-   tr->SetBranchAddress("fSpike",      fSpike );
    tr->SetBranchAddress("nXtals",      nXtals );
    tr->SetBranchAddress("nBC",         nBC );
 
@@ -163,6 +159,18 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
        recoPho.clear() ; // used for matching
        recoTs.clear() ;  // used for matching
+       // MET information
+       TLorentzVector met( metPx, metPy, 0, metE)  ;
+
+       // timing in different kinematic features
+       for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+           int k = selectPho[kk].first ;
+	   if ( met.Et() > 60. && selectJets.size()  < 1 )  h.TimeLT3Jets->Fill( seedTime[k] , weight ) ;
+	   if ( met.Et() > 60. && selectJets.size()  > 0 )  h.TimeGE3Jets->Fill( seedTime[k] , weight ) ;
+	   if ( selectJets.size() > 0 && met.Et() < 60.  )  h.TimeLowMET->Fill( seedTime[k] , weight ) ;
+	   if ( selectJets.size() > 0 && met.Et() > 60.  )  h.TimeBigMET->Fill( seedTime[k] , weight ) ;
+       }
+
        if ( pass ) {
 
           nEvt++; 
@@ -173,8 +181,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	  h.h_nMuons->Fill( nMuons , weight ) ;
 	  h.h_nElectrons->Fill( nElectrons , weight ) ;
 
-	  // MET information
-	  TLorentzVector met( metPx, metPy, 0, metE)  ;
 	  h.h_met->Fill( met.Pt() , weight );
 
 	  //cout<<" EVT# : "<< nEvt <<endl ;
@@ -196,36 +202,19 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
 	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.h_maxSwissEB->Fill( maxSwissX[k] , weight );
 	      if ( fabs( gP4_.Eta())  > 1.479 ) h.h_maxSwissEE->Fill( maxSwissX[k] , weight );
-	      h.h_fSpike->Fill( fSpike[k] , weight ) ;
 	      h.h_sMin->Fill( sMinPho[k] , weight ) ;
 
-              // exclude spike-like photons
-	      if ( fabs(fSpike[k]) > 0.001 ) h.badPhoTime->Fill( seedTime[k] , weight ) ;
-	      if ( fabs(fSpike[k]) > 0.001 ) continue ;
 	      //if ( maxSwissX[k] > 0.95 ) continue ;
 	      h.h_seedSwiss->Fill( seedSwissX[k] , weight );
 	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
 	      if ( nXtals[k] < 3 ) continue ;
 
 	      h.obsTime->Fill( seedTime[k], weight );
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.obsEBTimeErr->Fill( seedTimeErr[k] , weight );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h.obsEETimeErr->Fill( seedTimeErr[k] , weight );
 
 	      h.aveObsTime->Fill( aveTime[k], weight );
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.aveObsEBTimeErr->Fill( aveTimeErr[k] , weight );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h.aveObsEETimeErr->Fill( aveTimeErr[k] , weight );
-
-              // timing in different kinematic features
-              if ( met.Et() > 60. && selectJets.size()  < 1 )  h.TimeLT3Jets->Fill( seedTime[k] , weight ) ;
-              if ( met.Et() > 60. && selectJets.size()  > 0 )  h.TimeGE3Jets->Fill( seedTime[k] , weight ) ;
-              if ( selectJets.size() > 0 && met.Et() < 60.  )  h.TimeLowMET->Fill( seedTime[k] , weight ) ;
-              if ( selectJets.size() > 0 && met.Et() > 60.  )  h.TimeBigMET->Fill( seedTime[k] , weight ) ;
 
 	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] , weight );
 	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] , weight );
-
-	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta()) <= 1.479 )  h.aveObsEBTimeErr1->Fill( aveTimeErr1[k] , weight );
-	      if ( timeChi2[k] < 10 && fabs( gP4_.Eta())  > 1.479 )  h.aveObsEETimeErr1->Fill( aveTimeErr1[k] , weight );
 
               h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] , weight ) ;
 	      h.h_nChi2->Fill( timeChi2[k] , weight ) ;
@@ -283,52 +272,55 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
        genPho.clear() ; // used for matching
        genTs.clear() ;  // used for matching
+       genXTs.clear() ;  // used for matching
+       genPs.clear() ;  // used for matching
        double maxGenPt = 0. ;
        int nGenPho = 0;
+       double genMETP4[4] = {0,0,0,0};
+       bool hasGravitino = false ;
+       //printf("======================== \n") ;
+ 
        for ( int k=0; k< nGen ; k++) {
+
+           if ( pdgId[k] == 1000039 ) {
+                genMETP4[0] += genPx[k] ;
+                genMETP4[1] += genPy[k] ;
+                genMETP4[2] += genPz[k] ;
+                genMETP4[3] += genE[k] ;
+                hasGravitino = true ;
+           }
+
            if ( pdgId[k] != 22 ) continue ;
            TLorentzVector gP4 = TLorentzVector( genPx[k], genPy[k], genPz[k], genE[k] ) ;
-
+           
            int mId = momId[k]  ;
            if ( mId < 0  ) continue ;
            TLorentzVector xP4 = TLorentzVector( genPx[mId], genPy[mId], genPz[mId], genE[mId] ) ;
+           //printf(" phot[%d] p4( %.1f,%.1f,%.1f,%.1f) genT:%.3f \n", k, genPx[k], genPy[k], genPz[k], genE[k], genT[mId] ) ;
 
            if ( gP4.Pt() > maxGenPt ) maxGenPt = gP4.Pt() ;
            nGenPho++ ;
 
            double EcalTime = genT[mId] ;  // tau*gamma
  
-           // test my propagator
-           /*
-           double cbtg = genT[k] * 30  ;
-           double ux = genVx[mId] ;
-           double uy = genVy[mId] ;
-           double uz = genVz[mId] ;
-           double ut = 0 ; 
-           Propagator( xP4, ux, uy, uz, ut, cbtg ) ;
-           double EcalTime = cbtg  / ( 30* xP4.Beta() ) ;  // c*beta*tau*gamma
-           cout<<"  --------------- "<<endl;
-           cout<<" Propagate :     Vx:"<<    ux << "      Vy:"<< uy << "     Vz:"<< uz <<" r = "<<sqrt( (ux*ux) + (uy*uy) + (uz*uz) )<< endl;
-           cout<<" FromSim   :  genVx:"<< genVx[k] << "  genVy:"<< genVy[k] << "  genVz:"<< genVz[k] ;
-           cout<<" r = "<<sqrt( (genVx[k]*genVx[k]) + (genVy[k]*genVy[k]) + (genVz[k]*genVz[k])  ) <<endl;
-           cout<<" my clock : "<<ut <<"  its clock:"<< EcalTime  <<"  its beta :"<< xP4.Beta() <<" ctbg = "<< cbtg <<", "<< cbtg*xP4.Beta() <<endl ;
-           cout<<" dT = "<< ut - EcalTime  << endl;
-           */
- 
            double vx = genVx[k] ;
            double vy = genVy[k] ;
            double vz = genVz[k] ;
-           if (  sqrt( (vx*vx) + (vy*vy)  ) < decayR ) continue ;
-           if (  decayR < 0 && sqrt( (vx*vx) + (vy*vy)  ) > fabs(decayR) ) continue ;
-           //if (  fabs(vz) < 160. ) continue ;
-           Propagator( gP4, vx, vy, vz, EcalTime ) ;
+           //double vrho = sqrt( (vx*vx) + (vy*vy) ) ;
+           //printf("         v4( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
+           bool hasEcalTime = Propagator( gP4, vx, vy, vz, EcalTime ) ;
+           if ( !hasEcalTime ) continue ;
+
+           //vrho = sqrt( (vx*vx) + (vy*vy) ) ;
+           //printf("           ( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
            double d_x = vx - vtxX[0] ;
            double d_y = vy - vtxY[0] ;
            double d_z = vz - vtxZ[0] ;
            double d_r = sqrt( (d_x*d_x) + (d_y*d_y) + (d_z*d_z) ); 
            double t0  = d_r /30. ; // t0 -> ecaltime assuming photon is from original
-           //double dT = ( EcalTime < -24.9 ) ? -4 : EcalTime  - t0 ;
-           double dT = EcalTime  - t0 ;
+          
+           // This is the measured time for gen photons
+           double dT = EcalTime  - t0 ; 
 
            h.Time_R->Fill( dT, sqrt( (genVx[k]*genVx[k]) + ( genVy[k]*genVy[k]) ) , weight );
            h.Time_Z->Fill( dT, fabs( genVz[k] ) , weight );
@@ -337,9 +329,13 @@ void TestGen::ReadTree( string dataName, double weight ) {
            // skip the escaped photon 
            TLorentzVector genRecoP4 = TLorentzVector( d_x, d_y, d_z, d_r ) ;
            genRecoP4 = genRecoP4 * ( gP4.E() / d_r ) ;
-           if ( EcalTime > -20.0 ) { 
-              genPho.push_back( make_pair( k, genRecoP4 ) ) ;
-              genTs.push_back( dT ) ;
+           //printf("    ---> p4( %.1f,%.1f,%.1f,%.1f) recoT:%.3f , dT: %.3f \n", 
+           //                    genRecoP4.Px(),genRecoP4.Py(),genRecoP4.Pz(),genRecoP4.E(), t0, dT ) ;
+
+           genPho.push_back( make_pair( k, genRecoP4 ) ) ;
+	   genTs.push_back( dT ) ;
+	   genXTs.push_back( genT[mId]*300. / xP4.Gamma()  ) ;
+	   genPs.push_back( gP4 ) ;
               /*
               if ( dT > 6. ) {
                  printf(" === Gen  Time: %f, GenPt: %.1f, RecoPt: %.1f, RecoEta: %.2f, vx: %.2f, vy: %.2f, vz: %.2f  \n", 
@@ -352,7 +348,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
                  cout<<" --------------------------------------- "<<endl ;
               }
               */
-           }
            /*
            if ( dT < 0 && dT > -3 ) {
               cout<<"  Neutralino :  genVx:"<< genVx[mId] << " genVy:"<< genVy[mId] << " genVz:"<< genVz[mId] ;
@@ -366,10 +361,17 @@ void TestGen::ReadTree( string dataName, double weight ) {
            h.h_Time->Fill( dT ) ;
           
            if ( dT > -3.999999 ) EscapedPhoton++ ;
-           h.h_ctau->Fill( genT[mId]*300. / xP4.Gamma()  ) ;
+           h.h_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
            h.h_xbeta->Fill( xP4.Beta() ) ;
            //cout<<" PID:"<<pdgId[k] ;
            //cout<<" T_X: "<< genT[k] <<" EcalTime: "<<  EcalTime <<" dT = "<< dT << endl; 
+       }
+
+       if ( hasGravitino ) {
+          TLorentzVector G_P4 = TLorentzVector( genMETP4[0], genMETP4[1], genMETP4[2], genMETP4[3] ) ;
+	  h.h_genMET->Fill( G_P4.Pt() ) ;
+	  h.h_METRes->Fill( G_P4.Pt() - metE ) ;
+	  h.h_METdPhi->Fill( fabs( G_P4.DeltaPhi( met ) ) ) ;
        }
 
        // check gen photon characters 
@@ -382,7 +384,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
            bool pass2 = true ;
            for ( size_t m =0; m< selectJets.size() ; m++ ) {
                double dR_ = selectJets[m].second.DeltaR( genPho[j].second ) ;
-               if ( dR_ < photonCuts[3] ) pass2 = false ;
+               if ( dR_ < jetCuts[5] ) pass2 = false ;
            }
            if ( pass1 && pass2 ) nGoodGenPho++ ;
        }
@@ -403,10 +405,22 @@ void TestGen::ReadTree( string dataName, double weight ) {
        // * Matching Process  *
        vector<iMatch> mlist = GlobalDRMatch( recoPho, genPho );
        for ( size_t k=0; k< mlist.size(); k++ ) {
-           if ( mlist[k].dr > 0.5 || fabs(mlist[k].dPt) > 0.25 ) continue ;
+           if ( mlist[k].dr > 0.5 ) continue ;
            double recoTime  = seedTime[ mlist[k].ir ] ;
            double recoTime1 = aveTime1[ mlist[k].ir ] ;
            double genTime  = genTs[ mlist[k].idg ] ;
+
+           if ( genTime > 2. ) {
+              h.m_sigIeta_time->Fill( sigmaIeta[mlist[k].ir], recoTime );
+	      h.m_sMaj_time->Fill( sMajPho[mlist[k].ir], recoTime );
+	      h.m_sMin_time->Fill( sMinPho[mlist[k].ir], recoTime );
+	      h.m_sMaj_sMin->Fill( sMajPho[mlist[k].ir], sMinPho[mlist[k].ir] );
+	      h.m_cHadIso_time->Fill( cHadIso[mlist[k].ir], recoTime );
+	      h.m_nHadIso_time->Fill( nHadIso[mlist[k].ir], recoTime );
+	      h.m_photIso_time->Fill( photIso[mlist[k].ir], recoTime );
+           }
+
+           if ( fabs(mlist[k].dPt) > 0.25 ) continue ;
            h.h_matchRecoTime->Fill( recoTime ) ;
            h.h_matchGenTime->Fill( genTime ) ;
            if ( fabs( recoTime - genTime + timeCalib[0] ) < 1. ) h.h_matchTime->Fill( genTime ) ;
@@ -417,6 +431,19 @@ void TestGen::ReadTree( string dataName, double weight ) {
            if ( genTime >=2  && genTime < 5 ) h.h_aTimeRes2->Fill( recoTime1 - genTime ) ;
            if ( genTime >=5                 ) h.h_aTimeRes3->Fill( recoTime1 - genTime ) ;
            h.h_PtRes->Fill( mlist[k].dPt ) ;
+
+           if ( genTime > 3. ) h.dR_GenReco->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ) ;
+           h.dR_Time->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , genTime ) ;
+           h.dR_sMaj->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , sMajPho[mlist[k].ir] ) ;
+           h.dR_sMin->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , sMinPho[mlist[k].ir] ) ;
+           h.dR_photIso->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , photIso[mlist[k].ir] ) ;
+           h.dR_nHadIso->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , nHadIso[mlist[k].ir] ) ;
+           h.dR_cHadIso->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , cHadIso[mlist[k].ir] ) ;
+           h.dR_sigIeta->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , sigmaIeta[mlist[k].ir] ) ;
+           h.dR_XTime->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ,  genXTs[mlist[k].idg]  ) ;
+           h.XTime_genTime->Fill( genXTs[mlist[k].idg] , genTime);
+           h.sMaj_sMin->Fill( sMajPho[mlist[k].ir] , sMinPho[mlist[k].ir] ) ;
+
        }
        //for ( size_t k=0; k< mlist.size() ; k++ ) printf(" (%d) , dr: %f dPt: %f \n", (int)k , mlist[k].dr, mlist[k].dPt ) ;
 
@@ -428,8 +455,10 @@ void TestGen::ReadTree( string dataName, double weight ) {
 }  
 
 // propagator with backward propagation
-// ECal Dimension : R:( 129 ~ 175 cm , Z : 317 ~390 )
+// ECal Dimension : R:( 129 ~ 155 cm , Z : 317 ~345 )
 bool TestGen::Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double taugamma ) {
+
+    bool hasEcalTime = true ;
 
     double bx = v.Px() / v.P() ;
     double by = v.Py() / v.P() ;
@@ -440,49 +469,47 @@ bool TestGen::Propagator( TLorentzVector v, double& x, double& y, double& z, dou
     double r0 = r ;
     double z0 = z ;
 
-    if ( r >= 175. || fabs(z) >= 390. ) t = -25 ;
-
-    bool insideEcal = ( r < 129. && fabs(z) < 317. ) ? true : false ;  // inner edge of ECAL
+    bool insideEcal =  ( r < 129. && fabs(z) < 317. ) ? true : false ;  // inner edge of ECAL
+    bool outsideEcal = ( r > 155. || fabs(z) > 345. ) ? true : false ;  // outer edge of ECAL
     bool alived     = true ;
-    bool comeback   = false ;
+
+    //if ( r < 129. && fabs(z) < 317. )  cout<<"   Inside ECAL  " ;
+    //if ( r > 155. || fabs(z) > 345. )  cout<<"   Outside ECAL " ;
+    //if ( !insideEcal && !outsideEcal ) cout<<"   In ECAL      " ; 
+
     int     i = 0 ;
-    double dl = 0. ;
     do {
 
        i++ ; 
        r0 = sqrt( (x*x) + (y*y ) ) ;
        z0 = z ;
-       t = t + dt ;
-       x = x + (bx*dt*30*v.Beta() ) ;
-       y = y + (by*dt*30*v.Beta() ) ;
-       z = z + (bz*dt*30*v.Beta() ) ;
-       r = sqrt( (x*x) + (y*y) ) ;
-       //double trace = sqrt( (x*x) + (y*y) + (z*z)  ) ; 
 
-       alived     = ( t <  taugamma   ) ? true : false ;
-       insideEcal = ( r < 129 && fabs(z) < 317 ) ? true : false ; // inner edge of ECAL
-       if ( !insideEcal && !comeback )     alived = false ; // for those photons just hit the Ecal
+       t = t + dt ;
+       x = x + (bx*dt*30 ) ;
+       y = y + (by*dt*30 ) ;
+       z = z + (bz*dt*30 ) ;
+       r = sqrt( (x*x) + (y*y) ) ;
+
+       alived      = ( t < taugamma ) ? true : false ;
+       if ( t > taugamma )  hasEcalTime = false ;
+
+       insideEcal  = ( r < 129 && fabs(z) < 317 ) ? true : false ; // inner surface of ECAL
+       outsideEcal = ( r > 155 || fabs(z) > 345 ) ? true : false ; // outer surface of ECAL
+       if ( !insideEcal && !outsideEcal )     alived = false ; // for those photons just hit the Ecal
 
        double dr = r - r0 ;
        double dz = fabs(z) - fabs(z0) ;
-       //if ( insideEcal ) cout<<" r = "<< r <<" z : "<< z <<"  dr:"<<dr <<" dz:"<<dz<< endl;
-       if (  r >= 175  || fabs(z) >= 390 ) alived = false ; // for those neutralino decay closed to Ecal outter edge
-       if (  insideEcal &&  comeback )     alived = false ; // for those photons go back to tracker from Ecal
-       if (  r < 175. && fabs(z) < 390. && alived ) {
-	  if ( r >= 129 || fabs(z) >= 317 )           comeback = true ;
-          if ( comeback  ) dl += sqrt( (dz*dz) + (dr*dr) ) ;
-          // Ecal crystal length is 23 cm , 10 cm is a random choose for photon to be absorted insdie Ecal
-          if ( dl > 10. ) { 
-             comeback = false ; 
-             alived   = false ;
-          }
+       if ( outsideEcal && alived ) {
+          if ( dr > 0 && dz > 0            ) alived = false ;
+          if ( dr < 0 && r < 155 && dz > 0 ) alived = false ;
+          if ( dz < 0 && z < 345 && dr > 0 ) alived = false ;
+          if ( !alived ) hasEcalTime = false ;
        }
-       if ( !insideEcal && comeback ) insideEcal = true ; // keep loop running if neutralino decay inside Ecal
-       //if ( comeback ) cout<<" r = "<< r <<" z : "<< z <<"  dr:"<<dr <<" dz:"<<dz<< endl;
-    } while ( insideEcal && alived && t < 25 ) ;
 
+    } while ( alived ) ;
 
-    return insideEcal ;
+    //printf( " .... N_Steps : %d , ( %4.2f %4.2f %4.2f )  \n", i, x, y, z ) ;
+    return hasEcalTime ;
 }
 
 // simple propagator without backward propagation -- propagator for neutralino
@@ -537,7 +564,7 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
     vector<iMatch> vMatch ;
     vector<iMatch> vMatch0 ;
     iMatch iM0 ;
-    double minDR = 999 ; 
+    double minDR = 999. ; 
     do {
 
         double dr2 = 0 ;
@@ -556,7 +583,7 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
             dr2 += (dr_*dr_) ;
             //cout<< j <<", " ;
         }
-        double dr = sqrt( dr2 ) ;
+        double dr = ( vMatch0.size() > 0. ) ? sqrt( dr2 ) : 999. ;
         //cout<<" ) , dR = "<< dr << endl ;
 
         if ( dr < minDR ) {
@@ -566,6 +593,14 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
 
     } while (  next_permutation( pool.begin() ,pool.end() ) ) ;
  
+    // Debug matching process 
+    /*
+    if ( vMatch.size() > 0 ) printf(" ======= min_dR: %.2f =======\n", minDR );
+    for ( size_t i=0; i< vMatch.size(); i++ ) {
+        printf("    dR(%d - %d) = %.3f , dPt = %.2f \n", vMatch[i].ig , vMatch[i].ir , vMatch[i].dr , vMatch[i].dPt ); 
+    }
+    */
+
     return vMatch ;
 }
 

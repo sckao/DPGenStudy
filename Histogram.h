@@ -35,18 +35,11 @@ struct hSet {
     TH1D* aveObsTime  ;
     TH1D* aveObsTime1 ;
     TH1D* aveObsTime2 ;
-    TH1D* obsEBTimeErr  ;
-    TH1D* obsEETimeErr  ;
-    TH1D* aveObsEBTimeErr ;
-    TH1D* aveObsEETimeErr ;
-    TH1D* aveObsEBTimeErr1 ;
-    TH1D* aveObsEETimeErr1 ;
 
     TH2D* seedTime_Chi2  ;
     TH2D* Time_R  ; 
     TH2D* Time_Z  ;
 
-    TH1D* badPhoTime     ;
     TH1D* TimeLT3Jets    ;
     TH1D* TimeGE3Jets    ;
     TH1D* TimeLowMET     ;
@@ -93,6 +86,9 @@ struct hSet {
     TH1D* h_met        ;
     TH1D* h_g1Pt       ;
     TH1D* h_gen1Pt     ; 
+    TH1D* h_genMET     ; 
+    TH1D* h_METRes     ; 
+    TH1D* h_METdPhi    ; 
     TH1D* h_gen1RecoPt ;
 
     TH1D* h_nVtx       ;
@@ -117,6 +113,26 @@ struct hSet {
     TH1D* pureTime ;
     TH1D* ghostTime ;
 
+    TH2D* m_sigIeta_time ;
+    TH2D* m_sMaj_sMin ;
+    TH2D* m_sMaj_time ;
+    TH2D* m_sMin_time ;
+    TH2D* m_cHadIso_time ;
+    TH2D* m_nHadIso_time ;
+    TH2D* m_photIso_time ;
+
+    TH1D* dR_GenReco ;
+    TH2D* dR_Time ;
+    TH2D* dR_XTime ;
+    TH2D* dR_sigIeta ;
+    TH2D* dR_sMaj ;
+    TH2D* dR_sMin ;
+    TH2D* dR_photIso ;
+    TH2D* dR_nHadIso ;
+    TH2D* dR_cHadIso ;
+    TH2D* sMaj_sMin ;
+    TH2D* XTime_genTime ;
+ 
 } ;
 
 class Histogram {

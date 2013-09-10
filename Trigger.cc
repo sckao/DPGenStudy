@@ -31,9 +31,7 @@ Trigger::~Trigger() {
 // analysis template
 void Trigger::ReadTree( string dataName ) { 
 
-   //TTree* tr = Input->TreeMap( dataName );
    TTree* tr   = Input->GetTree( dataName, "DPAnalysis" );
-
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 
@@ -382,4 +380,70 @@ int Trigger::TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV ) {
     return matchID ;
 }
 
+void Trigger::EventList( string dataFileName ) {
+
+   string logfilePath = hfolder ;
+   logfilePath += "eventList.txt" ;
+
+   FILE* logfile = fopen( logfilePath.c_str() ,"a");
+
+   TTree* tr   = Input->GetTree( dataFileName, "DPAnalysis" );
+   cout<<" Get the tree ! "<<endl ;
+   // clone the tree for event selection
+   TChain* tr1 = (TChain*) tr->Clone() ;
+
+   int runId, eventId ;
+
+   tr->SetBranchAddress("runId",        &runId);
+   tr->SetBranchAddress("eventId",      &eventId);
+
+   select->Init( tr1 ) ;
+
+   int totalN = tr->GetEntries();
+   cout<<" from  "<< dataFileName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
+
+   for ( int i=0; i< totalN ; i++ ) {
+       if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
+       tr->GetEntry( i );
+       tr1->GetEntry( i );
+
+       bool pass = select->SignalSelection();
+       if ( !pass ) continue ;
+       fprintf(logfile," %8d %16d \n", runId, eventId );
+
+   }
+
+   fclose( logfile ) ;
+}
+
+void Trigger::CutFlow( string dataFileName ) {
+
+   string logfilePath = hfolder ;
+   logfilePath += "eventList.txt" ;
+
+   FILE* logfile = fopen( logfilePath.c_str() ,"a");
+
+   TTree* tr   = Input->GetTree( dataFileName, "CutFlow" );
+   cout<<" Get the tree ! "<<endl ;
+   // clone the tree for event selection
+
+   int counter[12] ;
+   int ctr[12] = { 0 } ;
+
+   tr->SetBranchAddress("counter",  counter);
+
+   int totalN = tr->GetEntries();
+   for ( int i=0; i< totalN ; i++ ) {
+       if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
+       tr->GetEntry( i );
+
+       for (int j=0; j<12 ; j++ ) ctr[j] += counter[j] ;
+
+   }
+   fprintf(logfile,"|    All   |    HLT   | Vertex | Fiducial | Conversion | sMaj_sMin | dR(phot,trk) | LeadingPt | BeamHalo |   Jet  |   MET  |  Final |\n" );
+   fprintf(logfile,"  %d  %d  %d  %d  %d  %d  %d  %d  %d  %d  %d  %d \n",  
+                     ctr[0], ctr[1], ctr[2], ctr[3], ctr[4], ctr[5], ctr[6], ctr[7], ctr[8], ctr[9], ctr[10], ctr[11] ) ;
+
+   fclose( logfile ) ;
+}
 

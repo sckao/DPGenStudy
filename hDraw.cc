@@ -13,6 +13,10 @@ hDraw::hDraw( string datacardfile ){
   c2  = new TCanvas("c2","", 800, 600);
   c3  = new TCanvas("c3","", 800, 600);
 
+  //c1->SetLeftMargin(0.15);
+  //c2->SetLeftMargin(0.15);
+  //c3->SetLeftMargin(0.15);
+
   func1 = NULL ;
   StatBoxOn = true ;
   lineWidth = 1  ;
@@ -31,9 +35,10 @@ hDraw::~hDraw(){
 
 void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, string logY, float statY, int color, double scale_, TLegend* leg ) {
 
-      gStyle->SetOptStat("eoumi");
-      if ( !StatBoxOn ) gStyle->SetOptStat(kFALSE); 
-      if (  StatBoxOn ) gStyle->SetOptStat(kTRUE); 
+      //gStyle->SetOptStat("eoumi");
+      //if ( !StatBoxOn ) gStyle->SetOptStat(kFALSE); 
+      //if (  StatBoxOn ) gStyle->SetOptStat(kTRUE); 
+      if ( h1_ == NULL ) return ;
 
       TH1D* h1 = (TH1D*)h1_->Clone() ;
       h1->Scale( scale_ ); 
@@ -51,6 +56,7 @@ void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, stri
 
       h1->GetXaxis()->SetTitle( xTitle.c_str() );
       h1->GetYaxis()->SetTitle( yTitle.c_str() );
+      h1->GetYaxis()->SetTitleOffset(1.39);
       h1->SetLineColor( color ) ;
       h1_->SetLineColor( color ) ;
 
@@ -84,7 +90,6 @@ void hDraw::DrawAppend( TH1D* h1_, string plotName, float statY, int color, doub
       h1->SetLineWidth( lineWidth ) ;
       if ( fillColor > 0 ) h1->SetFillColor( fillColor ) ;
 
-      c1->cd();
       h1->DrawCopy("sames") ;
       c1->Update();
 
@@ -99,12 +104,16 @@ void hDraw::DrawAppend( TH1D* h1_, string plotName, float statY, int color, doub
 
 void hDraw::Draw2D( TH2D* h2, string plotName, string xTitle, string yTitle, string logZ, int nColor, float titleFontSize, float statFontSize ) {
 
+      if ( h2 == NULL ) return ;
+
       TCanvas* c4  = new TCanvas("c4","", 800, 600 );
       c4->SetFillColor(10);
       c4->SetFillColor(10);
+      c4->SetLeftMargin(0.16);
+      c4->SetBottomMargin(0.12);
       //c4->SetLogy(0);
-      if ( !StatBoxOn ) gStyle->SetOptStat(kFALSE); 
-      if (  StatBoxOn ) gStyle->SetOptStat(kTRUE); 
+      //if ( !StatBoxOn ) gStyle->SetOptStat(kFALSE); 
+      //if (  StatBoxOn ) gStyle->SetOptStat(kTRUE); 
 
       if ( strncasecmp( "logZ", logZ.c_str(), logZ.size() ) ==0  && logZ.size() > 0 ) gPad->SetLogz(1) ;
 
@@ -117,6 +126,8 @@ void hDraw::Draw2D( TH2D* h2, string plotName, string xTitle, string yTitle, str
 
       h2->GetXaxis()->SetTitle( xTitle.c_str() );
       h2->GetYaxis()->SetTitle( yTitle.c_str() );
+      h2->GetXaxis()->SetTitleOffset(1.5);
+      h2->GetYaxis()->SetTitleOffset(1.4);
 
       c4->cd() ;
       h2->Draw("COLZ") ;

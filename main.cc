@@ -26,80 +26,6 @@
 
 using namespace std; 
 
-/*
-class BackgroundStudy ;
-class mtest ;
-
-void *thread_F1( void *thread_arg ) {
-
-    cout<<" === tread1 :" <<endl ;
-    BackgroundStudy* bgS  =  static_cast<BackgroundStudy*>(thread_arg) ;
-    bgS->Run() ;
-
-    cout<<" ====================== "<<endl ;
-    //pthread_exit(NULL);
-    return 0 ;
-}
-
-void *thread_F2( void *thread_arg ) {
-
-    cout<<" *** tread2 :" <<endl ;
-    string datacardfile  = *( static_cast<string*>(thread_arg) );
-   
-    TThread::Lock() ;
-    mtest *mt = new mtest( datacardfile ) ;
-    mt->init() ;
-
-    mt->RunData();
-    TThread::UnLock() ;
-
-    cout<<" ********************** "<<endl ;
-    //pthread_exit(NULL);
-    return 0 ;
-}
-
-void *thread_F3( void *thread_arg ) {
-
-    cout<<" *** tread3 :" <<endl ;
-    for ( int i=0 ; i < 35 ; i++) {
-        sleep(3) ;
-        cout<<"   ( "<<i*3 <<" ) " <<endl ;
-    }
-    cout<<" ********************** "<<endl ;
-    //pthread_exit(NULL);
-    return 0 ;
-    
-}
-
-void *thread_Func1( void *thread_arg ) {
-
-    string datacardfile  = *( static_cast<string*>(thread_arg) );
-
-    cout<<" === tread1 :" << datacardfile <<endl ;
-
-    BackgroundStudy *bgS  = new BackgroundStudy( datacardfile ) ;
-    bgS->Run() ;
-
-    cout<<" ====================== "<<endl ;
-    //pthread_exit(NULL);
-    return 0 ;
-}
-
-void *thread_Func2( void *thread_arg ) {
-
-    string datacardfile  = *( static_cast<string*>(thread_arg) );
-
-    cout<<" *** tread2 :" << datacardfile <<endl ;
-
-    TestGen   *tgen  = new TestGen( datacardfile ) ;
-    tgen->ReadTree();
-
-    cout<<" ********************** "<<endl ;
-    //pthread_exit(NULL);
-    return 0 ;
-}
-*/
-
 int main( int argc, const char* argv[] ) { 
 
   string datacardfile = ( argc > 1 ) ? argv[1] : "DataCard.txt";
@@ -118,10 +44,16 @@ int main( int argc, const char* argv[] ) {
      TestGen   *tgen  = new TestGen( datacardfile ) ;
      tgen->ReadTree( dataFileNames);
      delete tgen ;
+
+     Histogram *histo = new Histogram( datacardfile ) ;
+     histo->DrawHistograms();
+     delete histo ;
   }
   if ( module == 1 ) {
      Trigger   *trg   = new Trigger( datacardfile ) ;
-     trg->ReadTree( dataFileNames);
+     //trg->ReadTree( dataFileNames);
+     trg->EventList( dataFileNames ) ;
+     trg->CutFlow( dataFileNames ) ;
      delete trg ;
   }
   if ( module == 2 ) {
@@ -137,6 +69,10 @@ int main( int argc, const char* argv[] ) {
          tgen->ReadTree( mcFileNames[i] , normV[i] );
      }
      delete tgen ;
+
+     Histogram *histo = new Histogram( datacardfile ) ;
+     histo->DrawHistograms();
+     delete histo ;
   }
   if ( module == 4 ) {
 
@@ -184,49 +120,7 @@ int main( int argc, const char* argv[] ) {
      delete bgS ;
   }
 
-  /*
-  if ( module == 8 ) {
-     pthread_t t1, t2 ; // declare 2 threads.
-
-     string mcDataCard = "DataCard1.txt" ;
-
-     pthread_create( &t1, NULL, thread_F2 ,  static_cast<void*>(&datacardfile) ); // create a thread running function1
-     pthread_create( &t2, NULL, thread_F2 ,  static_cast<void*>(&mcDataCard) ); // create a thread running function1
-     //pthread_create( &t2, NULL, &tgen->ReadTree( dataFileNames) ,NULL);
-     pthread_join( t1, NULL ) ;
-     pthread_join( t2, NULL ) ;
-
-  }
-
-  if ( module == 9 ) {
-     pthread_t t1, t2 ; // declare 2 threads.
-
-     string mcDataCard = "DataCard1.txt" ;
-     //BackgroundStudy * bgS1 = new BackgroundStudy( datacardfile ) ;
-     //bgS1->init() ;
-     mtest           * mt   = new mtest( datacardfile ) ;
-     mt->init() ;
-     mtest           * mt2   = new mtest( mcDataCard ) ;
-     mt2->init() ;
-     //BackgroundStudy * bgS2 = new BackgroundStudy( mcDataCard ) ;
-
-     //pthread_create( &t1, NULL, thread_F1 ,  static_cast<void*>(bgS1) ); // create a thread running function1
-     pthread_create( &t1, NULL, thread_F2 ,  static_cast<void*>(mt2) ); // create a thread running function1
-     //pthread_create( &t2, NULL, thread_F2 ,  static_cast<void*>(bgS2) ); // create a thread running function1
-     pthread_create( &t2, NULL, thread_F2 ,  static_cast<void*>(mt) ); // create a thread running function1
-     //pthread_create( &t2, NULL, &tgen->ReadTree( dataFileNames) ,NULL);
-     pthread_join( t1, NULL ) ;
-     pthread_join( t2, NULL ) ;
-
-  }
-  */
-
   cout<<" Finished !!!"<<endl ;
-  //for ( size_t i =0 ; i< dataFileNames.size(); i++ ) {
-  //    tgen->ReadTree( dataFileNames[i] );
-  //} 
-
-  //delete Input ;
 
   return 0;
 

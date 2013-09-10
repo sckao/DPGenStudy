@@ -48,6 +48,8 @@ public:
    
    void ReadTree( string dataName ) ;
    int TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV )  ;
+   void EventList( string dataName ) ;
+   void CutFlow( string dataName ) ;
 
 private:
 

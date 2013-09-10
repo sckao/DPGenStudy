@@ -125,8 +125,8 @@ vector<double> AnaInput::NormalizeComponents( string cfgFile ){
      double skimEff = ( nSkim.size() > 0 ) ? nSkim[i]/nEvents[i] : 1. ;
      double nBase = xsec[i]*Eff[i]*skimEff ;
      double Scal = (nBase*lumi) / nEvents[i] ;
-     //printf(" N: %f , X: %f , Eff: %f \n", nEvents[i], xsec[i], Eff[i] ) ;
-     cout<<" Normalization =  "<< Scal << endl;
+     //printf(" N: %.1f , X: %.1f , Eff: %.1f , NSkim: %.1f = Scal : %.4f \n", nEvents[i], xsec[i], Eff[i], nSkim[i], Scal ) ;
+     //cout<<" Normalization =  "<< Scal << endl;
      normV.push_back( Scal ) ;
   } 
 

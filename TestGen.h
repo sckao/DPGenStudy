@@ -104,6 +104,8 @@ private:
    vector<objID> genPho ;
    vector<double> recoTs ;
    vector<double> genTs ;
+   vector<double> genXTs ;
+   vector<TLorentzVector> genPs ;
  
    vector<double> photonCuts ;
    vector<double> jetCuts ;

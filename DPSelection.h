@@ -47,6 +47,10 @@ public:
    bool QCDControlSample() ; 
    bool GammaJetsBackground() ; 
 
+   bool HaloTag( double cscdPhi, double sMaj, double sMin, double eta ) ;
+   bool SpikeTag( int nXtl, double sMaj, double sMin ) ;
+   bool CosmicTag( double dtdEta , double dtdPhi ) ;
+
    void ResetCuts( string cutName, vector<int>& cutId, vector<double>& newValue ) ;
    void ResetCuts( string cutName, int cutId, double newValue ) ;
    void ResetCuts( string cutName = "All" ) ; // set cuts to default values from datacard 
@@ -57,6 +61,13 @@ public:
    void ResetCollection( string cutName = "All" ) ; // clean the storage containers 
    void PrintCutFlow() ;
    inline int GetPhotonCutFlow() { return photonCutFlow ; }
+
+   double ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) ;
+   double GetEstimation( TH2D* hCount, bool getQCD = true ) ;
+   void UpdateEfficiency( double halo_Eff[], double halo_FR[], double spike_Eff[], double spike_FR[] );
+   vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12, bool updateEff = false ) ;
+   vector<double> GetComponent( int eta_i,    int B12,    int h_B12,    int s_B12,    int c_B12, bool updateEff = false ) ;
+
 
    // results
    bool passL1 ;
@@ -93,6 +104,8 @@ private:
    float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
    float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
+   float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
+   int   nXtals[MAXPHO] ;
 
    float vtxX[MAXVTX],    vtxY[MAXVTX],  vtxZ[MAXVTX],   vtxChi2[MAXVTX], vtxNdof[MAXVTX];
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
@@ -119,6 +132,11 @@ private:
    int gCounter[9] ;
    int photonCutFlow ;
 
+   // Efficiency for background taggers
+   Double_t* haloEff ;
+   Double_t* spikeEff ;
+   Double_t* haloMis ;
+   Double_t* spikeMis ;
 
    //ClassDef(DPSelection, 1);
 };
