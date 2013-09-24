@@ -109,12 +109,13 @@ private:
    TH1D* h_EB_Time0 ;
    TH1D* h_EB_Time1 ;
    TH1D* h_EB_Time2 ;
-   TH1D* h_EB_Time3 ;
    TH1D* h_EE_Time ;
    TH1D* h_EE_Time0 ;
    TH1D* h_EE_Time1 ;
    TH1D* h_EE_Time2 ;
-   TH1D* h_EE_Time3 ;
+
+   TH1D* h_Time_EB ;
+   TH1D* h_Time_EE ;
 
    TH2D* h_Eta_Time ;
    TH2D* h_Phi_Time ;
@@ -191,7 +192,7 @@ private:
    TH2D* cs_sigIeta_Time ;
    TH1D* cs_cscdPhi ;
    TH1D* cs_nXtl  ;
-   TH2D* cs_nXtl_Eta  ;
+   TH2D* cs_sMaj_sMin  ;
    TH2D* cs_cHadIso_Time ;
    TH2D* cs_nHadIso_Time ;
    TH2D* cs_photIso_Time ;
@@ -226,9 +227,6 @@ private:
   
    TH2D* haloTest_sMaj_sMin ;
    TH1D* haloTest_cscdPhi ;
-
-   TH1D* qcdCS_Time ;
-   TH2D* qcdCS_Eta_Time ;
 
    TH1D* mistag_cscdPhi ;
    TH1D* mistag_nXtl ;
@@ -273,7 +271,6 @@ private:
    TH2D* cosmic_sMaj_Time ;
    TH2D* cosmic_photIso_Time ;
    TH2D* cosmic_sMaj_sMin ;
-   TH1D* cosmic_sigEta ;
    TH1D* cosmic_sigIeta ;
    TH1D* cosmic_Time ;
    TH1D* cosmic_nXtl ;
@@ -288,7 +285,6 @@ private:
    TH2D* halo_sMaj_Time ;
    TH2D* halo_photIso_Time ;
    TH2D* halo_sMaj_sMin ;
-   TH1D* halo_sigEta ;
    TH1D* halo_sigIeta ;
    TH1D* halo_Time ;
    TH2D* halo_sMaj_sigIeta ;
@@ -301,14 +297,12 @@ private:
    TH2D* haloFN_Eta_Time ;
    TH2D* haloFN_Pt_Time ;
    TH2D* haloFN_MET_Time ;
-   TH2D* haloFN_sMaj_Eta ;
+   TH2D* haloFN_sMaj_sMin ;
+   TH1D* haloFN_cscdPhi ;
 
-   TH1D* noHalo_sigEta ;
-   TH1D* noHalo_sigIeta ;
    TH1D* noHalo_Time ;
    TH2D* noHalo_sMaj_Time ;
    TH2D* noHalo_sMin_Time ;
-
    TH1D* noHalo_nXtl_side ;
    TH1D* noHalo_nXtl_center ;
 
@@ -320,16 +314,12 @@ private:
    TH2D* spike_sMaj_Time ;
    TH2D* spike_sMin_Time ;
    TH2D* spike_photIso_Time ;
-   TH1D* spike_sigEta ;
    TH1D* spike_sigIeta ;
    TH1D* spike_Time ;
    TH2D* spike_sMaj_sigIeta ;
    TH2D* spike_sMin_sigIeta ;
-
    TH2D* noSpike_sMaj_Time ;
    TH2D* noSpike_sMin_Time ;
-   TH1D* noSpike_sigEta ;
-   TH1D* noSpike_sigIeta ;
    TH1D* noSpike_Time ;
 
    TH1D* notSpike_nXtl ;

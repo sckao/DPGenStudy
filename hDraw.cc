@@ -79,6 +79,8 @@ void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, stri
 
 void hDraw::DrawAppend( TH1D* h1_, string plotName, float statY, int color, double scale_, TLegend* leg ) {
 
+      if ( h1_ == NULL ) return ;
+
       TH1D* h1 = (TH1D*)h1_->Clone() ;
       h1->Scale( scale_ ); 
 

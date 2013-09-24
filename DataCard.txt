@@ -14,14 +14,14 @@ Path = TCuts_RunCD/
 PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
-#HFileName = hStats_RunCD_2J
+#HFileName = hStats_RunCD_1J
 HFileName = bgRunCD_test
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC
 #        4: Stats Output 5: Systematic, 6: background , 7: Halo Study 8: MC Halo Study 9: Halo Drawer
 ######################################
-Module = 7
+Module = 9
 
 # MC = 0 , Data = 1
 IsData = 1
@@ -42,7 +42,7 @@ TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gm
 
 
 # -1 : all of events
-ProcessEvents = -1
+ProcessEvents = 1000000
 SkipEvents = 0
 
 ######################################
@@ -74,7 +74,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        1,       2,   60,  0.3)
+JetCuts = (   35., 2.4,        1,       99,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
