@@ -13,6 +13,7 @@ DPSelection::DPSelection( string datacardfile ){
   Input->GetParameters( "PhotonCuts",   &photonCuts );
   Input->GetParameters( "UsePFIso",     &usePFIso ) ;
   Input->GetParameters( "PhotonIso",    &photonIso );
+  Input->GetParameters( "PhotonPFIso",  &photonPFIso ) ;
   Input->GetParameters( "ElectronCuts", &electronCuts );
   Input->GetParameters( "JetCuts",      &jetCuts );
   Input->GetParameters( "MuonCuts",     &muonCuts );
@@ -214,7 +215,6 @@ bool DPSelection::PhotonFilter() {
            nG[5]++ ;
            // Isolation
            if ( usePFIso == 1 ) {
-              Input->GetParameters( "PhotonPFIso",     &photonPFIso ) ;
 	      if ( cHadIso[j] >= photonPFIso[0] ) continue ;  // chargedHadron
 	      if ( nHadIso[j] >= photonPFIso[1] + ( 0.04*phoP4.Pt()   ) ) continue ;  // neutralHadron
 	      if ( photIso[j] >= photonPFIso[2] + ( 0.005*phoP4.Pt() ) ) continue ;  // photon
@@ -225,7 +225,6 @@ bool DPSelection::PhotonFilter() {
               if ( phoHcalIso[j] >= photonIso[3] || phoHcalIso[j] / phoE[j] >= photonIso[4] )  continue ;
            }
            if ( usePFIso == 3 ) {
-              Input->GetParameters( "PhotonPFIso",     &photonPFIso ) ;
 	      if ( cHadIso[j] >= photonPFIso[0] ) continue ;  // chargedHadron
 	      if ( nHadIso[j] >= photonPFIso[1] + ( 0.04*phoP4.Pt()   ) ) continue ;  // neutralHadron
            } 
@@ -308,15 +307,24 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
          }
 
 	 double dR_gj = 999. ;
-	 for ( size_t k=0; k< phoV.size() ; k++) {
-	     if ( phoV[k].second.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoV[k].second.DeltaR( jp4 ) ;
-	 }
+	 //for ( size_t k=0; k< phoV.size() ; k++) {
+	 //    if ( phoV[k].second.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoV[k].second.DeltaR( jp4 ) ;
+	 //}
+         for ( int k=0 ; k< nPhotons; k++ ) {
+             TLorentzVector phoP4( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
+             if ( phoP4.Pt() < photonCuts[0] ) continue ;
+             if ( phoHovE[k] > photonCuts[2] ) continue ;
+	     if ( cHadIso[k] >= photonPFIso[0] ) continue ;  // chargedHadron
+	     if ( nHadIso[k] >= photonPFIso[1] + ( 0.04*phoP4.Pt()   ) ) continue ;  // neutralHadron
+	     if ( phoP4.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoP4.DeltaR( jp4 ) ;
+         }
+
 	 if ( dR_gj < jetCuts[5] ) continue ;
 	 jetV.push_back( make_pair( j, jp4 ) );
 
      }
      int nu_Jets = (int)jetV.size() ;
-     if ( nu_Jets < (int)jetCuts[2] || nu_Jets > (int)jetCuts[3] )      pass = false ;
+     if ( nu_Jets < (int)jetCuts[2] || nu_Jets > (int)jetCuts[3] )  pass = false ;
 
      // 2. met selection
      double met_X(0) , met_Y(0) , met_E(0) ;

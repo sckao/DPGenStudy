@@ -80,7 +80,8 @@ private:
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO] ;
    float dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
-   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
+   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX], vtxDx[MAXVTX], vtxDy[MAXVTX], vtxDz[MAXVTX] ;
+   int nTrkZ0[34] ;
 
    float metPx, metPy, metE ;
    int   nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
@@ -116,6 +117,7 @@ private:
 
    TH1D* h_Time_EB ;
    TH1D* h_Time_EE ;
+   TH1D* h_haloTime_EE ;
 
    TH2D* h_Eta_Time ;
    TH2D* h_Phi_Time ;
@@ -138,13 +140,24 @@ private:
    TH2D* h_Pt_MET ;
    TH2D* h_Pt_Time_EB ;
    TH2D* h_Pt_Time_EE ;
-   TH2D* h_ADC_Time_EB ;
-   TH2D* h_ADC_Time_EE ;
    TH2D* h_MET_Time_EB ;
    TH2D* h_MET_Time_EE ;
    TH2D* h_cHadIso_Time ;
    TH2D* h_nHadIso_Time ;
    TH2D* h_photIso_Time ;
+   TH2D* h_Time_nZ0 ;
+   TH1D* a_Z0 ;
+   TH1D* b_Z0 ;
+   TH1D* c_Z0 ;
+   TH1D* d_Z0 ;
+   TH1D* h_Z0 ;
+
+   TH1D* a_nVtx ;
+   TH1D* b_nVtx ;
+   TH1D* c_nVtx ;
+   TH1D* d_nVtx ;
+   TH1D* h_nVtx ;
+   TH1D* l_nVtx ;
 
    TH2D* h_sMaj_Eta  ;
    TH2D* h_sMaj_Phi  ;
@@ -196,6 +209,7 @@ private:
    TH2D* cs_cHadIso_Time ;
    TH2D* cs_nHadIso_Time ;
    TH2D* cs_photIso_Time ;
+   TH2D* cs_dtdPhidEta ;
 
    TH2D* sideband_photIso_cscdPhi ;
    TH2D* sideband_sMin_Time ;
@@ -205,15 +219,21 @@ private:
    TH2D* sideband_sMaj_Eta ;
    TH2D* sideband_nXtl_Eta ;
    TH2D* sideband_cscT_ecalT ;
-   TH1D* sideband_cscdPhi ;
-   TH1D* sideband_nXtl ;
+   TH1D* sideband_cscdPhi_u ;
+   TH1D* sideband_cscdPhi_d ;
+   TH1D* sideband_nXtl_u ;
+   TH1D* sideband_nXtl_d ;
    TH1D* sideband_sMaj ;
-   TH1D* sideband_cscdPhi_a3 ;
-   TH1D* sideband_cscdPhi_b3 ;
-   TH1D* sideband_cscdPhi_c2 ;
    TH1D* sideband_dtdR ;
    TH2D* sideband_dtdPhidEta ;
    TH2D* sideband_Pt_nJet ;
+
+   TH1D* sideband_nVtx_0J ;
+   TH1D* sideband_nVtx_1J ;
+   TH1D* sideband_nVtx_2J ;
+   TH1D* noG_nVtx_0J ;
+   TH1D* noG_nVtx_1J ;
+   TH1D* noG_nVtx_2J ;
 
    TH2D* bg_Eta_Time ;
 
@@ -227,16 +247,6 @@ private:
   
    TH2D* haloTest_sMaj_sMin ;
    TH1D* haloTest_cscdPhi ;
-
-   TH1D* mistag_cscdPhi ;
-   TH1D* mistag_nXtl ;
-
-   TH1D* haloCS_nXtl_a3 ;
-   TH1D* haloCS_nXtl_b3 ;
-   TH1D* haloCS_nXtl_c2 ;
-   TH1D* spikeCS_nXtl_a3 ;
-   TH1D* spikeCS_nXtl_b3 ;
-   TH1D* spikeCS_nXtl_c2 ;
 
    TH2D* haloCS_sMaj_sMin ;
    TH2D* haloCS_sMaj_Eta ;
@@ -295,6 +305,7 @@ private:
    TH2D* halo_ecalT_cscT ;
 
    TH2D* haloFN_Eta_Time ;
+   TH2D* haloFN_Phi_Time ;
    TH2D* haloFN_Pt_Time ;
    TH2D* haloFN_MET_Time ;
    TH2D* haloFN_sMaj_sMin ;

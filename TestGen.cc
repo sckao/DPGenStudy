@@ -94,6 +94,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
    tr->SetBranchAddress("sigmaEta",    sigmaEta );
    tr->SetBranchAddress("sigmaIeta",   sigmaIeta );
    tr->SetBranchAddress("cscdPhi",     cscdPhi );
+   tr->SetBranchAddress("dtdPhi",      dtdPhi );
+   tr->SetBranchAddress("dtdEta",      dtdEta );
 
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("sMajPho",     sMajPho );
@@ -151,7 +153,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
-       bool pass = select->SignalSelection();
+       //bool pass = select->SignalSelection();
+       bool pass = select->ControlSelection();
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
@@ -161,15 +164,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
        recoTs.clear() ;  // used for matching
        // MET information
        TLorentzVector met( metPx, metPy, 0, metE)  ;
-
-       // timing in different kinematic features
-       for ( size_t kk =0; kk < selectPho.size() ; kk++) {
-           int k = selectPho[kk].first ;
-	   if ( met.Et() > 60. && selectJets.size()  < 1 )  h.TimeLT3Jets->Fill( seedTime[k] , weight ) ;
-	   if ( met.Et() > 60. && selectJets.size()  > 0 )  h.TimeGE3Jets->Fill( seedTime[k] , weight ) ;
-	   if ( selectJets.size() > 0 && met.Et() < 60.  )  h.TimeLowMET->Fill( seedTime[k] , weight ) ;
-	   if ( selectJets.size() > 0 && met.Et() > 60.  )  h.TimeBigMET->Fill( seedTime[k] , weight ) ;
-       }
 
        if ( pass ) {
 
@@ -195,6 +189,20 @@ void TestGen::ReadTree( string dataName, double weight ) {
                  max_gPt = gP4_.Pt() ;
                  g1P4 = gP4_ ;
               } 
+
+              // Define the Tag 
+              bool haloTag  = ( cscdPhi[k] < 0.05 ) ? true : false  ;
+             // if ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.1  && fabs( gP4_.Eta() ) > 0.75 && fabs(gP4_.Eta()) < 1.47 ) haloTag = true;
+             // if ( sMajPho[k] > 0.8 && sMajPho[k] < 1.65 && sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
+
+              bool spikeTag = ( nXtals[k] < 7 && !haloTag ) ? true : false  ;
+              if ( sMajPho[k] < 0.6 && sMinPho[k] < 0.17 && fabs( gP4_.Eta() ) < 1.47 ) spikeTag = true;
+
+              bool cosmicTag = ( dtdEta[k] < 0.1 && dtdPhi[k] < 0.1 && !haloTag ) ? true : false ;
+              bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+
+              h.h_Eta->Fill( gP4_.Eta(), weight ) ;
+              h.h_Pt_Eta->Fill( gP4_.Pt(), gP4_.Eta(), weight ) ;
 
               // collect good reco photons
 	      recoPho.push_back( make_pair( k , gP4_) );
@@ -256,13 +264,57 @@ void TestGen::ReadTree( string dataName, double weight ) {
               }
 
               // Check the efficiency 
-              bool haloTag  = ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.05 && fabs( gP4_.Eta() ) < 1.4 ) ? true : false  ;
-              if ( fabs( gP4_.Eta() ) > 1.4 && cscdPhi[k] < 0.05 ) haloTag = true ;
-              bool spikeTag = ( nXtals[k] < 7 ) ? true : false  ;
-              bool ghostTag = ( haloTag || spikeTag ) ? true : false ;
-
 	      if ( ghostTag ) h.ghostTime->Fill( seedTime[k], weight );
               else h.pureTime->Fill( seedTime[k], weight );
+
+              // simulate the EE photon
+              if ( fabs(seedTime[k]) < 2. ) {
+
+                 for ( int g=-4; g < 5; g++ ) {
+                     if ( g == 0 ) continue ;
+
+		     double zS = 75.0 * g ;
+		     double tS = 2.5*abs(g) ;
+		     double theTime = 0;
+		     double pos[3] = { vtxX[0], vtxY[0], vtxZ[0]+ zS };
+		     bool hasEcalTime = Propagator( gP4_, pos[0], pos[1], pos[2], theTime ) ;
+		     double mag = sqrt( pos[0]*pos[0]+ pos[1]*pos[1] + pos[2]*pos[2] ) ;
+		     double t0 = mag / 30. ;
+              
+		     double theTimeP = tRan->Gaus( (theTime + tS - t0) , timeCalib[1] ) - timeCalib[0] ;
+                     double theTimeN = tRan->Gaus( (theTime - tS - t0) , timeCalib[1] ) - timeCalib[0] ;
+
+		     //double vtx0[4] = { vtxX[k], vtxY[k], vtxZ[k], 0 };
+		     //Propagator( gP4_, vtx0[0], vtx0[1], vtx0[2], vtx0[3] ) ;
+		     //theTime = theTime - vtx0[3] ;
+		     TLorentzVector GhP4( pos[0], pos[1], pos[2], mag ) ;
+                     double scale = gP4_.P() / mag ;
+                     GhP4 = GhP4 * scale ;
+                     if ( GhP4.Pt() < photonCuts[8] ) continue ;
+
+		     h.Gh_Eta_Time->Fill( GhP4.Eta(),  theTimeP, weight ) ;
+		     h.Gh_Eta_Time->Fill( GhP4.Eta(),  theTimeN, weight ) ;
+		 }
+              }
+
+              if ( fabs( gP4_.Eta() ) >  1.6 ) {
+                 double theTime = 0;
+		 double pos[3] = { vtxX[0], vtxY[0], vtxZ[0] };
+		 Propagator( gP4_, pos[0], pos[1], pos[2], theTime ) ;
+		 double mag = sqrt( pos[0]*pos[0]+ pos[1]*pos[1] + pos[2]*pos[2] ) ;
+		 double rho = sqrt( pos[0]*pos[0]+ pos[1]*pos[1] ) ;
+		 double t0 = mag / 30. ;
+                 theTime = theTime - t0 ;
+                
+                 h.Gh_rho_Time->Fill( rho, seedTime[k] ) ;
+                 h.Gh_rho_dT->Fill( rho, seedTime[k] -theTime ) ;
+                 if ( fabs( seedTime[k] ) > 3.  ) h.Gh_Phi_Time->Fill( gP4_.Phi(), seedTime[k] ) ;
+              }
+              if ( fabs( gP4_.Phi() ) >  0.2 && fabs( gP4_.Phi() ) < 3.12 && !haloTag ) {
+                 h.Gh_Eta_Time1->Fill( gP4_.Eta() , seedTime[k] ) ;
+              }
+
+
           }
           h.h_g1Pt->Fill( max_gPt , weight );
        }

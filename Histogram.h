@@ -40,11 +40,6 @@ struct hSet {
     TH2D* Time_R  ; 
     TH2D* Time_Z  ;
 
-    TH1D* TimeLT3Jets    ;
-    TH1D* TimeGE3Jets    ;
-    TH1D* TimeLowMET     ;
-    TH1D* TimeBigMET     ;
-
     TH1D* h_matchRecoTime ;
     TH1D* h_matchGenTime  ;
     TH1D* h_matchTime     ;
@@ -83,6 +78,8 @@ struct hSet {
     TH1D* h_nBC       ;
     TH1D* h_sMin      ;
 
+    TH2D* h_Pt_Eta ;
+    TH1D* h_Eta        ;
     TH1D* h_met        ;
     TH1D* h_g1Pt       ;
     TH1D* h_gen1Pt     ; 
@@ -98,6 +95,11 @@ struct hSet {
     TH1D* h_nMuons     ;
     TH1D* h_nElectrons ;
 
+    TH2D* Gh_rho_dT ;
+    TH2D* Gh_rho_Time ;
+    TH2D* Gh_Phi_Time ;
+    TH2D* Gh_Eta_Time ;
+    TH2D* Gh_Eta_Time1 ;
     TH2D* h_Eta_Time ;
     TH2D* h_Phi_Time ;
     TH2D* h_Pt_Time ;
@@ -154,6 +156,7 @@ class Histogram {
     void Open( ) ;
     void DrawHistograms() ;
     void Write( string theFolder , TFile* file  ) ;
+    static Double_t HaloFunction( Double_t* eta, Double_t* par ) ;
 
     private:
 

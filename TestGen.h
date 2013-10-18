@@ -82,6 +82,7 @@ private:
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
    int   pdgId[MAXGEN], momId[MAXGEN] ;
+
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
@@ -89,7 +90,7 @@ private:
    float photIso[MAXPHO] , cHadIso[MAXPHO], nHadIso[MAXPHO], phoHoverE[MAXPHO] ;
    float fSpike[MAXPHO], maxSwissX[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
-   float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO] ;
+   float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 

@@ -15,19 +15,21 @@ PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
 #HFileName = hStats_RunCD_1J
-HFileName = bgRunCD_test
+HFileName = bgRunCD_1J
+#HFileName = TGen_RunCD
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC
 #        4: Stats Output 5: Systematic, 6: background , 7: Halo Study 8: MC Halo Study 9: Halo Drawer
 ######################################
-Module = 9
+Module = 7
 
 # MC = 0 , Data = 1
 IsData = 1
 # Files , '+' is the flag for TChain,  
 TheData = ( data+ )
-dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
+dataChain = ( run2012d_1008_1, run2012d_1008_2, run2012d_1008_3, run2012c_1008_3, run2012c_1008_2, run2012c_1008_1 )
+#dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
 #dataChain = ( run2012d_0829_1, run2012d_0829_2, run2012d_0829_3 )
 #dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3 )
 #dataChain = ( run2012c_0820_1, run2012c_0820_2, run2012c_0820_3 )
@@ -42,7 +44,7 @@ TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gm
 
 
 # -1 : all of events
-ProcessEvents = 1000000
+ProcessEvents = 5000000
 SkipEvents = 0
 
 ######################################
@@ -54,7 +56,7 @@ TriggerBits = ( 2, 3 )
 UseL1 = 0
 
 # Photon Cuts  Pt,  Eta, hoverE,  maxNPhot, minNPhot, sMinMin, sMinMax, dR_trk, leadingPt, sigmaIeta  
-PhotonCuts = ( 45,  1.47,  0.05,        99,        1,    0.12,    0.38,     0.6,        80,    0.99    )
+PhotonCuts = ( 45,  1.47,  0.05,        99,        1,    0.12,    0.38,     0.6,       80,    0.99  )
 
 # vertex cut   ndof,   z,  d0 
 VertexCuts = (    0,  24,   2 )
@@ -74,7 +76,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        1,       99,   60,  0.3)
+JetCuts = (   35., 2.4,        1,        99,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
