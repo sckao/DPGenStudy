@@ -46,7 +46,7 @@ public:
    vector<double> GetComponent( int eta_i, int B12,    int h_B12,    int s_B12,    int c_B12 ) ;
 
    // Very naive ABCD Method
-   double ABCD( TH1D* h_sg, TH1D* h_cs, double lowT = -3, double upT = 2 ) ;
+   //double ABCD( TH1D* h_sg, TH1D* h_cs, double lowT = -3, double upT = 2 ) ;
    double GetQCDComponent( TH1D* h_qcd, TH1D* h_sg, double lowX = -2, double upX = 2 ) ;
 
    TLorentzVector JetVectorSum( vector<objID>& jetV ) ;
@@ -58,10 +58,12 @@ private:
    DPSelection*  select;
    hDraw*        h_draw; 
 
-   Double_t* haloEff ;
-   Double_t* spikeEff ;
-   Double_t* haloMis ;
-   Double_t* spikeMis ;
+   // Halo and Spike Efficiency 
+   vector<double> haloEff ;
+   vector<double> spikeEff ;
+   vector<double> haloMis ;
+   vector<double> spikeMis ;
+   int useInFlight ;
 
    string hfolder  ;
    string plotType ;
@@ -76,12 +78,10 @@ private:
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
    float sMinPho[MAXPHO], sMajPho[MAXPHO];
    float photIso[MAXPHO] , cHadIso[MAXPHO], nHadIso[MAXPHO], phoHoverE[MAXPHO] ;
-   float fSpike[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO] ;
    float dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
-   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX], vtxDx[MAXVTX], vtxDy[MAXVTX], vtxDz[MAXVTX] ;
-   int nTrkZ0[34] ;
+   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
 
    float metPx, metPy, metE ;
    int   nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
@@ -115,9 +115,7 @@ private:
    TH1D* h_EE_Time1 ;
    TH1D* h_EE_Time2 ;
 
-   TH1D* h_Time_EB ;
-   TH1D* h_Time_EE ;
-   TH1D* h_haloTime_EE ;
+   TH1D* h_EE_haloTime ;
 
    TH2D* h_Eta_Time ;
    TH2D* h_Phi_Time ;
@@ -145,17 +143,17 @@ private:
    TH2D* h_cHadIso_Time ;
    TH2D* h_nHadIso_Time ;
    TH2D* h_photIso_Time ;
-   TH2D* h_Time_nZ0 ;
-   TH1D* a_Z0 ;
-   TH1D* b_Z0 ;
-   TH1D* c_Z0 ;
-   TH1D* d_Z0 ;
-   TH1D* h_Z0 ;
+   TH1D* a_tChi2 ;
+   TH1D* b_tChi2 ;
+   TH1D* c_tChi2 ;
+   TH1D* d_tChi2 ;
+   TH1D* h_tChi2 ;
+   TH1D* halo_tChi2 ;
+   TH1D* spike_tChi2 ;
+   TH1D* cosmic_tChi2 ;
 
-   TH1D* a_nVtx ;
-   TH1D* b_nVtx ;
-   TH1D* c_nVtx ;
-   TH1D* d_nVtx ;
+   TH1D* h_dT ;
+
    TH1D* h_nVtx ;
    TH1D* l_nVtx ;
 
@@ -183,7 +181,6 @@ private:
    TH2D* sg_sMaj_sigIeta ;
    TH2D* sg_sMin_sigIeta ;
    TH2D* sg_sMaj_sMin ;
-   //TH1D* sg_gg_dR ;
 
    TH1D* sel_Time  ;
    TH2D* sel_weirdXtl ;
@@ -228,15 +225,6 @@ private:
    TH2D* sideband_dtdPhidEta ;
    TH2D* sideband_Pt_nJet ;
 
-   TH1D* sideband_nVtx_0J ;
-   TH1D* sideband_nVtx_1J ;
-   TH1D* sideband_nVtx_2J ;
-   TH1D* noG_nVtx_0J ;
-   TH1D* noG_nVtx_1J ;
-   TH1D* noG_nVtx_2J ;
-
-   TH2D* bg_Eta_Time ;
-
    TH2D* abcd_Pt_Time ;
    TH2D* abcd_MET_Time ;
    TH2D* abcd_NJet_Time ;
@@ -252,7 +240,6 @@ private:
    TH2D* haloCS_sMaj_Eta ;
    TH2D* haloCS_sMaj_Phi ;
    TH2D* haloCS_Eta_Time ;
-   TH2D* haloCS_Eta_Time1 ;
    TH1D* haloCS_cscdPhi ;
    TH1D* haloCS_cscdPhi1 ;
 
@@ -263,7 +250,6 @@ private:
 
    TH2D* spikeCS_Eta_Time1 ;
    TH2D* spikeCS_Eta_Time ;
-   TH2D* spikeCS_nXtl_Eta ;
    TH2D* spikeCS_Phi_Time ;
    TH2D* spikeCS_sMaj_sMin ;
    TH1D* spikeCS_nXtl ;
@@ -272,7 +258,9 @@ private:
    TH1D* spike_Eta[2] ;
    TH1D* sMaj_eta[7] ;
    TH1D* sMaj_eta_csc[7] ;
-
+   TH1D* nXtl_eta[7] ;
+   TH1D* nXtl_eta_topo[7] ;
+   
    TH2D* cosmic_Eta_Time ;
    TH2D* cosmic_Phi_Time ;
    TH2D* cosmic_Pt_Time ;
@@ -281,13 +269,10 @@ private:
    TH2D* cosmic_sMaj_Time ;
    TH2D* cosmic_photIso_Time ;
    TH2D* cosmic_sMaj_sMin ;
-   TH1D* cosmic_sigIeta ;
    TH1D* cosmic_Time ;
    TH1D* cosmic_nXtl ;
 
    TH2D* halo_Eta_Time ;
-   TH2D* halo_Eta_Time_1J ;
-   TH2D* halo_Eta_Time_0J ;
    TH2D* halo_Phi_Time ;
    TH2D* halo_Pt_Time ;
    TH2D* halo_MET_Time ;
@@ -329,10 +314,6 @@ private:
    TH1D* spike_Time ;
    TH2D* spike_sMaj_sigIeta ;
    TH2D* spike_sMin_sigIeta ;
-   TH2D* noSpike_sMaj_Time ;
-   TH2D* noSpike_sMin_Time ;
-   TH1D* noSpike_Time ;
-
    TH1D* notSpike_nXtl ;
 
    TH1D* pure_Time ;

@@ -1,4 +1,3 @@
-
 #This is the data card for the input of M2M3 analysis and TopMassFitter 
 # Auther : SCKao - UMN
 #
@@ -28,8 +27,8 @@ Module = 7
 IsData = 1
 # Files , '+' is the flag for TChain,  
 TheData = ( data+ )
-dataChain = ( run2012d_1008_1, run2012d_1008_2, run2012d_1008_3, run2012c_1008_3, run2012c_1008_2, run2012c_1008_1 )
-#dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
+#dataChain = ( run2012d_1008_1, run2012d_1008_2, run2012d_1008_3, run2012c_1008_3, run2012c_1008_2, run2012c_1008_1 )
+dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
 #dataChain = ( run2012d_0829_1, run2012d_0829_2, run2012d_0829_3 )
 #dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3 )
 #dataChain = ( run2012c_0820_1, run2012c_0820_2, run2012c_0820_3 )
@@ -44,7 +43,7 @@ TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gm
 
 
 # -1 : all of events
-ProcessEvents = 5000000
+ProcessEvents = -1
 SkipEvents = 0
 
 ######################################
@@ -76,7 +75,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        1,        99,   60,  0.3)
+JetCuts = (   35., 2.4,        2,       99,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
@@ -89,6 +88,7 @@ MuonCuts = ( 25, 2.4,  0.15,  0.3 )
 FitCtau =-1
 TCut = 3
 
+# RunCD = 15121 /pb , RunB = 5042 /pb
 Lumi = 15000
 #NEvents  = ( 50112 )
 #XSection = ( 0.0145 )
@@ -120,3 +120,19 @@ SystType = 0
 #             Shift, Resol
 #TimeCalib = (  0.127, 0.32 ) 
 TimeCalib = (  -0.167, 0.26 ) 
+
+# Background Tagging efficiency and fake rate
+# 0 : Use the value in this DataCard , 1: Calculate in flight
+
+UseInFlight = 1
+
+HaloEff  = ( 1, 1, 1, 1, 1 )
+SpikeEff = ( 1, 1, 1, 1, 1 )
+HaloFake  = ( 0, 0, 0, 0, 0 )
+SpikeFake = ( 0, 0, 0, 0, 0 )
+
+#HaloEff  = ( 0.89, 0.86, 0.97, 0.90, 0.89 )
+#SpikeEff = ( 0.94, 0.89, 0.77, 0.68, 0.56 )
+#HaloFake  = ( 0.01349, 0.00629, 0.00154, 0.00088, 0.00038 )
+#SpikeFake = ( 0.02219, 0.02256, 0.01493, 0.00162, 0.00290 )
+

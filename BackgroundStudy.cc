@@ -53,6 +53,7 @@ void BackgroundStudy::Write() {
   h_EE_Time0->Write() ;
   h_EE_Time1->Write() ;
   h_EE_Time2->Write() ;
+  h_EE_haloTime->Write() ;
 
   h_Eta_Time->Write() ;
   h_Phi_Time->Write() ;
@@ -78,22 +79,15 @@ void BackgroundStudy::Write() {
   h_nHadIso_Time->Write() ;
   h_photIso_Time->Write() ;
   h_cscdPhi_rho->Write() ;
-  h_Time_EB->Write() ;
-  h_haloTime_EE->Write() ;
-  h_Time_EE->Write() ;
-  h_haloTime_EE->Write() ;
 
-  h_Time_nZ0->Write() ;
-  a_Z0->Write() ;
-  b_Z0->Write() ;
-  c_Z0->Write() ;
-  d_Z0->Write() ;
-  h_Z0->Write() ;
+  a_tChi2->Write() ;
+  b_tChi2->Write() ;
+  c_tChi2->Write() ;
+  d_tChi2->Write() ;
+  h_tChi2->Write() ;
 
-  a_nVtx->Write() ;
-  b_nVtx->Write() ;
-  c_nVtx->Write() ;
-  d_nVtx->Write() ;
+  h_dT->Write() ;
+
   l_nVtx->Write() ;
   h_nVtx->Write() ;
 
@@ -173,12 +167,6 @@ void BackgroundStudy::Write() {
   sideband_nXtl_d->Write() ;
   sideband_sMaj->Write() ;
   sideband_Pt_nJet->Write() ;
-  sideband_nVtx_0J->Write() ;
-  sideband_nVtx_1J->Write() ;
-  sideband_nVtx_2J->Write() ;
-  noG_nVtx_0J->Write() ;
-  noG_nVtx_1J->Write() ;
-  noG_nVtx_2J->Write() ;
 
   abcd_Pt_Time->Write() ;
   abcd_MET_Time->Write() ;
@@ -218,11 +206,9 @@ void BackgroundStudy::Write() {
   haloCS_sMaj_Eta->Write() ;
   haloCS_sMaj_Phi->Write() ;
   haloCS_Eta_Time->Write() ;
-  haloCS_Eta_Time1->Write() ;
 
   spikeCS_Eta_Time->Write() ;
   spikeCS_Eta_Time1->Write() ;
-  spikeCS_nXtl_Eta->Write() ;
   spikeCS_Phi_Time->Write() ;
   spikeCS_sMaj_sMin->Write() ;
   spikeCS_nXtl->Write() ;
@@ -232,21 +218,12 @@ void BackgroundStudy::Write() {
   spike_Eta[0]->Write();
   spike_Eta[1]->Write();
 
-  sMaj_eta[0]->Write() ;
-  sMaj_eta[1]->Write() ;
-  sMaj_eta[2]->Write() ;
-  sMaj_eta[3]->Write() ;
-  sMaj_eta[4]->Write() ;
-  sMaj_eta[5]->Write() ;
-  sMaj_eta[6]->Write() ;
-
-  sMaj_eta_csc[0]->Write() ;
-  sMaj_eta_csc[1]->Write() ;
-  sMaj_eta_csc[2]->Write() ;
-  sMaj_eta_csc[3]->Write() ;
-  sMaj_eta_csc[4]->Write() ;
-  sMaj_eta_csc[5]->Write() ;
-  sMaj_eta_csc[6]->Write() ;
+  for ( int i=0; i< 7; i++ ) {
+      sMaj_eta[i]->Write() ;
+      sMaj_eta_csc[i]->Write() ;
+      nXtl_eta[i]->Write() ;
+      nXtl_eta_topo[i]->Write() ;
+  }
 
   cosmic_Eta_Time->Write() ;
   cosmic_Phi_Time->Write() ;
@@ -257,8 +234,8 @@ void BackgroundStudy::Write() {
   cosmic_photIso_Time->Write() ;
   cosmic_sMaj_sMin->Write();
   cosmic_Time->Write() ;
-  cosmic_sigIeta->Write() ;
   cosmic_nXtl->Write() ;
+  cosmic_tChi2->Write() ;
 
   haloFN_Eta_Time->Write() ;
   haloFN_Phi_Time->Write() ;
@@ -267,8 +244,6 @@ void BackgroundStudy::Write() {
   haloFN_sMaj_sMin->Write() ;
   haloFN_cscdPhi->Write() ;
 
-  halo_Eta_Time_0J->Write() ;
-  halo_Eta_Time_1J->Write() ;
   halo_Eta_Time->Write() ;
   halo_Pt_Time->Write() ;
   halo_MET_Time->Write() ;
@@ -288,6 +263,7 @@ void BackgroundStudy::Write() {
   halo_eta_sMaj->Write() ;
   halo_ecalT_rho->Write() ;
   halo_ecalT_cscT->Write() ;
+  halo_tChi2->Write() ;
   sideband_dPhi_MET_csc->Write() ;
   sideband_dPhi_MET_Jet1->Write() ;
   sideband_dPhi_MET_Jet2->Write() ;
@@ -314,10 +290,7 @@ void BackgroundStudy::Write() {
   spike_T_dPhi_gMET_1J->Write() ;
   spike_T_dPhi_gMET_2J->Write() ;
   spike_T_dPhi_gMET_0J->Write() ;
-
-  noSpike_sMaj_Time->Write() ;
-  noSpike_sMin_Time->Write() ;
-  noSpike_Time->Write() ;
+  spike_tChi2->Write() ;
 
   pure_Time->Write() ;
 
@@ -353,19 +326,17 @@ void BackgroundStudy::Create() {
   obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -14.5, 25.5);
 
   // DOE plots
-  h_EB_Time   = new TH1D( "h_EB_Time", " Ecal time from EB", 160, -20, 20 ) ;
-  h_EB_Time0  = new TH1D( "h_EB_Time0", " Ecal time from EB", 160, -20, 20 ) ;
-  h_EB_Time1  = new TH1D( "h_EB_Time1", " Ecal time from EB", 160, -20, 20 ) ;
-  h_EB_Time2  = new TH1D( "h_EB_Time2", " Ecal time from EB", 160, -20, 20 ) ;
-  h_EE_Time   = new TH1D( "h_EE_Time", " Ecal time from EE", 160, -20, 20 ) ;
-  h_EE_Time0  = new TH1D( "h_EE_Time0", " Ecal time from EE", 160, -20, 20 ) ;
-  h_EE_Time1  = new TH1D( "h_EE_Time1", " Ecal time from EE", 160, -20, 20 ) ;
-  h_EE_Time2  = new TH1D( "h_EE_Time2", " Ecal time from EE", 160, -20, 20 ) ;
+  h_EB_Time   = new TH1D( "h_EB_Time", " Ecal time from EB", 200, -25, 25 ) ;
+  h_EB_Time0  = new TH1D( "h_EB_Time0", " Ecal time from EB", 200, -25, 25 ) ;
+  h_EB_Time1  = new TH1D( "h_EB_Time1", " Ecal time from EB", 200, -25, 25 ) ;
+  h_EB_Time2  = new TH1D( "h_EB_Time2", " Ecal time from EB", 200, -25, 25 ) ;
+  h_EE_Time   = new TH1D( "h_EE_Time", " Ecal time from EE", 200, -25, 25 ) ;
+  h_EE_Time0  = new TH1D( "h_EE_Time0", " Ecal time from EE", 200, -25, 25 ) ;
+  h_EE_Time1  = new TH1D( "h_EE_Time1", " Ecal time from EE", 200, -25, 25 ) ;
+  h_EE_Time2  = new TH1D( "h_EE_Time2", " Ecal time from EE", 200, -25, 25 ) ;
+  h_EE_haloTime = new TH1D( "h_EE_haloTime", " Halo Ecal time from EE", 200, -25, 25 ) ;
 
   // Raw information
-  h_Time_EB   = new TH1D( "h_Time_EB", " Ecal time from EB", 200, -25, 25 ) ;
-  h_Time_EE   = new TH1D( "h_Time_EE", " Ecal time from EE", 200, -25, 25 ) ;
-  h_haloTime_EE   = new TH1D( "h_haloTime_EE", " Halo Ecal time from EE", 200, -25, 25 ) ;
   h_Eta_Time  = new TH2D( "h_Eta_Time", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
   h_Phi_Time  = new TH2D( "h_Phi_Time", " phi vs Ecal time", 63, -3.15, 3.15, 160, -20, 20 ) ;
   h_cscdPhi_Time  = new TH2D( "h_cscdPhi_Time", " d#Phi vs Ecal time", 65, 0, 3.25, 160, -20, 20 ) ;
@@ -383,17 +354,17 @@ void BackgroundStudy::Create() {
   h_sMin_sigIeta_EE = new TH2D( "h_sMin_sigIeta_EE",  "sMin vs. Ecal time ", 100, 0., 0.5 , 80, 0, 0.08 ) ;
   h_Pt_MET       = new TH2D( "h_Pt_MET",        " Leading Pt vs MET", 50, 0, 500, 50, 0, 500 ) ;
 
-  h_Time_nZ0     = new TH2D( "h_Time_nZ0", "nTrackZ0 vs Time", 34, -170, 170 , 160, -20, 20 ) ;
-  a_Z0     = new TH1D( "a_Z0", "nTrackZ0 vs Time", 34, -170, 170  ) ;
-  b_Z0     = new TH1D( "b_Z0", "nTrackZ0 vs Time", 34, -170, 170  ) ;
-  c_Z0     = new TH1D( "c_Z0", "nTrackZ0 vs Time", 34, -170, 170  ) ;
-  d_Z0     = new TH1D( "d_Z0", "nTrackZ0 vs Time", 34, -170, 170  ) ;
-  h_Z0     = new TH1D( "h_Z0", "nTrackZ0 vs Time", 34, -170, 170  ) ;
+  a_tChi2     = new TH1D( "a_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  b_tChi2     = new TH1D( "b_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  c_tChi2     = new TH1D( "c_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  d_tChi2     = new TH1D( "d_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  h_tChi2     = new TH1D( "h_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  halo_tChi2   = new TH1D( "halo_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  spike_tChi2  = new TH1D( "spike_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  cosmic_tChi2 = new TH1D( "cosmic_tChi2", " chi2 of time ", 100, 0, 10  ) ;
 
-  a_nVtx     = new TH1D( "a_nVtx", "nVtx in a region", 41,-0.5,40.5  ) ;
-  b_nVtx     = new TH1D( "b_nVtx", "nVtx in b region", 41,-0.5,40.5  ) ;
-  c_nVtx     = new TH1D( "c_nVtx", "nVtx in c region", 41,-0.5,40.5  ) ;
-  d_nVtx     = new TH1D( "d_nVtx", "nVtx in d region", 41,-0.5,40.5  ) ;
+  h_dT     = new TH1D( "h_dT", " seedTime - aveTime ", 100, -5, 5  ) ;
+
   h_nVtx     = new TH1D( "h_nVtx", "nVtx in good control region w/ MET > 60", 41,-0.5,40.5  ) ;
   l_nVtx     = new TH1D( "l_nVtx", "nVtx in good control region w/ MET < 60", 41,-0.5,40.5  ) ;
 
@@ -483,12 +454,6 @@ void BackgroundStudy::Create() {
   sideband_nXtl_d     = new TH1D( "sideband_nXtl_d", " N of crystals ", 50, 0, 50 ) ;
   sideband_sMaj       = new TH1D( "sideband_sMaj", " sMajor ", 100, 0., 2. ) ;
   sideband_Pt_nJet    = new TH2D( "sideband_Pt_nJet", " Pt vs nJet", 50, 0, 500 ,  10, -0.5, 9.5) ;
-  sideband_nVtx_0J    = new TH1D( "sideband_nVtx_0J", " N of Vertex ", 50, -0.5, 49.5 ) ;
-  sideband_nVtx_1J    = new TH1D( "sideband_nVtx_1J", " N of Vertex ", 50, -0.5, 49.5 ) ;
-  sideband_nVtx_2J    = new TH1D( "sideband_nVtx_2J", " N of Vertex ", 50, -0.5, 49.5 ) ;
-  noG_nVtx_0J         = new TH1D( "noG_nVtx_0J", " N of Vertex ", 50, -0.5, 49.5 ) ;
-  noG_nVtx_1J         = new TH1D( "noG_nVtx_1J", " N of Vertex ", 50, -0.5, 49.5 ) ;
-  noG_nVtx_2J         = new TH1D( "noG_nVtx_2J", " N of Vertex ", 50, -0.5, 49.5 ) ;
 
   abcd_Pt_Time   = new TH2D( "abcd_Pt_Time",  " Pt vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET_Time  = new TH2D( "abcd_MET_Time",  " MET vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
@@ -500,7 +465,6 @@ void BackgroundStudy::Create() {
 
   haloTest_cscdPhi   = new TH1D( "haloTest_cscdPhi", " d#Phi ", 65, 0, 3.25 ) ;
   haloTest_sMaj_sMin = new TH2D( "haloTest_sMaj_sMin", " sMaj vs sMin", 100, 0, 2, 50, 0.1, 0.4 ) ;
-
 
   haloAB_Pt_eta[0] = new TH1D( "haloAB_Pt_eta0", " Pt 0.00 < |#eta| < 0.37 ", 80, 0, 400 ) ;
   haloAB_Pt_eta[1] = new TH1D( "haloAB_Pt_eta1", " Pt 0.37 < |#eta| < 0.74 ", 80, 0, 400 ) ;
@@ -525,14 +489,12 @@ void BackgroundStudy::Create() {
   haloCS_sMaj_Eta  = new TH2D( "haloCS_sMaj_Eta", " sMaj vs photon #eta", 100, 0, 2, 51, -2.5, 2.5 ) ;
   haloCS_sMaj_Phi  = new TH2D( "haloCS_sMaj_Phi", " sMaj vs photon #phi", 100, 0, 2, 63, -3.15, 3.15 ) ;
   haloCS_Eta_Time  = new TH2D( "haloCS_Eta_Time", " eta vs photon time  ", 51, -2.5, 2.5,   160, -20, 20 ) ;
-  haloCS_Eta_Time1 = new TH2D( "haloCS_Eta_Time1", " eta vs photon time ", 51, -2.5, 2.5,   160, -20, 20 ) ;
   haloCS_sMaj_sMin = new TH2D( "haloCS_sMaj_sMin", " sMaj vs sMin of photon", 100, 0, 2, 50, 0.1, 0.4 ) ;
   haloCS_cscdPhi   = new TH1D( "haloCS_cscdPhi", " d#Phi ", 65, 0, 3.25 ) ;
   haloCS_cscdPhi1  = new TH1D( "haloCS_cscdPhi1", " d#Phi ", 65, 0, 3.25 ) ;
 
   spikeCS_Eta_Time  = new TH2D( "spikeCS_Eta_Time", " #eta vs time for spikes CS",  51, -2.5, 2.5,   160, -20, 20 ) ;
   spikeCS_Eta_Time1 = new TH2D( "spikeCS_Eta_Time1", " #eta vs time after spikes tagging",  51, -2.5, 2.5,   160, -20, 20 ) ;
-  spikeCS_nXtl_Eta  = new TH2D( "spikeCS_nXtl_Eta", " N of Xtals for spikes CS vs #eta", 50, 0, 50 ,  51, -2.5, 2.5) ;
   spikeCS_Phi_Time  = new TH2D( "spikeCS_Phi_Time", " #phi vs time for spikes CS",  63, -3.15, 3.15, 160, -20, 20 ) ;
   spikeCS_sMaj_sMin = new TH2D( "spikeCS_sMaj_sMin", "sMaj vs sMin for spikes CS", 100,  0, 2, 50, 0.1, 0.4   ) ;
   spikeCS_nXtl      = new TH1D( "spikeCS_nXtl",      "N of xtals of spikes ", 50,  0, 50 );
@@ -542,6 +504,18 @@ void BackgroundStudy::Create() {
   spike_Eta[0] = new TH1D( "spike_Eta0", "Eta before Spike-tagging", 6, 0., 1.68 ) ;
   spike_Eta[1] = new TH1D( "spike_Eta1", "Eta after Spike-tagging",  6, 0., 1.68 ) ;
 
+  char nameStr1[25], nameStr2[25], nameStr3[25], nameStr4[25] ; 
+  for ( int i=0; i< 7; i++) {
+      sprintf( nameStr1, "sMaj_eta%d", i+1 ) ;
+      sprintf( nameStr2, "sMaj_eta_csc%d", i+1 ) ;
+      sprintf( nameStr3, "nXtl_eta%d", i+1 ) ;
+      sprintf( nameStr4, "nXtl_eta_topo%d", i+1 ) ;
+      sMaj_eta[i]      =  new TH1D( nameStr1,  "sMajor ", 100, 0., 2.5 ) ;
+      sMaj_eta_csc[i]  =  new TH1D( nameStr2,  "sMajor ", 100, 0., 2.5 ) ;
+      nXtl_eta[i]      =  new TH1D( nameStr3,  "N of Crystals ",  50, 0., 50 ) ;
+      nXtl_eta_topo[i] =  new TH1D( nameStr4,  "N of Crystals ",  50, 0., 50 ) ;
+  }
+  /*
   sMaj_eta[0] = new TH1D( "sMaj_eta1",  "sMajor for 0.0  < |eta| < 0.28 ", 100, 0., 2.5 ) ;
   sMaj_eta[1] = new TH1D( "sMaj_eta2",  "sMajor for 0.28 < |eta| < 0.56 ", 100, 0., 2.5 ) ;
   sMaj_eta[2] = new TH1D( "sMaj_eta3",  "sMajor for 0.56 < |eta| < 0.84 ", 100, 0., 2.5 ) ;
@@ -557,7 +531,7 @@ void BackgroundStudy::Create() {
   sMaj_eta_csc[4] = new TH1D( "sMaj_eta_csc5",  "sMajor for 1.12 < |eta| < 1.40 ", 100, 0., 2.5 ) ;
   sMaj_eta_csc[5] = new TH1D( "sMaj_eta_csc6",  "sMajor for 1.5 < |eta| < 2.0 ", 100, 0., 2.5 ) ;
   sMaj_eta_csc[6] = new TH1D( "sMaj_eta_csc7",  "sMajor for 2.0 < |eta| < 2.5 ", 100, 0., 2.5 ) ;
-
+  */
   cosmic_Eta_Time  = new TH2D( "cosmic_Eta_Time", " eta vs photon time for cosmic photon ", 51, -2.5, 2.5,   160, -20, 20 ) ;
   cosmic_Phi_Time  = new TH2D( "cosmic_Phi_Time", " phi vs photon time for cosmic photon ", 63, -3.15, 3.15, 160, -20, 20 ) ;
   cosmic_Pt_Time   = new TH2D( "cosmic_Pt_Time",  " Pt vs photon time for cosmic photon ",  50, 0, 500, 160, -20, 20 ) ;
@@ -565,7 +539,6 @@ void BackgroundStudy::Create() {
   cosmic_sMin_Time = new TH2D( "cosmic_sMin_Time",  "sMin vs Ecal time for cosmic photon", 100, 0., 0.5 , 160, -20, 20  ) ;
   cosmic_sMaj_Time = new TH2D( "cosmic_sMaj_Time",  "sMaj vs Ecal time for cosmic Photon", 100, 0, 2, 160, -20, 20 ) ;
   cosmic_sMaj_sMin = new TH2D( "cosmic_sMaj_sMin", "sMajor vs sMinor for cosmic photon ", 100, 0., 2., 50, 0.1, 0.4 ) ;
-  cosmic_sigIeta   = new TH1D( "cosmic_sigIeta", " Sigma Ieta Ieta for cosmic Photon ", 100,  0., 0.1 ) ;
   cosmic_Time      = new TH1D( "cosmic_Time",   "Photon time from cosmic ", 160,  -14.5, 25.5 ) ;
   cosmic_photIso_Time = new TH2D("cosmic_photIso_Time", " Photon IsoDeposit vs time",           100, 0, 10., 120, -15, 15 );
   cosmic_nXtl      = new TH1D( "cosmic_nXtl", " N crystals vs #eta", 50, 0, 50 ) ;
@@ -577,8 +550,6 @@ void BackgroundStudy::Create() {
   haloFN_sMaj_sMin = new TH2D( "haloFN_sMaj_sMin","sMajor vs sMinor for halo photon ", 100, 0., 2., 50, 0.1, 0.4 ) ;
   haloFN_cscdPhi   = new TH1D( "haloFN_cscdPhi",  " d#Phi ", 65, 0, 3.25 ) ;
 
-  halo_Eta_Time_0J  = new TH2D( "halo_Eta_Time_0J", " eta vs photon time for halo photon ", 51, -2.5, 2.5,   160, -20, 20 ) ;
-  halo_Eta_Time_1J  = new TH2D( "halo_Eta_Time_1J", " eta vs photon time for halo photon ", 51, -2.5, 2.5,   160, -20, 20 ) ;
   halo_Eta_Time  = new TH2D( "halo_Eta_Time", " eta vs photon time for halo photon ", 51, -2.5, 2.5,   160, -20, 20 ) ;
   halo_Phi_Time  = new TH2D( "halo_Phi_Time", " phi vs photon time for halo photon ", 63, -3.15, 3.15, 160, -20, 20 ) ;
   halo_Pt_Time   = new TH2D( "halo_Pt_Time",  " Pt vs photon time for halo photon ",  50, 0, 500, 160, -20, 20 ) ;
@@ -627,10 +598,6 @@ void BackgroundStudy::Create() {
   spike_T_dPhi_gMET_1J = new TH2D("spike_T_dPhi_gMET_1J", "time vs dPhi( photon, MET)", 120, -15, 15, 64, 0, 3.2 ) ;
   spike_T_dPhi_gMET_2J = new TH2D("spike_T_dPhi_gMET_2J", "time vs dPhi( photon, MET)", 120, -15, 15, 64, 0, 3.2 ) ;
 
-  noSpike_Time    = new TH1D( "noSpike_Time", "Photon time w/o halo ", 160,  -14.5, 25.5 ) ;
-  noSpike_sMaj_Time = new TH2D( "noSpike_sMaj_Time",  "sMaj vs Ecal time for non spike Photon", 100, 0, 2, 160, -20, 20 ) ;
-  noSpike_sMin_Time = new TH2D( "noSpike_sMin_Time",  "sMin vs. Ecal time for non spike photon", 100, 0., 0.5 , 160, -20, 20  ) ;
-
   notSpike_nXtl   = new TH1D("notSpike_nXtl", "N of crystals for non-spike photon ", 50,  0, 50 );
   pure_Time      = new TH1D( "pure_Time", "  time for pure photon", 160, -14.5, 25.5 ) ;
 
@@ -674,10 +641,6 @@ void BackgroundStudy::Open() {
      h_EE_Time1 = (TH1D*) theFile->Get("h_EE_Time1");
      h_EE_Time2 = (TH1D*) theFile->Get("h_EE_Time2");
 
-     h_Time_EB = (TH1D*) theFile->Get("h_Time_EB");
-     h_Time_EE = (TH1D*) theFile->Get("h_Time_EE");
-     h_haloTime_EE = (TH1D*) theFile->Get("h_haloTime_EE");
-
      h_Eta_Time  = (TH2D*) theFile->Get("h_Eta_Time");
      h_Phi_Time  = (TH2D*) theFile->Get("h_Phi_Time");
      h_cscdPhi_Time = (TH2D*) theFile->Get("h_cscdPhi_Time");
@@ -708,17 +671,17 @@ void BackgroundStudy::Open() {
      h_nXtl_Eta    = (TH2D*) theFile->Get("h_nXtl_Eta");
      h_nXtl_Pt_EB  = (TH2D*) theFile->Get("h_nXtl_Pt_EB");
      h_cscdPhi_rho = (TH2D*) theFile->Get("h_cscdPhi_rho");
-     h_Time_nZ0    = (TH2D*) theFile->Get("h_Time_nZ0");
-     a_Z0    = (TH1D*) theFile->Get("a_Z0");
-     b_Z0    = (TH1D*) theFile->Get("b_Z0");
-     c_Z0    = (TH1D*) theFile->Get("c_Z0");
-     d_Z0    = (TH1D*) theFile->Get("d_Z0");
-     h_Z0    = (TH1D*) theFile->Get("h_Z0");
+     a_tChi2    = (TH1D*) theFile->Get("a_tChi2");
+     b_tChi2    = (TH1D*) theFile->Get("b_tChi2");
+     c_tChi2    = (TH1D*) theFile->Get("c_tChi2");
+     d_tChi2    = (TH1D*) theFile->Get("d_tChi2");
+     h_tChi2    = (TH1D*) theFile->Get("h_tChi2");
+     halo_tChi2   = (TH1D*) theFile->Get("halo_tChi2");
+     spike_tChi2  = (TH1D*) theFile->Get("spike_tChi2");
+     cosmic_tChi2 = (TH1D*) theFile->Get("cosmic_tChi2");
 
-     a_nVtx    = (TH1D*) theFile->Get("a_nVtx");
-     b_nVtx    = (TH1D*) theFile->Get("b_nVtx");
-     c_nVtx    = (TH1D*) theFile->Get("c_nVtx");
-     d_nVtx    = (TH1D*) theFile->Get("d_nVtx");
+     h_dT    = (TH1D*) theFile->Get("h_dT");
+
      h_nVtx    = (TH1D*) theFile->Get("h_nVtx");
      l_nVtx    = (TH1D*) theFile->Get("l_nVtx");
 
@@ -793,13 +756,6 @@ void BackgroundStudy::Open() {
      sideband_sMaj = (TH1D*) theFile->Get("sideband_sMaj");
      sideband_Pt_nJet   = (TH2D*) theFile->Get("sideband_Pt_nJet");
 
-     sideband_nVtx_0J   = (TH1D*) theFile->Get("sideband_nVtx_0J");
-     sideband_nVtx_1J   = (TH1D*) theFile->Get("sideband_nVtx_1J");
-     sideband_nVtx_2J   = (TH1D*) theFile->Get("sideband_nVtx_2J");
-     noG_nVtx_0J        = (TH1D*) theFile->Get("noG_nVtx_0J");
-     noG_nVtx_1J        = (TH1D*) theFile->Get("noG_nVtx_1J");
-     noG_nVtx_2J        = (TH1D*) theFile->Get("noG_nVtx_2J");
-
      abcd_Pt_Time = (TH2D*) theFile->Get("abcd_Pt_Time");
      abcd_MET_Time = (TH2D*) theFile->Get("abcd_MET_Time");
      abcd_NJet_Time = (TH2D*) theFile->Get("abcd_NJet_Time");
@@ -814,7 +770,6 @@ void BackgroundStudy::Open() {
      haloCS_sMaj_Eta  = (TH2D*) theFile->Get("haloCS_sMaj_Eta");
      haloCS_sMaj_Phi  = (TH2D*) theFile->Get("haloCS_sMaj_Phi");
      haloCS_Eta_Time  = (TH2D*) theFile->Get("haloCS_Eta_Time");
-     haloCS_Eta_Time1 = (TH2D*) theFile->Get("haloCS_Eta_Time1");
      haloCS_cscdPhi   = (TH1D*) theFile->Get("haloCS_cscdPhi");
      haloCS_cscdPhi1  = (TH1D*) theFile->Get("haloCS_cscdPhi1");
 
@@ -840,7 +795,6 @@ void BackgroundStudy::Open() {
 
      spikeCS_Eta_Time1 = (TH2D*) theFile->Get("spikeCS_Eta_Time1");
      spikeCS_Eta_Time  = (TH2D*) theFile->Get("spikeCS_Eta_Time");
-     spikeCS_nXtl_Eta  = (TH2D*) theFile->Get("spikeCS_nXtl_Eta");
      spikeCS_Phi_Time  = (TH2D*) theFile->Get("spikeCS_Phi_Time");
      spikeCS_sMaj_sMin = (TH2D*) theFile->Get("spikeCS_sMaj_sMin");
      spikeCS_nXtl = (TH1D*) theFile->Get("spikeCS_nXtl");
@@ -850,6 +804,18 @@ void BackgroundStudy::Open() {
      spike_Eta[0] = (TH1D*) theFile->Get("spike_Eta0");
      spike_Eta[1] = (TH1D*) theFile->Get("spike_Eta1");
 
+     char nameStr1[25], nameStr2[25], nameStr3[25], nameStr4[25] ; 
+     for ( int i=0; i< 7; i++) {
+         sprintf( nameStr1, "sMaj_eta%d", i+1 ) ;
+         sprintf( nameStr2, "sMaj_eta_csc%d", i+1 ) ;
+	 sprintf( nameStr3, "nXtl_eta%d", i+1 ) ;
+	 sprintf( nameStr4, "nXtl_eta_topo%d", i+1 ) ;
+         sMaj_eta[i]      = (TH1D*) theFile->Get( nameStr1 );
+         sMaj_eta_csc[i]  = (TH1D*) theFile->Get( nameStr2 );
+         nXtl_eta[i]      = (TH1D*) theFile->Get( nameStr3 );
+         nXtl_eta_topo[i] = (TH1D*) theFile->Get( nameStr4 );
+     }
+     /*
      sMaj_eta[0] = (TH1D*) theFile->Get("sMaj_eta1");
      sMaj_eta[1] = (TH1D*) theFile->Get("sMaj_eta2");
      sMaj_eta[2] = (TH1D*) theFile->Get("sMaj_eta3");
@@ -864,6 +830,7 @@ void BackgroundStudy::Open() {
      sMaj_eta_csc[4] = (TH1D*) theFile->Get("sMaj_eta_csc5");
      sMaj_eta_csc[5] = (TH1D*) theFile->Get("sMaj_eta_csc6");
      sMaj_eta_csc[6] = (TH1D*) theFile->Get("sMaj_eta_csc7");
+     */
 
      cosmic_Eta_Time = (TH2D*) theFile->Get("cosmic_Eta_Time");
      cosmic_Phi_Time = (TH2D*) theFile->Get("cosmic_Phi_Time");
@@ -873,7 +840,6 @@ void BackgroundStudy::Open() {
      cosmic_sMaj_Time = (TH2D*) theFile->Get("cosmic_sMaj_Time");
      cosmic_photIso_Time = (TH2D*) theFile->Get("cosmic_photIso_Time");
      cosmic_sMaj_sMin    = (TH2D*) theFile->Get("cosmic_sMaj_sMin");
-     cosmic_sigIeta = (TH1D*) theFile->Get("cosmic_sigIeta");
      cosmic_Time    = (TH1D*) theFile->Get("cosmic_Time");
      cosmic_nXtl    = (TH1D*) theFile->Get("cosmic_nXtl");
 
@@ -884,8 +850,6 @@ void BackgroundStudy::Open() {
      haloFN_sMaj_sMin= (TH2D*) theFile->Get("haloFN_sMaj_sMin");
      haloFN_cscdPhi  = (TH1D*) theFile->Get("haloFN_cscdPhi");
 
-     halo_Eta_Time_0J = (TH2D*) theFile->Get("halo_Eta_Time_0J");
-     halo_Eta_Time_1J = (TH2D*) theFile->Get("halo_Eta_Time_1J");
      halo_Eta_Time = (TH2D*) theFile->Get("halo_Eta_Time");
      halo_Phi_Time = (TH2D*) theFile->Get("halo_Phi_Time");
      halo_Pt_Time  = (TH2D*) theFile->Get("halo_Pt_Time");
@@ -932,10 +896,6 @@ void BackgroundStudy::Open() {
      spike_T_dPhi_gMET_1J  = (TH2D*) theFile->Get("spike_T_dPhi_gMET_1J") ;
      spike_T_dPhi_gMET_2J  = (TH2D*) theFile->Get("spike_T_dPhi_gMET_2J") ;
      spike_T_dPhi_gMET_0J  = (TH2D*) theFile->Get("spike_T_dPhi_gMET_0J") ;
-
-     noSpike_sMaj_Time = (TH2D*) theFile->Get("noSpike_sMaj_Time");
-     noSpike_sMin_Time = (TH2D*) theFile->Get("noSpike_sMin_Time");
-     noSpike_Time      = (TH1D*) theFile->Get("noSpike_Time");
 
      notSpike_nXtl = (TH1D*) theFile->Get("notSpike_nXtl");
 
@@ -984,13 +944,10 @@ void BackgroundStudy::init( string dataName ) {
    
    tr->SetBranchAddress("nOutTimeHits", &nHaloHits ) ;
    tr->SetBranchAddress("nHaloTrack",   &nHaloTracks ) ;
-   tr->SetBranchAddress("haloPhi",      &haloPhi ) ;
-   tr->SetBranchAddress("haloRho",      &haloRho ) ;
 
    tr->SetBranchAddress("metPx",       &metPx );
    tr->SetBranchAddress("metPy",       &metPy );
    tr->SetBranchAddress("met",         &metE );
-   tr->SetBranchAddress("nTrkZ0",      &nTrkZ0 );
 
    tr->SetBranchAddress("phoPx",       phoPx );
    tr->SetBranchAddress("phoPy",       phoPy );
@@ -1015,16 +972,12 @@ void BackgroundStudy::init( string dataName ) {
    tr->SetBranchAddress("photIso",     photIso );
    tr->SetBranchAddress("phoHoverE",   phoHoverE );
 
-   tr->SetBranchAddress("fSpike",      fSpike );
    tr->SetBranchAddress("nXtals",      nXtals );
    tr->SetBranchAddress("nBC",         nBC );
 
    tr->SetBranchAddress("vtxX",       vtxX );
    tr->SetBranchAddress("vtxY",       vtxY );
    tr->SetBranchAddress("vtxZ",       vtxZ );
-   tr->SetBranchAddress("vtxDx",       vtxDx );
-   tr->SetBranchAddress("vtxDy",       vtxDy );
-   tr->SetBranchAddress("vtxDz",       vtxDz );
    
    // initialize selection
    select->Init( tr1 ) ;
@@ -1064,11 +1017,6 @@ void BackgroundStudy::Run( double weight ) {
        TLorentzVector ajet = JetVectorSum( selectJets ) ;
        double dPhi_jMET = ( selectJets.size() > 0 ) ? fabs( met.DeltaPhi( ajet ) ) : -0.1 ;
 
-       //int totalTrk = 0 ;
-       //for ( int v=0; v<34; v++) {
-       //   totalTrk += nTrkZ0[v] ;
-       //}
-
        // testing for raw information - no cut applied
        for ( int g=0 ; g < nPhotons ; g++ ) {
 
@@ -1079,29 +1027,23 @@ void BackgroundStudy::Run( double weight ) {
 	   if ( sMajPho[g] > 0.8 && sMajPho[g] < 1.65 && sMinPho[g] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
 	   double cscdPhi_ =  ( cscdPhi[g] > 9. ) ? 3.24 : cscdPhi[g] ;
 
-           if ( fabs(gP4_.Eta()) < 1.47 ) {
+           if ( fabs(gP4_.Eta()) < 1.45 ) {
               if ( selectJets.size() >= 0 ) h_EB_Time->Fill( seedTime[g] , weight );
               if ( selectJets.size() == 0 ) h_EB_Time0->Fill( seedTime[g] , weight );
               if ( selectJets.size() == 1 ) h_EB_Time1->Fill( seedTime[g] , weight );
               if ( selectJets.size() >= 2 ) h_EB_Time2->Fill( seedTime[g] , weight );
            } 
-           if ( fabs(gP4_.Eta()) > 1.47 ) {
+           if ( fabs(gP4_.Eta()) > 1.5 ) {
               if ( selectJets.size() >= 0 ) h_EE_Time->Fill( seedTime[g] , weight );
               if ( selectJets.size() == 0 ) h_EE_Time0->Fill( seedTime[g] , weight );
               if ( selectJets.size() == 1 ) h_EE_Time1->Fill( seedTime[g] , weight );
               if ( selectJets.size() >= 2 ) h_EE_Time2->Fill( seedTime[g] , weight );
+              if ( haloTag ) h_EE_haloTime->Fill( seedTime[g] , weight ) ;
            }
 
            //if ( selectJets.size() < 1 ) continue ;
 	   if ( g ==0 ) h_Pt_MET->Fill( gP4_.Pt(), metE, weight  ) ;
            h_Eta_Time->Fill( gP4_.Eta() , seedTime[g] , weight );
-
-           if ( !haloTag ) {
-              for ( int v=0; v<34; v++) {
-                double z0_ = (double)(-165 + v*10) ;
-                h_Time_nZ0->Fill(  z0_ , seedTime[g] , (weight*nTrkZ0[v]) );
-              }
-           }
 
  	   if ( fabs(seedTime[g]) > 1.5 ) h_Phi_Time->Fill( gP4_.Phi() , seedTime[g] , weight );
 	   h_cscdPhi_cscTime->Fill( cscdPhi_, cscTime[g] , weight  ) ;
@@ -1118,9 +1060,6 @@ void BackgroundStudy::Run( double weight ) {
 	      h_MET_Time_EB->Fill( metE, seedTime[g] , weight  ) ;
 	      h_sMaj_sMin_EB->Fill( sMajPho[g] , sMinPho[g] , weight );
 	      h_nXtl_Pt_EB->Fill( nXtals[g],  gP4_.Pt() , weight );
-              if ( fabs(gP4_.Phi()) > 0.2 && fabs(gP4_.Phi()) < 3.12 && !haloTag)  {
-                 h_Time_EB->Fill( seedTime[g] , weight ) ;
-              }
            }
            if ( fabs( gP4_.Eta() ) > 1.5 ) {
   	      h_sMin_Time_EE->Fill( sMinPho[g] , seedTime[g] , weight );
@@ -1130,11 +1069,6 @@ void BackgroundStudy::Run( double weight ) {
 	      h_sigIeta_Time_EE->Fill( sigmaIeta[g], seedTime[g] , weight  ) ;
 	      h_Pt_Time_EE->Fill( gP4_.Pt(), seedTime[g] , weight  ) ;
 	      h_MET_Time_EE->Fill( metE, seedTime[g] , weight  ) ;
-              if ( haloTag ) h_haloTime_EE->Fill( seedTime[g] , weight ) ;
-              // check ghost bunch collision
-              if ( fabs(gP4_.Phi()) > 0.2 && fabs(gP4_.Phi()) < 3.12 )  {
-                 h_Time_EE->Fill( seedTime[g] , weight ) ;
-              }
            }
 
 	   h_sMaj_Eta->Fill( sMajPho[g] , gP4_.Eta() , weight ) ;
@@ -1171,14 +1105,15 @@ void BackgroundStudy::Run( double weight ) {
 	      //if ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.1  && fabs( gP4_.Eta() ) > 0.75 && fabs(gP4_.Eta()) < 1.47 ) haloTag = true;
 	      if ( sMajPho[k] > 0.8 && sMajPho[k] < 1.65 && sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
 
-	      bool spikeTag = ( nXtals[k] < 7 && !haloTag ) ? true : false  ;
+              bool cosmicTag = ( dtdEta[k] < 0.1 && dtdPhi[k] < 0.1 && !haloTag ) ? true : false ;
+
+	      bool spikeTag = ( nXtals[k] < 7 && !haloTag && ! cosmicTag ) ? true : false  ;
 	      if ( sMajPho[k] < 0.6 && sMinPho[k] < 0.17 && fabs( gP4_.Eta() ) < 1.47 ) spikeTag = true;
 
-              bool cosmicTag = ( dtdEta[k] < 0.1 && dtdPhi[k] < 0.1 && !haloTag ) ? true : false ;
 	      bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
 
               // Test for ABCD region
-              if ( !ghostTag ) {
+              if ( !ghostTag && timeChi2[k] < 4. ) {
                  if ( metE > jetCuts[4] && selectJets.size() >= jetCuts[2] )     abcd_Pt_Time->Fill( gP4_.Pt() , seedTime[k], weight ) ;
                  if ( selectPho[0].second.Pt() > 80. && selectJets.size() >= jetCuts[2] ) abcd_MET_Time->Fill( metE, seedTime[k], weight ) ;
                  if ( metE > jetCuts[4] && selectPho[0].second.Pt() > 80. ) abcd_NJet_Time->Fill( selectJets.size(), seedTime[k], weight ) ;
@@ -1189,11 +1124,6 @@ void BackgroundStudy::Run( double weight ) {
 		 if ( seedTime[k] >  3 ) { 
                     cd_Pt_MET->Fill( gP4_.Pt(), metE ) ;
                     cd_dPhi_gMET->Fill( dPhi_gMET ) ;
-                 }
-                 if ( fabs(seedTime[k]) < 2 && kk == 0) { // no double counting event
-		    if ( selectJets.size() == 0 ) noG_nVtx_0J->Fill( totalNVtx, weight) ;
-		    if ( selectJets.size() == 1 ) noG_nVtx_1J->Fill( totalNVtx, weight) ;
-		    if ( selectJets.size() >= 2 ) noG_nVtx_2J->Fill( totalNVtx, weight) ;
                  }
               }
 
@@ -1209,7 +1139,7 @@ void BackgroundStudy::Run( double weight ) {
               // ******************
               //   Region A and B - Real Photon: -0.024 +/- 0.426
               // ******************
-              if ( seedTime[k] < -3.00 && seedTime[k] > -10. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+              if ( seedTime[k] < -3. && seedTime[k] > -10. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3]  ) {
               //if ( seedTime[k] < -3.006 && metE > jetCuts[4] ) {
               //if ( seedTime[k] < -2.154 && metE > jetCuts[4] && selectJets.size() > 0 ) {
 
@@ -1219,15 +1149,13 @@ void BackgroundStudy::Run( double weight ) {
 		 //if ( selectPho[0].second.Pt() > 80. ) {
 	  	    int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
 
-		    hBg_B->Fill( ih, 0.5, weight );
-		    if ( haloTag  ) hBg_B->Fill( ih, 1.5, weight );
-		    if ( spikeTag ) hBg_B->Fill( ih, 2.5, weight );
-		    if ( cosmicTag ) hBg_B->Fill( ih, 3.5, weight );
-                    if ( !ghostTag ) b_nVtx->Fill( totalNVtx, weight ) ;
-                    for ( int v=0; v<34; v++) {
-                        double z0_ = (double)(-165 + v*10) ;
-                        if ( !ghostTag ) b_Z0->Fill(  z0_ ,  (weight*nTrkZ0[v]) );
+                    if ( timeChi2[k] < 4 ) {
+   		       hBg_B->Fill( ih, 0.5, weight );
+ 		       if ( haloTag  ) hBg_B->Fill( ih, 1.5, weight );
+		       if ( spikeTag ) hBg_B->Fill( ih, 2.5, weight );
+		       if ( cosmicTag ) hBg_B->Fill( ih, 3.5, weight );
                     }
+		    if ( !ghostTag ) b_tChi2->Fill( timeChi2[k] ,  weight );
                  }
                  // Region A
 		 if ( metE < jetCuts[4] ) {
@@ -1235,15 +1163,13 @@ void BackgroundStudy::Run( double weight ) {
 		 //if ( selectPho[0].second.Pt() < 80. ) {
 	  	    int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
 
-		    hBg_A->Fill( ih, 0.5, weight );
-		    if ( haloTag  ) hBg_A->Fill( ih, 1.5, weight );
-		    if ( spikeTag ) hBg_A->Fill( ih, 2.5, weight );
-		    if ( cosmicTag ) hBg_A->Fill( ih, 3.5, weight );
-                    if ( !ghostTag ) a_nVtx->Fill( totalNVtx, weight ) ;
-                    for ( int v=0; v<34; v++) {
-                        double z0_ = (double)(-165 + v*10) ;
-                        if ( !ghostTag ) a_Z0->Fill(  z0_ ,  (weight*nTrkZ0[v]) );
+                    if ( timeChi2[k] < 4 ) {
+		       hBg_A->Fill( ih, 0.5, weight );
+		       if ( haloTag  ) hBg_A->Fill( ih, 1.5, weight );
+		       if ( spikeTag ) hBg_A->Fill( ih, 2.5, weight );
+		       if ( cosmicTag ) hBg_A->Fill( ih, 3.5, weight );
                     }
+		    if ( !ghostTag ) a_tChi2->Fill( timeChi2[k] ,  weight );
                  }
               }
               // ******************
@@ -1255,30 +1181,26 @@ void BackgroundStudy::Run( double weight ) {
 		 if ( metE > jetCuts[4] ) {
                     int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
 
-                    hBg_D->Fill( ih, 0.5, weight );
-                    if ( haloTag  ) hBg_D->Fill( ih, 1.5, weight );
-                    if ( spikeTag ) hBg_D->Fill( ih, 2.5, weight );
-		    if ( cosmicTag ) hBg_D->Fill( ih, 3.5, weight );
-                    if ( !ghostTag ) d_nVtx->Fill( totalNVtx, weight ) ;
-                    for ( int v=0; v<34; v++) {
-                        double z0_ = (double)(-165 + v*10) ;
-                        if ( !ghostTag ) d_Z0->Fill(  z0_ ,  (weight*nTrkZ0[v]) );
+                    if ( timeChi2[k] < 4 ) {
+                       hBg_D->Fill( ih, 0.5, weight );
+		       if ( haloTag  ) hBg_D->Fill( ih, 1.5, weight );
+		       if ( spikeTag ) hBg_D->Fill( ih, 2.5, weight );
+		       if ( cosmicTag ) hBg_D->Fill( ih, 3.5, weight );
                     }
+		    if ( !ghostTag ) d_tChi2->Fill( timeChi2[k] ,  weight );
                  }
                  // Check the background estimation at MET > 60 GeV, t < -3ns Region
                  // Region C
 		 if ( metE < jetCuts[4] ) {
                     int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
 
-		    hBg_C->Fill( ih, 0.5, weight );
-		    if ( haloTag  ) hBg_C->Fill( ih, 1.5, weight );
-		    if ( spikeTag ) hBg_C->Fill( ih, 2.5, weight );
-		    if ( cosmicTag ) hBg_C->Fill( ih, 3.5, weight );
-                    if ( !ghostTag ) c_nVtx->Fill( totalNVtx, weight ) ;
-                    for ( int v=0; v<34; v++) {
-                        double z0_ = (double)(-165 + v*10) ;
-                        if ( !ghostTag ) c_Z0->Fill(  z0_ ,  (weight*nTrkZ0[v]) );
+                    if ( timeChi2[k] < 4 ) {
+	    	       hBg_C->Fill( ih, 0.5, weight );
+		       if ( haloTag  ) hBg_C->Fill( ih, 1.5, weight );
+		       if ( spikeTag ) hBg_C->Fill( ih, 2.5, weight );
+		       if ( cosmicTag ) hBg_C->Fill( ih, 3.5, weight );
                     }
+		    if ( !ghostTag ) c_tChi2->Fill( timeChi2[k] ,  weight );
                  }
               }
 
@@ -1288,10 +1210,8 @@ void BackgroundStudy::Run( double weight ) {
               if (seedTime[k] > -1.5 && seedTime[k] < 1.5 && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
                  if ( !ghostTag && metE <= jetCuts[4]) l_nVtx->Fill( totalNVtx, weight ) ;
                  if ( !ghostTag && metE  > jetCuts[4]) h_nVtx->Fill( totalNVtx, weight ) ;
-                 for ( int v=0; v<34; v++) {
-                     double z0_ = (double)(-165 + v*10) ;
-                     if ( !ghostTag ) h_Z0->Fill(  z0_ ,  (weight*nTrkZ0[v]) );
-                 }
+                 if ( !ghostTag ) h_tChi2->Fill( timeChi2[k], weight ) ;
+		 if ( !ghostTag ) h_dT->Fill( seedTime[k] - aveTime[k],  weight );
               }
 
               if ( selectPho[0].second.Pt() > 80. ) {
@@ -1323,9 +1243,6 @@ void BackgroundStudy::Run( double weight ) {
 		    if ( selectJets.size() == 1 ) sideband_dPhi_MET_Jet2->Fill( dPhi_gMET, dPhi_jMET, weight ) ;
 		    if ( selectJets.size() >= 2 ) sideband_dPhi_MET_Jet3->Fill( dPhi_gMET, dPhi_jMET, weight ) ;
 
-		    if ( selectJets.size() == 0 && kk == 0 ) sideband_nVtx_0J->Fill( totalNVtx, weight) ;
-		    if ( selectJets.size() == 1 && kk == 0 ) sideband_nVtx_1J->Fill( totalNVtx, weight) ;
-		    if ( selectJets.size() >= 2 && kk == 0 ) sideband_nVtx_2J->Fill( totalNVtx, weight) ;
                  }
 
             
@@ -1338,9 +1255,9 @@ void BackgroundStudy::Run( double weight ) {
 		    cosmic_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
 		    cosmic_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
 		    cosmic_Time->Fill( seedTime[k] , weight ) ;
+		    cosmic_tChi2->Fill( timeChi2[k] ,  weight );
                     if ( fabs(seedTime[k]) > 1.5 ) {
 		       cosmic_sMaj_sMin->Fill( sMajPho[k], sMinPho[k] , weight ) ;
-		       cosmic_sigIeta->Fill( sigmaIeta[k] , weight ) ;
 		       cosmic_photIso_Time->Fill( phIso, seedTime[k] , weight ) ;
 		       cosmic_nXtl->Fill( nXtals[k] , weight );
                     }
@@ -1354,6 +1271,7 @@ void BackgroundStudy::Run( double weight ) {
 		    halo_photIso_Time->Fill( phIso, seedTime[k] , weight ) ;
 	            halo_ecalT_rho->Fill( seedTime[k], cscRho[k], weight  ) ;
 	            halo_ecalT_cscT->Fill( seedTime[k], cscTime[k] , weight  ) ;
+		    halo_tChi2->Fill( timeChi2[k] ,  weight );
                     // Only check the out-of-time region
 	            if ( fabs(seedTime[k]) > 1.5 ) {
 		       halo_sigIeta->Fill( sigmaIeta[k] , weight ) ;
@@ -1368,8 +1286,6 @@ void BackgroundStudy::Run( double weight ) {
 		    if ( selectJets.size() == 0 ) halo_T_dPhi_gMET_0J->Fill( seedTime[k] , dPhi_gMET, weight ) ;
 		    if ( selectJets.size() == 1 ) halo_T_dPhi_gMET_1J->Fill( seedTime[k] , dPhi_gMET, weight ) ;
 		    if ( selectJets.size() >= 2 ) halo_T_dPhi_gMET_2J->Fill( seedTime[k] , dPhi_gMET, weight ) ;
-		    if ( selectJets.size() == 0 ) halo_Eta_Time_0J->Fill( gP4_.Eta() , seedTime[k] , weight ) ;
-		    if ( selectJets.size() == 1 ) halo_Eta_Time_1J->Fill( gP4_.Eta() , seedTime[k] , weight ) ;
 
                  } else {
 		    noHalo_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
@@ -1390,6 +1306,7 @@ void BackgroundStudy::Run( double weight ) {
 		    spike_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
 		    spike_Time->Fill( seedTime[k] , weight ) ;
 		    spike_photIso_Time->Fill( phIso, seedTime[k] , weight ) ;
+		    spike_tChi2->Fill( timeChi2[k] ,  weight );
 	            if ( fabs(seedTime[k]) > 1.5 ) {
 		       spike_Pt_Time->Fill( gP4_.Pt() , seedTime[k] , weight );
 		       spike_MET_Time->Fill( metE , seedTime[k] , weight );
@@ -1402,11 +1319,7 @@ void BackgroundStudy::Run( double weight ) {
 		    if ( selectJets.size() == 0 ) spike_T_dPhi_gMET_0J->Fill( seedTime[k] , dPhi_gMET ) ;
 		    if ( selectJets.size() == 1 ) spike_T_dPhi_gMET_1J->Fill( seedTime[k] , dPhi_gMET ) ;
 		    if ( selectJets.size() >= 2 ) spike_T_dPhi_gMET_2J->Fill( seedTime[k] , dPhi_gMET ) ;
-                 } else {
-		    noSpike_sMaj_Time->Fill( sMajPho[k], seedTime[k] , weight ) ;
-		    noSpike_sMin_Time->Fill( sMinPho[k], seedTime[k] , weight ) ;
-		    noSpike_Time->Fill( seedTime[k] , weight ) ;
-                 }
+                 } 
                  if ( sMajPho[k] < 0.7 && cscdPhi[k] > 0.1 ) notSpike_nXtl->Fill( nXtals[k] , weight );
  
                  if ( !ghostTag ) pure_Time->Fill( seedTime[k] , weight );
@@ -1442,7 +1355,7 @@ void BackgroundStudy::Run( double weight ) {
               // **********************************************
               //   Region for Efficiency and fake rate study
               // **********************************************
-              if ( fabs( gP4_.Phi() ) < 0.2 || fabs( fabs(gP4_.Phi()) - 3.14 ) < 0.2  ) {
+              if ( fabs( gP4_.Phi() ) < 0.2 || fabs( fabs(gP4_.Phi()) - 3.1416 ) < 0.2  ) {
                  if ( selectJets.size() < 2 && seedTime[k] > 3 ) {
                     if ( fabs(gP4_.Eta())  < 0.37                            ) haloCD_Pt_eta[0]->Fill( gP4_.Pt() , weight);
                     if ( fabs(gP4_.Eta()) >= 0.37 && fabs(gP4_.Eta()) < 0.74 ) haloCD_Pt_eta[1]->Fill( gP4_.Pt() , weight);
@@ -1465,11 +1378,11 @@ void BackgroundStudy::Run( double weight ) {
                  }
               }
 
-              if ( metE < jetCuts[4] && selectJets.size() < 1 ) {
+              if ( metE < jetCuts[4] && selectJets.size() < 1 && seedTime[k]  < -3 ) {
 
                  // Halo-Control Sample
-                 if ( fabs( gP4_.Phi() ) < 0.1 || fabs( fabs(gP4_.Phi()) - 3.14 ) < 0.1  ) {
-                    if ( fabs( gP4_.Eta() ) < 1.4 &&  seedTime[k]  < -3 && nXtals[k] > 7 ) {
+                 if ( fabs( gP4_.Phi() ) < 0.1 || fabs( fabs(gP4_.Phi()) - 3.1416 ) < 0.1  ) {
+                    if ( fabs( gP4_.Eta() ) < 1.4 && nXtals[k] > 7 ) {
                        haloCS_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k] , weight ) ;
                        haloCS_sMaj_Eta->Fill( sMajPho[k] , gP4_.Eta() , weight ) ;
 		       haloCS_sMaj_Phi->Fill( sMajPho[k] , gP4_.Phi() , weight );
@@ -1483,7 +1396,6 @@ void BackgroundStudy::Run( double weight ) {
 		       halo_Eta[0]->Fill( haloEta, weight ) ;
 
 	  	       if ( haloTag ) {
-                          haloCS_Eta_Time1->Fill( gP4_.Eta() , seedTime[k] , weight );
 			  halo_Eta[1]->Fill( haloEta, weight ) ;
 		       }
                     }
@@ -1506,16 +1418,32 @@ void BackgroundStudy::Run( double weight ) {
 		       if ( fabs(gP4_.Eta()) > 1.5  && fabs(gP4_.Eta()) < 2.0  ) sMaj_eta_csc[5]->Fill( sMajPho[k] , weight ) ;
 		       if ( fabs(gP4_.Eta()) > 2.   && fabs(gP4_.Eta()) < 2.5  ) sMaj_eta_csc[6]->Fill( sMajPho[k] , weight ) ;
                     }
-
                  }
 
                  // Current Spike-Control sample
-                 if ( fabs( gP4_.Eta() ) < 1.4 &&  seedTime[k]  < -3 && sMajPho[k] < 0.7 && cscdPhi[k] > 0.1 && metE < jetCuts[4] ) {
+                 if ( fabs( gP4_.Eta() ) < 1.4 && seedTime[k]  < -3 && cscdPhi[k] > 0.1 && metE < jetCuts[4] ) {
                     spikeCS_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k] , weight ) ;
 		    spikeCS_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
 		    spikeCS_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
-		    spikeCS_nXtl_Eta->Fill( nXtals[k], gP4_.Eta() , weight ) ;
 		    spikeCS_nXtl->Fill( nXtals[k] , weight ) ;
+
+                    if ( fabs(gP4_.Eta()) < 0.28 )                            nXtl_eta[0]->Fill( nXtals[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 0.28 && fabs(gP4_.Eta()) < 0.56 ) nXtl_eta[1]->Fill( nXtals[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 0.56 && fabs(gP4_.Eta()) < 0.84 ) nXtl_eta[2]->Fill( nXtals[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 0.84 && fabs(gP4_.Eta()) < 1.12 ) nXtl_eta[3]->Fill( nXtals[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 1.12 && fabs(gP4_.Eta()) < 1.40 ) nXtl_eta[4]->Fill( nXtals[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 1.5  && fabs(gP4_.Eta()) < 2.0  ) nXtl_eta[5]->Fill( nXtals[k] , weight ) ;
+		    if ( fabs(gP4_.Eta()) > 2.   && fabs(gP4_.Eta()) < 2.5  ) nXtl_eta[6]->Fill( nXtals[k] , weight ) ;
+
+                    if ( nXtals[k] < 0.6 && sMinPho[k] < 0.17  ) {
+                       if ( fabs(gP4_.Eta()) < 0.28 )                            nXtl_eta_topo[0]->Fill( nXtals[k] , weight ) ;
+		       if ( fabs(gP4_.Eta()) > 0.28 && fabs(gP4_.Eta()) < 0.56 ) nXtl_eta_topo[1]->Fill( nXtals[k] , weight ) ;
+		       if ( fabs(gP4_.Eta()) > 0.56 && fabs(gP4_.Eta()) < 0.84 ) nXtl_eta_topo[2]->Fill( nXtals[k] , weight ) ;
+		       if ( fabs(gP4_.Eta()) > 0.84 && fabs(gP4_.Eta()) < 1.12 ) nXtl_eta_topo[3]->Fill( nXtals[k] , weight ) ;
+		       if ( fabs(gP4_.Eta()) > 1.12 && fabs(gP4_.Eta()) < 1.40 ) nXtl_eta_topo[4]->Fill( nXtals[k] , weight ) ;
+		       if ( fabs(gP4_.Eta()) > 1.5  && fabs(gP4_.Eta()) < 2.0  ) nXtl_eta_topo[5]->Fill( nXtals[k] , weight ) ;
+		       if ( fabs(gP4_.Eta()) > 2.   && fabs(gP4_.Eta()) < 2.5  ) nXtl_eta_topo[6]->Fill( nXtals[k] , weight ) ;
+                    }
 
 		    // Count efficiency in different eta slice 
 		    double SpikeEta = ( fabs(gP4_.Eta()) > 1.67 ) ? 1.67 : fabs(gP4_.Eta()) ;
@@ -1649,27 +1577,21 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->Draw(   h_EE_Time1,     "h_EE_Time1",     "Time from EE for 1 jet event", "", "logY", 0.95, 1 ) ;
    h_draw->Draw(   h_EE_Time2,     "h_EE_Time2",     "Time from EE for 2 jet event", "", "logY", 0.95, 1 ) ;
    */
-   h_draw->Draw(        h_EB_Time, "",     "Time from EB ", "", "logY", 0.95, 2, 100./max( 100., h_EB_Time->Integral()) ) ;
-   h_draw->DrawAppend(  h_EE_Time, "h_EB_Time", 0.75, 4 , 100./ max( 100., h_EE_Time->Integral() ) ) ;
+   h_draw->SetHistoInfo(2) ; // set histo lineWidth
+   TLegend* leg3  = new TLegend(.6, .7, .9, .9 );
+   leg3->AddEntry( h_EB_Time, " EB" , "L" ) ;
+   leg3->AddEntry( h_EE_Time, " EE" , "L" ) ;
+   leg3->AddEntry( h_EE_haloTime, "EE Halo-Tagged" , "L" ) ;
+   h_draw->Draw(        h_EB_Time, "",  "Time from EB ", "", "logY", 0.95, 2 ) ;
+   h_draw->DrawAppend(  h_EE_Time, "h_EBEE_Time",  0.85, 4 , 1 ) ;
+   //h_draw->DrawAppend(  h_EE_haloTime,  "h_EBEE_Time",  0.75, 6 , 1.,  leg3  ) ;
+
    h_draw->Draw(        h_EB_Time0, "",     "Time from EB ", "", "logY", 0.95, 2, 100./max( 100., h_EB_Time0->Integral()) ) ;
    h_draw->DrawAppend(  h_EE_Time0, "h_EB_Time0", 0.75, 4 , 100./ max( 100., h_EE_Time0->Integral() ) ) ;
    h_draw->Draw(        h_EB_Time1, "",     "Time from EB ", "", "logY", 0.95, 2, 100./max( 100., h_EB_Time1->Integral()) ) ;
    h_draw->DrawAppend(  h_EE_Time1, "h_EB_Time1", 0.75, 4 , 100./ max( 100., h_EE_Time1->Integral() ) ) ;
    h_draw->Draw(        h_EB_Time2, "",     "Time from EB ", "", "logY", 0.95, 2, 100./max( 100., h_EB_Time2->Integral()) ) ;
    h_draw->DrawAppend(  h_EE_Time2, "h_EB_Time2", 0.75, 4 , 100./ max( 100., h_EE_Time2->Integral() ) ) ;
-
-   if ( isData == 1 ) {
-   h_draw->SetHistoInfo(2) ; // set histo lineWidth
-
-   TLegend* leg3  = new TLegend(.6, .7, .9, .9 );
-   leg3->AddEntry( h_Time_EB, " EB" , "L" ) ;
-   leg3->AddEntry( h_Time_EE, " EE" , "L" ) ;
-   leg3->AddEntry( h_haloTime_EE, " EE" , "L" ) ;
-   //h_Time_EB->SetTitle( "" ) ;
-   h_draw->Draw(       h_Time_EB, "",             " Ecal Time (ns)", "", "logY", 0.95, 2 );
-   h_draw->DrawAppend( h_Time_EE, "",  0.8, 4 , 1. ) ;
-   h_draw->DrawAppend( h_haloTime_EE, "h_Time_EB_EE",  0.65, 6 , 1.,  leg3  ) ;
-   } 
 
    h_draw->SetHistoInfo(1) ;
 
@@ -1705,8 +1627,6 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->Draw2D( h_sMaj_sMin_EB,"h_sMaj_sMin_EB",   "sMaj", "sMin ",  "logZ", 8 ) ;
    h_draw->Draw2D( h_nXtl_Eta,    "h_nXtl_Eta",    "N crystals", "#eta", "logZ", 8  ) ;
    h_draw->Draw2D( h_nXtl_Pt_EB,  "h_nXtl_Pt_EB",     "N crystals", "P_{T}", "logZ", 8  ) ;
-
-   h_draw->Draw2D( h_Time_nZ0,     "h_Time_nZ0", "nTracks in Z0", "EcalTime (ns)",  "logZ" , 8 ) ;
 
    h_draw->Draw2D( abcd_Pt_Time,   "abcd_Pt_Time", "P_T", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET_Time,  "abcd_MET_Time", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
@@ -1776,51 +1696,34 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->DrawAppend( nJets_cosmic, "NJets_All", 0.6, 8, 1, leg2  ) ;
 
    leg2->Clear() ;
-   double a_o = a_Z0->Integral(1,15) + a_Z0->Integral(20,34) ;
-   double a_i = a_Z0->Integral(16,19) ;
-   double b_o = b_Z0->Integral(1,15) + b_Z0->Integral(20,34) ;
-   double b_i = b_Z0->Integral(16,19) ;
-   double c_o = c_Z0->Integral(1,15) + c_Z0->Integral(20,34) ;
-   double c_i = c_Z0->Integral(16,19) ;
-   double d_o = d_Z0->Integral(1,15) + d_Z0->Integral(20,34) ;
-   double d_i = d_Z0->Integral(16,19) ;
-   double h_o = h_Z0->Integral(1,15) + h_Z0->Integral(20,34) ;
-   double h_i = h_Z0->Integral(16,19) ;
-   printf(" a_o/a_i = (%.2f/%.2f) = %f \n", a_o, a_i, a_o/a_i ) ;
-   printf(" b_o/b_i = (%.2f/%.2f) = %f \n", b_o, b_i, b_o/b_i ) ;
-   printf(" c_o/c_i = (%.2f/%.2f) = %f \n", c_o, c_i, c_o/c_i ) ;
-   printf(" d_o/d_i = (%.2f/%.2f) = %f \n", d_o, d_i, d_o/d_i ) ;
-   printf(" h_o/h_i = (%.2f/%.2f) = %f \n", h_o, h_i, h_o/h_i ) ;
-   printf(" b/a = %f \n", (b_o*a_i)/(a_o*b_i) ) ;
-   printf(" d/c = %f \n", (d_o*c_i)/(c_o*d_i) ) ;
-   leg2->AddEntry( h_Z0, "Normal" , "L" ) ;
-   leg2->AddEntry( a_Z0, "A" , "L" ) ;
-   leg2->AddEntry( b_Z0, "B" , "L" ) ;
-   leg2->AddEntry( c_Z0, "C" , "L" ) ;
-   leg2->AddEntry( d_Z0, "D" , "L" ) ;
-   h_draw->Draw(       h_Z0,     "", "nTracks in Z0", "",  "logY" , 0.95, 1 ) ;
-   h_draw->DrawAppend( a_Z0,     "", 0.9, 2, 1 ) ;
-   h_draw->DrawAppend( b_Z0,     "", 0.85, 4, 1 ) ;
-   h_draw->DrawAppend( c_Z0,     "", 0.8, 6, 1 ) ;
-   h_draw->DrawAppend( d_Z0,     "abcd_Z0", 0.75,  8, 1, leg2 ) ;
+   leg2->AddEntry( h_tChi2, "Normal" , "L" ) ;
+   leg2->AddEntry( a_tChi2, "A" , "L" ) ;
+   leg2->AddEntry( b_tChi2, "B" , "L" ) ;
+   leg2->AddEntry( c_tChi2, "C" , "L" ) ;
+   leg2->AddEntry( d_tChi2, "D" , "L" ) ;
+   h_draw->Draw(       h_tChi2,     "", "#Chi2 of ECAL time", "",  "logY" , 0.95, 1, 0.0001) ;
+   h_draw->DrawAppend( a_tChi2,     "", 0.9, 2, 1 ) ;
+   h_draw->DrawAppend( b_tChi2,     "", 0.85, 4, 1 ) ;
+   h_draw->DrawAppend( c_tChi2,     "", 0.8, 6, 1 ) ;
+   h_draw->DrawAppend( d_tChi2,     "abcd_tChi2", 0.75,  8, 1, leg2 ) ;
 
+   leg2->Clear() ;
+   leg2->AddEntry( h_tChi2,      "Normal" , "L" ) ;
+   leg2->AddEntry( halo_tChi2,   "Halo"   , "L" ) ;
+   leg2->AddEntry( spike_tChi2,  "Spike"  , "L" ) ;
+   leg2->AddEntry( cosmic_tChi2, "Cosmic" , "L" ) ;
+   h_draw->Draw(       h_tChi2,       "", "#Chi2 of ECAL time", "",  "logY" , 0.95, 1 ) ;
+   h_draw->DrawAppend( halo_tChi2,    "", 0.85, 2, 1 ) ;
+   h_draw->DrawAppend( spike_tChi2,   "", 0.75, 6, 1 ) ;
+   h_draw->DrawAppend( cosmic_tChi2,  "h_tChi2", 0.65,  8, 1, leg2 ) ;
+
+   h_draw->Draw(       h_dT,     "cs_dT", "seedTime -aveTime", "",  "logY" , 0.95, 1) ;
 
    leg2->Clear() ;
    leg2->AddEntry( l_nVtx, "MET < 60" , "L" ) ;
    leg2->AddEntry( h_nVtx, "MET > 60" , "L" ) ;
    h_draw->Draw(       l_nVtx,     "", "nTracks in nVtx", "",  "logY" , 0.95, 1 ) ;
    h_draw->DrawAppend( h_nVtx,     "hl_nVtx", 0.75,  8, 1, leg2 ) ;
-
-   leg2->Clear() ;
-   leg2->AddEntry( a_nVtx, "A" , "L" ) ;
-   leg2->AddEntry( b_nVtx, "B" , "L" ) ;
-   leg2->AddEntry( c_nVtx, "C" , "L" ) ;
-   leg2->AddEntry( d_nVtx, "D" , "L" ) ;
-
-   h_draw->Draw(       a_nVtx,     "", "nTracks in nVtx", "",  "logY" , 0.95, 1 ) ;
-   h_draw->DrawAppend( b_nVtx,     "", 0.85, 4, 1 ) ;
-   h_draw->DrawAppend( c_nVtx,     "", 0.8, 6, 1 ) ;
-   h_draw->DrawAppend( d_nVtx,     "abcd_nVtx", 0.75,  8, 1, leg2 ) ;
 
    h_draw->Draw2D( sel_weirdXtl,   "sel_weirdXtl",   "#eta", "Phi",  "", 8  ) ;
    h_draw->Draw2D( sel_Eta_Time,   "sel_Eta_Time",   "#eta", "EcalTime (ns)",  "", 8  ) ;
@@ -1892,37 +1795,29 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->DrawAppend( sideband_cscdPhi_d,  "",  0.9, 6 ) ;
    h_draw->DrawAppend( cs_cscdPhi,          "cs_side_cscdPhi",  0.85, 2, 1, leg2 ) ;
 
-   leg2->Clear() ;
-   leg2->AddEntry( sideband_nVtx_0J, "0 Jet" , "L" ) ;
-   leg2->AddEntry( sideband_nVtx_1J, "1 Jet" , "L" ) ;
-   leg2->AddEntry( sideband_nVtx_2J, ">= 2 Jet" , "L" ) ;
-   h_draw->Draw(       sideband_nVtx_0J,  "", "N of vertex ", "", "logY", 0.95, 2 ) ;
-   h_draw->DrawAppend( sideband_nVtx_2J,  "",  0.9, 6 ) ;
-   h_draw->DrawAppend( sideband_nVtx_1J,  "sideband_nVtx",  0.85, 4, 1, leg2 ) ;
-
-   leg2->Clear() ;
-   leg2->AddEntry( noG_nVtx_0J, "0 Jet" , "L" ) ;
-   leg2->AddEntry( noG_nVtx_1J, "1 Jet" , "L" ) ;
-   leg2->AddEntry( noG_nVtx_2J, ">= 2 Jet" , "L" ) ;
-   h_draw->Draw(       noG_nVtx_1J,  "", "N of vertex ", "", "logY", 0.95, 4 ) ;
-   h_draw->DrawAppend( noG_nVtx_2J,  "",  0.9, 6 ) ;
-   h_draw->DrawAppend( noG_nVtx_0J,  "noG_nVtx",  0.85, 2, 1, leg2 ) ;
-
    h_draw->SetPlotStyle(true) ; // Turn off the stats box
    h_draw->Draw2D( haloCS_sMaj_sMin, "haloCS_sMaj_sMin", "sMaj", "sMin",  "", 8  ) ;
    h_draw->Draw2D( haloCS_sMaj_Eta,  "haloCS_sMaj_Eta",  "sMaj", " #eta",  "", 8  ) ;
    h_draw->Draw2D( haloCS_sMaj_Phi,  "haloCS_sMaj_Phi",  "sMaj", " #phi",  "", 8  ) ;
    h_draw->Draw2D( haloCS_Eta_Time,  "haloCS_Eta_Time",  "#eta", "EcalTime (ns)",  "", 8 ) ;
-   h_draw->Draw2D( haloCS_Eta_Time1, "haloCS_Eta_Time1", "#eta", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw(   haloCS_cscdPhi,   "haloCS_cscdPhi",  " #Delta#phiE( csc, photon) ", "", "logY", 0.95, 1 ) ;
    h_draw->Draw(   haloCS_cscdPhi1,  "haloCS_cscdPhi1", " #Delta#phiE( csc, photon) ", "", "logY", 0.95, 1 ) ;
 
    h_draw->Draw2D( spikeCS_Eta_Time1, "spikeCS_Eta_Time1", "#eta", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( spikeCS_Eta_Time, "spikeCS_Eta_Time", "#eta", "EcalTime (ns)",  "", 8 ) ;
-   h_draw->Draw2D( spikeCS_nXtl_Eta, "spikeCS_nXtl_Eta", "N of xtals", "#eta",  ""  ) ;
    h_draw->Draw2D( spikeCS_Phi_Time, "spikeCS_Phi_Time", "#phi", "EcalTime (ns)",  ""  ) ;
    h_draw->Draw2D( spikeCS_sMaj_sMin, "spikeCS_sMaj_sMin", "sMaj", "sMin (ns)",  ""  ) ;
-   h_draw->Draw(   spikeCS_nXtl,     "spikeCS_nXtl",     " N of crystals ", "",  "", 0.95, 1 ) ;
+
+   leg2->Clear() ;
+   cs_nXtl->SetLineWidth(2) ;
+   spikeCS_nXtl->SetLineWidth(2) ;
+   sideband_nXtl_d->SetLineWidth(2) ;
+   leg2->AddEntry(    spikeCS_nXtl,  "Spike CS" , "L" ) ;
+   leg2->AddEntry( sideband_nXtl_d,  "t < -3 ns", "L" ) ;
+   leg2->AddEntry(         cs_nXtl,  " |t| < 1 ns", "L" ) ;
+   h_draw->Draw(          spikeCS_nXtl,  "",  "N of crystals", "", "", 0.95, 2 ) ;
+   h_draw->DrawAppend( sideband_nXtl_d,  "",    0.85, 4 , spikeCS_nXtl->Integral()/ sideband_nXtl_d->Integral() ) ;
+   h_draw->DrawAppend(         cs_nXtl,  "spikeCS_nXtl",    0.85, 1, spikeCS_nXtl->Integral()/cs_nXtl->Integral(), leg2 ) ;
 
    h_draw->Draw2D( cosmic_sMaj_Time, "cosmic_sMaj_Time",  "sMaj", " EcalTime (ns) ",  "logZ"  ) ;
    h_draw->Draw2D( cosmic_sMin_Time, "cosmic_sMin_Time",  "sMin", " EcalTime (ns) ",  "logZ"  ) ;
@@ -1933,7 +1828,6 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->Draw2D( cosmic_MET_Time,  "cosmic_MET_Time", "MET", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( cosmic_photIso_Time,"cosmic_photIso_Time",   " Photon Iso", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw(   cosmic_nXtl,      "cosmic_nXtl",    "N crystals",       "", "logY", 0.95, 1 ) ;
-   h_draw->Draw(   cosmic_sigIeta,   "cosmic_sigIeta", " Sigma_IetaIeta ", "", "logY", 0.95, 1 ) ;
    h_draw->Draw(   cosmic_Time,      "cosmic_Time", " Ecal time ", "", "logY", 0.95, 1 ) ;
 
    h_draw->Draw2D( haloFN_Eta_Time,  "haloFN_Eta_Time", "#eta", "EcalTime (ns)",  "", 8 ) ;
@@ -1946,8 +1840,6 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->Draw2D( halo_sMaj_Time, "halo_sMaj_Time",  "sMaj", " EcalTime (ns) ",  "logZ"  ) ;
    h_draw->Draw2D( halo_sMin_Time, "halo_sMin_Time",  "sMin", " EcalTime (ns) ",  "logZ"  ) ;
    h_draw->Draw2D( halo_sMaj_sMin, "halo_sMaj_sMin", " sMajor ", "sMinor", "") ;
-   h_draw->Draw2D( halo_Eta_Time_0J, "halo_Eta_Time_0J", "#eta", "EcalTime (ns)",  "", 8 ) ;
-   h_draw->Draw2D( halo_Eta_Time_1J, "halo_Eta_Time_1J", "#eta", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( halo_Eta_Time,  "halo_Eta_Time", "#eta", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( halo_Phi_Time,  "halo_Phi_Time", "#phi", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( halo_Pt_Time,   "halo_Pt_Time",  "P_{T}", "EcalTime (ns)",  "", 8 ) ;
@@ -1984,51 +1876,59 @@ void BackgroundStudy::DrawHistograms() {
    h_draw->Draw2D( spike_T_dPhi_gMET_2J, "spike_T_dPhi_gMET_2J", "EcalTime (ns)", "dPhi( photon, MET)", "logZ", 8 ) ;
    h_draw->Draw2D( spike_T_dPhi_gMET_0J, "spike_T_dPhi_gMET_0J", "EcalTime (ns)", "dPhi( photon, MET)", "logZ", 8 ) ;
 
-   h_draw->Draw2D( noSpike_sMaj_Time, "noSpike_sMaj_Time",  "sMaj", " EcalTime (ns) ",  "logZ"  ) ;
-   h_draw->Draw2D( noSpike_sMin_Time, "noSpike_sMin_Time",  "sMin", " EcalTime (ns) ",  "logZ"  ) ;
-
    gPad->SetGridx() ;
    gStyle->SetOptStat("");
-   //TString IntStrA[7] = { "" } ;
-   TLegend* leg4  = new TLegend(.52, .72, .99, .99 );
-   TLegend* leg5  = new TLegend(.52, .72, .99, .99 );
-   Int_t nu0a, nu0 , nu1a, nu1;
-   Float_t rate0 , rate1 ;
-   char RStr[30], RStr1[60], RStr2[60] ;
-   float fEta = 0 ;
-   //for ( int k=0; k< 7; k++ ) {
-   for ( int k=0; k< 5; k++ ) {
-       nu0a = sMaj_eta[k]->Integral();
-       nu0  = sMaj_eta[k]->Integral(28,100);
-       nu1a = sMaj_eta_csc[k]->Integral();
-       nu1  = sMaj_eta_csc[k]->Integral(28,100);
-       rate0 = (float) nu0 / (float) nu0a ;
-       rate1 = (float) nu1 / (float) nu1a ;
-       sprintf( RStr,  "%.3f, %.2f<|#eta|<%.2f", rate0, fEta , fEta+0.28 ) ;
-       sprintf( RStr2, "%d / %d = %s", nu0, nu0a , RStr ) ;
-       sprintf( RStr1, "%d/%d = %.3f, %.2f<|#eta|<%.2f", nu1, nu1a, rate1, fEta, fEta+0.28 ) ;
-       fEta += 0.28 ;
-       if ( k < 5 ) leg4->AddEntry( sMaj_eta[k], RStr2 , "L" ) ;
-       if ( k < 5 ) leg5->AddEntry( sMaj_eta_csc[k], RStr1 , "L" ) ;
-   }
 
    sMaj_eta[0]->SetTitle("") ;
-   h_draw->Draw(       sMaj_eta[0], "", " s_{Major} ", "", "logY", 0.9, 1 ) ;
-   h_draw->DrawAppend( sMaj_eta[1], "",   0.9, 2, 1  ) ;
-   h_draw->DrawAppend( sMaj_eta[2], "",   0.9, 4, 1  ) ;
-   h_draw->DrawAppend( sMaj_eta[3], "",   0.9, 6, 1  ) ;
-   h_draw->DrawAppend( sMaj_eta[4], "sMaj_EtaSlice", 0.9, 8, 1 , leg4 ) ;
+   gStyle->SetOptStat("");
+   for (int i=0; i<5; i++) { 
+       sMaj_eta[i]->SetLabelSize(0.1, "X") ;
+       sMaj_eta[i]->SetLabelSize(0.1, "Y") ;
+   }
+   h_draw->CreateNxM( "sMaj_EtaSlice", 1,5 );
+   h_draw->DrawNxM( 1, sMaj_eta[0] , "",          "", "logY", 1, false );
+   h_draw->DrawNxM( 2, sMaj_eta[1] , "",          "", "logY", 2, false );
+   h_draw->DrawNxM( 3, sMaj_eta[2] , "",          "", "logY", 4, false );
+   h_draw->DrawNxM( 4, sMaj_eta[3] , "",          "", "logY", 6, false ) ;
+   h_draw->DrawNxM( 5, sMaj_eta[4] , "s_{Major}", "", "logY", 8, true ) ;
 
-   //h_draw->Draw(       sMaj_eta[5], "", " sMajor ", "", "logY", 0.95, 1 ) ;
-   //h_draw->DrawAppend( sMaj_eta[6], "sMaj_EtaSlice_EE", 0.75, 2, 1  ) ;
+   h_draw->CreateNxM( "sMaj_EtaSlice_CSC", 1,5 );
+   for (int i=0; i<5; i++) { 
+       sMaj_eta_csc[i]->SetLabelSize(0.1, "X") ;
+       sMaj_eta_csc[i]->SetLabelSize(0.1, "Y") ;
+   }
+   h_draw->DrawNxM( 1, sMaj_eta_csc[0] , "",          "", "logY", 1, false );
+   h_draw->DrawNxM( 2, sMaj_eta_csc[1] , "",          "", "logY", 2, false );
+   h_draw->DrawNxM( 3, sMaj_eta_csc[2] , "",          "", "logY", 4, false );
+   h_draw->DrawNxM( 4, sMaj_eta_csc[3] , "",          "", "logY", 6, false ) ;
+   h_draw->DrawNxM( 5, sMaj_eta_csc[4] , "s_{Major}", "", "logY", 8, true ) ;
 
-   sMaj_eta_csc[3]->SetTitle("") ;
-   h_draw->Draw(       sMaj_eta_csc[3], "", " s_{Major} ", "", "logY", 0.9, 6 ) ;
-   h_draw->DrawAppend( sMaj_eta_csc[1], "",   0.9, 2, 1  ) ;
-   h_draw->DrawAppend( sMaj_eta_csc[2], "",   0.9, 4, 1  ) ;
-   h_draw->DrawAppend( sMaj_eta_csc[0], "",   0.9, 1, 1  ) ;
-   h_draw->DrawAppend( sMaj_eta_csc[4], "sMaj_EtaSlice_CSC", 0.9, 8, 1, leg5 ) ;
+   gStyle->SetOptStat("");
+   for (int i=0; i<5; i++) { 
+       nXtl_eta[i]->SetLabelSize(0.1, "X") ;
+       nXtl_eta[i]->SetLabelSize(0.1, "Y") ;
+   }
+   h_draw->CreateNxM( "nXtl_EtaSlice", 1,5 );
+   h_draw->DrawNxM( 1, nXtl_eta[0] , "",          "", "logY", 1, false );
+   h_draw->DrawNxM( 2, nXtl_eta[1] , "",          "", "logY", 2, false );
+   h_draw->DrawNxM( 3, nXtl_eta[2] , "",          "", "logY", 4, false );
+   h_draw->DrawNxM( 4, nXtl_eta[3] , "",          "", "logY", 6, false ) ;
+   h_draw->DrawNxM( 5, nXtl_eta[4] , "N. of Xtals", "", "logY", 8, true ) ;
 
+   gStyle->SetOptStat("");
+   for (int i=0; i<5; i++) { 
+       nXtl_eta_topo[i]->SetLabelSize(0.1, "X") ;
+       nXtl_eta_topo[i]->SetLabelSize(0.1, "Y") ;
+   }
+   h_draw->CreateNxM( "nXtl_EtaSlice_topo", 1,5 );
+   h_draw->DrawNxM( 1, nXtl_eta_topo[0] , "",          "", "logY", 1, false );
+   h_draw->DrawNxM( 2, nXtl_eta_topo[1] , "",          "", "logY", 2, false );
+   h_draw->DrawNxM( 3, nXtl_eta_topo[2] , "",          "", "logY", 4, false );
+   h_draw->DrawNxM( 4, nXtl_eta_topo[3] , "",          "", "logY", 6, false ) ;
+   h_draw->DrawNxM( 5, nXtl_eta_topo[4] , "N. of Xtals", "", "logY", 8, true ) ;
+
+
+   TLegend* leg4  = new TLegend(.52, .72, .99, .99 );
    leg4->Clear() ;
    leg4->AddEntry( haloAB_Pt_eta[0], " 0 <|#eta|< 0.37" , "L" ) ;
    leg4->AddEntry( haloAB_Pt_eta[1], " 0.37 <|#eta|< 0.74" , "L" ) ;
@@ -2096,9 +1996,11 @@ void BackgroundStudy::DrawHistograms() {
       sMistag->Divide( nSpk_Eta, nCS_Eta );
 
       cout<<" ======= Spike MisTagging Rate ====== "<<endl ;
-      spikeMis = sMistag->GetY() ;
+      Double_t* spike_mA = sMistag->GetY() ;
+      spikeMis.clear() ;
       for (int i=0; i< 5 ; i++ ) {
-              printf(" (%d)  = %.5f \n", i, spikeMis[i] ) ;
+          printf(" (%d)  = %.5f \n", i, spike_mA[i] ) ;
+          spikeMis.push_back( spike_mA[i] ) ;    
       }
 
       sMistag->SetMaximum( 0.08 );
@@ -2119,9 +2021,11 @@ void BackgroundStudy::DrawHistograms() {
       hMistag->Divide( nHL_Eta, nCS_Eta );
 
       cout<<" ======= Halo MisTagging Rate ====== "<<endl ;
-      haloMis  = hMistag->GetY() ;
+      Double_t* halo_mA  = hMistag->GetY() ;
+      haloMis.clear() ;
       for (int i=0; i< 5 ; i++ ) {
-              printf(" (%d)  = %.5f \n", i, haloMis[i] ) ;
+          printf(" (%d)  = %.5f \n", i, halo_mA[i] ) ;
+          haloMis.push_back( halo_mA[i] ) ;
       }
 
       hMistag->SetMaximum( 0.06 );
@@ -2143,10 +2047,12 @@ void BackgroundStudy::DrawHistograms() {
       TGraphAsymmErrors* halo_Eff = new TGraphAsymmErrors();
       halo_Eff->Divide( halo_Eta[1], halo_Eta[0] );
 
-      haloEff  = halo_Eff->GetY() ;
-      for (int i=0; i< 6 ; i++ ) {
-          if ( haloEff == NULL ) break ;
-          printf(" (%d)  = %.5f \n", i, haloEff[i] ) ;
+      Double_t* halo_eA  = halo_Eff->GetY() ;
+      haloEff.clear() ;
+      for (int i=0; i< 5 ; i++ ) {
+          if ( halo_eA == NULL ) break ;
+          printf(" (%d)  = %.5f \n", i, halo_eA[i] ) ;
+          haloEff.push_back( halo_eA[i] ) ;
       }
 
       halo_Eff->SetMaximum( 1.1 );
@@ -2166,11 +2072,12 @@ void BackgroundStudy::DrawHistograms() {
       c_0->Clear() ;
       TGraphAsymmErrors* spike_Eff = new TGraphAsymmErrors();
       spike_Eff->Divide( spike_Eta[1], spike_Eta[0] );
-
-      spikeEff  = spike_Eff->GetY() ;
-      for (int i=0; i< 6 ; i++ ) {
-          if ( spikeEff == NULL ) break ;
-          printf(" (%d)  = %.5f \n", i, spikeEff[i] ) ;
+      Double_t* spike_eA  = spike_Eff->GetY() ;
+      spikeEff.clear() ;
+      for (int i=0; i< 5 ; i++ ) {
+          if ( spike_eA == NULL ) break ;
+          printf(" (%d)  = %.5f \n", i, spike_eA[i] ) ;
+          spikeEff.push_back( spike_eA[i] ) ;
       }
 
       spike_Eff->SetMaximum( 1.1 );
@@ -2224,6 +2131,17 @@ void BackgroundStudy::DrawHistograms() {
  // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike 3: cosmic
 void BackgroundStudy::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
 
+   // Tagging efficiency 
+   Input->GetParameters("UseInFlight",   &useInFlight ) ;
+   if ( useInFlight == 0 || haloEff.size() < 5 || spikeEff.size() < 5 || haloMis.size() < 5 || spikeMis.size() < 5 ) {
+      printf(" Get Efficiency and fake rate from Datacard !! \n") ;
+      Input->GetParameters("HaloEff",    &haloEff ) ;
+      Input->GetParameters("SpikeEff",   &spikeEff ) ;
+      // Mis-tag rate
+      Input->GetParameters("HaloFake",   &haloMis ) ;
+      Input->GetParameters("SpikeFake",  &spikeMis ) ;
+   }
+ 
    //  GetEstimation returns QCD components
    cout<<" ===  A  === "<<endl ;
    double rA = GetEstimation( hA ) ;
@@ -2267,7 +2185,8 @@ double BackgroundStudy::GetEstimation( TH2D* hCount, bool getQCD ) {
        Bg_exp   += nB ;
        //printf(" eta(%d) : spike:%f , halo:%f , cosmic:%f , QCD:%f  from %f \n ", i, bgV[0], bgV[1], bgV[2], bgV[3], nB ) ;
        //printf(" eta  |  spike  |   halo   |  cosmic  |  QCD  |  from  |\n " ) ;
-       printf("|  %d  | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f | %4.f |\n", i, bgV[0], nS, bgV[1], nH, bgV[2], nC, bgV[3], nB ) ;
+       printf("|  %d  | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f | %4.f |\n", 
+                   i,     bgV[0], nS,   bgV[1], nH,    bgV[2], nC,   bgV[3],  nB ) ;
 
    }
 
@@ -2291,39 +2210,12 @@ vector<double> BackgroundStudy::GetComponent( int eta_i, int B12, int h_B12, int
 // Get halo/spike/QCD component using tagging efficiency and mis-tagging rate 
 vector<double> BackgroundStudy::GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) {
 
-       // Tagging efficiency 
-       double hEff[5] = { 0.89, 0.86, 0.97, 0.90, 0.89 } ; // halo
-       double sEff[5] = { 0.94, 0.89, 0.77, 0.68, 0.56 } ; // spike
-       //double cEff[5] = { 1.0,  1.0,  1.0,  1.0,  1.0 } ; // cosmic
-       
-       // get the update efficiency for halo/spike/comsic
-       for ( int i=0; i < 5; i++) {
-           if ( haloEff == NULL || spikeEff == NULL )  break ;
-           if ( haloEff[i] < 0. || spikeEff[i] < 0. )  continue ;
-           hEff[i] = haloEff[i] ;
-           sEff[i] = spikeEff[i] ;
-           //cout<<" Updated Efficiency "<< endl ;
-       }
-       
-       double h = hEff[ eta_i ] ;  // halo
-       double s = sEff[ eta_i ] ;  // spike
+       double h = haloEff[ eta_i ] ;  // halo
+       double s = spikeEff[ eta_i ] ;  // spike
        //double c = cEff[ eta_i ] ;  // comsic
-
-       // Mis-tag rate
-       double mA[5] = { 0.01349, 0.00629, 0.00154, 0.00088, 0.00038 } ;
-       double nA[5] = { 0.02219, 0.02256, 0.01493, 0.00162, 0.00290 } ;
-       //double oA[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 } ;
-
-       for ( int i=0; i < 5; i++) {
-           if ( haloMis == NULL || spikeMis == NULL )  break ;
-           if ( haloMis[i] < 0. || spikeMis[i] < 0. )  continue ;
-           mA[i] = haloMis[i] ;
-           nA[i] = spikeMis[i] ;
-           //cout<<" Updated Mistagging Rate "<< endl ;
-       }
        
-       double m = mA[ eta_i ] ;   // halo
-       double n = nA[ eta_i ] ;   // spike
+       double m = haloMis[ eta_i ] ;   // halo
+       double n = spikeMis[ eta_i ] ;   // spike
        //double o = oA[ eta_i ] ;   // cosmic
 
        // cosmic content 
@@ -2349,29 +2241,22 @@ vector<double> BackgroundStudy::GetComponent( int eta_i, double B12, double h_B1
        return BG12 ;
 }
 
-// Obsolete old naive method
-double BackgroundStudy::ABCD( TH1D* h_sg, TH1D* h_cs, double lowT, double upT ) {
+// Not eta dependent , only 1 efficiency and 1 fake rate for halo and spike sample
+// x is eta region , each is 0.28 , y is different sample, 1:total, 2:halo, 3: spike 4: cosmic
+/*
+void BackgroundStudy::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
 
-     int bin0    = h_cs->FindBin( lowT ) ;
-     int bin1    = h_cs->FindBin( upT ) ;
-     int lastBin = h_cs->GetNbinsX() ;
-
-     double nA = h_cs->Integral(    1, bin0 );
-     double nB = h_cs->Integral( bin1, lastBin );
-
-     double nC = h_sg->Integral( 1, bin0 ) ;
-     double nX = h_sg->Integral( bin1, lastBin );
-
-     double nD = ( nA > 0 ) ? (nC * nB / nA) : 0. ;
-
-     if ( nA < 0.0001 ) cout<<" ABCD Fail ! " <<endl ;
-     printf(" B/A = %f  ==> D/C = %f \n", nB/nA , nX/nC ) ;
-     printf(" Observe :%f -> predict : %f \n", nX, nD ) ;
-
-     return nD ;
+   double nB, nH, nS, nC = 0 ;
+   for ( int i=0; i< 5; i++ ) {
+       nB += hCount->GetBinContent(i+1, 1) ; // total number in control region 
+       nH += hCount->GetBinContent(i+1, 2) ; // number of halo tagged in control region
+       nS += hCount->GetBinContent(i+1, 3) ; // number of spike tagged in control region
+       nC += hCount->GetBinContent(i+1, 4) ; // number of cosmic tagged in control region
+   }
 
 }
-
+*/
+// Obsolete old naive method
 // Get the QCD component by scaling the shape from QCD sample (h_qcd) to signal sample (h_sg)
 // Scaling factor is driven from background control region in both histograms which is defined by lowX and upX
 double BackgroundStudy::GetQCDComponent( TH1D* h_qcd, TH1D* h_sg, double lowX, double upX ) {
