@@ -19,8 +19,22 @@ hDraw::hDraw( string datacardfile ){
 
   func1 = NULL ;
   StatBoxOn = true ;
-  lineWidth = 1  ;
-  fillColor = -1 ;
+}
+
+hDraw::hDraw( string hfolder_ , string plotType_ ){
+
+  hfolder  = hfolder_ ;
+  plotType = plotType_ ;
+
+  gSystem->mkdir( hfolder.c_str() );
+
+  c1  = new TCanvas("c1","", 800, 600);
+  c2  = new TCanvas("c2","", 800, 600);
+  c3  = new TCanvas("c3","", 800, 600);
+
+  func1 = NULL ;
+  StatBoxOn = true ;
+
 }
 
 hDraw::~hDraw(){
@@ -28,7 +42,7 @@ hDraw::~hDraw(){
   delete c1 ;
   delete c2 ;
   delete c3 ;
-  delete Input ;
+  if ( Input != NULL ) delete Input ;
   cout<<" Draw ! "<<endl ;
 
 }
@@ -60,9 +74,6 @@ void hDraw::Draw( TH1D* h1_, string plotName, string xTitle, string yTitle, stri
       h1->SetLineColor( color ) ;
       h1_->SetLineColor( color ) ;
 
-      h1->SetLineWidth( lineWidth ) ;
-      if ( fillColor > 0 ) h1->SetFillColor( fillColor ) ;
-
       c1->cd();
       h1->Draw() ;
       c1->Update();
@@ -89,8 +100,6 @@ void hDraw::DrawAppend( TH1D* h1_, string plotName, float statY, int color, doub
 
       h1->SetLineColor( color ) ;
       h1_->SetLineColor( color ) ;
-      h1->SetLineWidth( lineWidth ) ;
-      if ( fillColor > 0 ) h1->SetFillColor( fillColor ) ;
 
       h1->DrawCopy("sames") ;
       c1->Update();
@@ -157,6 +166,8 @@ void hDraw::CreateNxM( string plotName , int N, int M ) {
 void hDraw::DrawNxM( int id, TH1D* h1, string xTitle, string yTitle, string logY, int color, bool close  ) {
 
       c2->cd( id );
+
+      if ( h1 == NULL ) return ;
 
       gPad->SetLogy(0) ;
       if ( strncasecmp( "logY", logY.c_str(), logY.size() ) ==0  && logY.size() > 0 ) gPad->SetLogy(1) ;
@@ -391,14 +402,15 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
        double bc_ = hCut->GetBinContent(i) ;
        double ba_ = hAll->GetBinContent(i) ;
        double x_  = hAll->GetBinCenter(i) ;
-     
+       printf("     (%d)_%.2f =  %.2f/%.2f \n", i, x_, bc_, ba_ ) ;
+    
        // rebin the histogram in order to have consistence statistic for each bin
        if ( ba < minBinContent || ba < bc || rbin < rbin_ ) {
           ba += ba_ ;
           bc += bc_ ;
           x  +=  x_ ;
           rbin++ ;
-          if ( i < beginBin+3 || (ba >= minBinContent && ba >= bc && rbin >= rbin_ ) ) {
+          if ( i == endBin || (ba >= minBinContent && ba >= bc && rbin >= rbin_) ) {
              bcV.push_back( bc ) ;
 	     baV.push_back( ba ) ;
 	     xV.push_back( x / rbin )  ;
@@ -410,29 +422,12 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
 	     rbin_ = rbin ;
 	     //cout<<" x: "<< x/rbin <<" rb: "<< rbin <<" bW:"<< (rbin*bW) / 2. << "  bc: "<< bc <<"  ba: "<< ba ;
 	     //cout<<" eff:"<< bc/ba <<" + "<< errs.first <<" - "<< errs.second << endl ;
+             printf(" x[%d]:%.2f , %.2f  \n", (int)xV.size(), x/rbin, (rbin*bW/2.) ) ;
 	     bc   = 0 ;
 	     ba   = 0 ;
 	     x    = 0 ;
 	     rbin = 0 ;
           }
-       }
-       else {
-
-          bcV.push_back( bc ) ;
-          baV.push_back( ba ) ;
-          xV.push_back( x / rbin )  ;
-          xW.push_back( rbin * bW / 2.) ;
-          // sc's method to calculate error
-          pair<double,double> errs = EffError( ba, bc ) ;
-          errH.push_back( errs.first ) ;
-          errL.push_back( errs.second ) ;
-          rbin_ = rbin ;
-          //cout<<" x: "<< x/rbin <<" rb: "<< rbin <<" bW:"<< (rbin*bW) / 2. << "  bc: "<< bc <<"  ba: "<< ba ;
-          //cout<<" eff:"<< bc/ba <<" + "<< errs.first <<" - "<< errs.second << endl ;
-          bc   = 0 ;
-          ba   = 0 ;
-          x    = 0 ;
-          rbin = 0 ;
        }
    }
 
@@ -464,7 +459,8 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
        eY_H[i] = errH[i] ;
    }
 
-   double xMax =  fX[sz-1] + (2*eX[sz-1]) ;
+   double xMin =  fX[0]    - eX[0]   ;
+   double xMax =  fX[sz-1] + eX[sz-1] ;
 
    TGraphAsymmErrors* gr  = new TGraphAsymmErrors( sz, fX, fY, eX, eX, eYL, eYH );
    TGraphAsymmErrors* gr1 = new TGraphAsymmErrors( sz, fX, yA, eX, eX, eY_L, eY_H ); // SC's result !
@@ -498,7 +494,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
    gr->GetYaxis()->SetTitleSize(0.04);
    gr->GetXaxis()->SetTitle( xlable.c_str() ) ;
    gr->GetYaxis()->SetTitle(" Efficiency ") ;
-   gr->GetXaxis()->SetLimits( 0., xMax );
+   gr->GetXaxis()->SetLimits( xMin, xMax );
    gr->Draw("AP");
    c0->Update();
    //if ( ttex != NULL ) {
@@ -520,7 +516,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
    gr1->GetYaxis()->SetTitleOffset(1.39);
    gr1->GetXaxis()->SetTitle( xlable.c_str() ) ;
    gr1->GetYaxis()->SetTitle(" Efficiency ") ;
-   gr1->GetXaxis()->SetLimits( 0., xMax );
+   gr1->GetXaxis()->SetLimits( xMin, xMax );
    gr1->Draw("AP");
    c0->Update();
    if ( ttex != NULL ) {
@@ -683,13 +679,6 @@ void hDraw::SetHistoAtt( string axis, float labelSize, float tickLength, float t
         if ( titleSize   == (float)0 ) titleSize_y   = 0.04 ;
         if ( titleOffset == (float)0 ) titleOffset_y = 1.0 ;
      }
-}
-
-void hDraw::SetHistoInfo( int lineWidth_, int fillColor_ ) {
-
-     lineWidth = lineWidth_ ;
-     fillColor = fillColor_ ;
-
 }
 
 void hDraw::SetHistoAtt( TH1D* h1 ){

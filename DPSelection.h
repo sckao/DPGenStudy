@@ -2,6 +2,7 @@
 #define DPSelection_H
 
 #include "TObject.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <TFile.h>
@@ -9,15 +10,17 @@
 #include "TLorentzVector.h"
 
 #include "AnaInput.h"
-
+#include "Rtuple.h"
+/*
 #define MAXPHO 10
 #define MAXVTX 10
 #define MAXJET 15
 #define MAXMU 5
 #define MAXELE 5
 #define MAXGEN 20
-
 typedef pair<int, TLorentzVector> objID ;
+*/
+
 
 //class DPSelection : public TObject {
 class DPSelection {
@@ -29,6 +32,10 @@ public:
    //friend class Sync ;   
 
    void Init( TTree* tr ) ;
+   void Init( Rtuple& rt ) ;
+   void SetArray( int a[], int b[], int size ) ;
+   void SetArray( float a[], float b[], int size ) ;
+
 
    bool HLTFilter();
    bool L1Filter();
@@ -42,10 +49,9 @@ public:
 
    bool SignalSelection( bool isTightPhoton = false ) ; 
    bool MCSignalSelection( bool isTightPhoton = false ) ; 
-   bool GammaJetsControlSample( bool isTightPhoton = true ) ; 
    bool ControlSelection() ; 
    bool QCDControlSample() ; 
-   bool GammaJetsBackground() ; 
+   uint32_t  EventIdentification() ;
 
    bool HaloTag( double cscdPhi, double sMaj, double sMin, double eta ) ;
    bool SpikeTag( int nXtl, double sMaj, double sMin ) ;
@@ -107,7 +113,8 @@ private:
    float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
    int   nXtals[MAXPHO] ;
 
-   float vtxX[MAXVTX],    vtxY[MAXVTX],  vtxZ[MAXVTX],   vtxChi2[MAXVTX], vtxNdof[MAXVTX];
+   //float vtxX[MAXVTX],    vtxY[MAXVTX] ; 
+   float vtxZ[MAXVTX], vtxChi2[MAXVTX], vtxNdof[MAXVTX];
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
    float jetNDau[MAXJET], jetCM[MAXJET], jetCEF[MAXJET], jetCHF[MAXJET], jetNHF[MAXJET], jetNEF[MAXJET];
    float jecUnc[MAXJET],  jerUnc[MAXJET] ;

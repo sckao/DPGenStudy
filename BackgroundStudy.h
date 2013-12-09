@@ -18,11 +18,11 @@
 #include "AnaInput.h"
 #include "DPSelection.h"
 #include "hDraw.h"
-
-#define MAXPHO 10
-#define MAXVTX 10
-#define MAXGEN 20
-#define MAXMU 5
+#include "Rtuple.h"
+#include "QCDStudy.h"
+#include "HaloStudy.h"
+#include "SpikeStudy.h"
+#include "CosmicStudy.h"
 
 class BackgroundStudy : public TObject {
 
@@ -31,13 +31,18 @@ public:
    BackgroundStudy( string datacardfile = "DataCard.txt");     
    ~BackgroundStudy();     
    
-   //void Run( string dataName, double weight = 1. ) ;
-   void init( string dataname = "") ;
+   //void init( string dataName = "") ;
    void Create() ;
    void Open() ;
+   void OpenAllHistograms() ;
    void Write() ;
-   void Run( double weight = 1. ) ;
-   void DrawHistograms() ;
+
+   void RawInfo( vector<objID>& selectPho, vector<objID>& selectJets, double weight = 1. ) ;
+   void ControlStudy( vector<objID>& selectPho, vector<objID>& selectJets, double weight = 1. ) ;
+   void SimpleRun( string dataName = "", double weight = 1. ) ;
+
+   void DrawHistograms( hDraw* h_draw = NULL ) ;
+   void DrawAllHistograms() ;
 
    // ABCD Method
    void ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) ;
@@ -52,59 +57,9 @@ public:
    TLorentzVector JetVectorSum( vector<objID>& jetV ) ;
    static Double_t HaloFunction( Double_t* eta, Double_t* par ) ;
 
-private:
-
-   AnaInput*     Input;
-   DPSelection*  select;
-   hDraw*        h_draw; 
-
-   // Halo and Spike Efficiency 
-   vector<double> haloEff ;
-   vector<double> spikeEff ;
-   vector<double> haloMis ;
-   vector<double> spikeMis ;
-   int useInFlight ;
-
-   string hfolder  ;
-   string plotType ;
-   string hfileName ;
-   int ProcessEvents ;
-   int SkipEvents ;
-   int isData ;
-
-   int runId, lumiSection, eventId ;
-
-   float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
-   float sMinPho[MAXPHO], sMajPho[MAXPHO];
-   float photIso[MAXPHO] , cHadIso[MAXPHO], nHadIso[MAXPHO], phoHoverE[MAXPHO] ;
-   int   nXtals[MAXPHO], nBC[MAXPHO] ;
-   float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO] ;
-   float dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
-   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
-
-   float metPx, metPy, metE ;
-   int   nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
-   int   nHaloHits , nHaloTracks ;
-   float haloPhi , haloRho ;
-
-   vector<objID> selectJets ;
-   vector<objID> selectPho ;
- 
-   vector<double> photonCuts ;
-   vector<double> jetCuts ;
-   vector<double> timeCalib ;
-
-   // Root File for Rootuple or histograms
-   TFile *theFile ;
-   bool writeHist ;
-
-   int totalN ;
-   TTree* tr ;
-   TChain* tr1 ;
-
    // Histograms set
    TH1D* obsTime ;
+   TH1D* pure_Time ;
 
    TH1D* h_EB_Time ;
    TH1D* h_EB_Time0 ;
@@ -118,9 +73,13 @@ private:
    TH1D* h_EE_haloTime ;
 
    TH2D* h_Eta_Time ;
+   TH2D* h_Eta_Time1 ;
+   TH2D* h_Eta_Time2 ;
+   TH2D* h_Eta_Time3 ;
+   TH2D* h_Eta_Time_in ;
+   TH2D* h_Eta_Time_out ;
    TH2D* h_Phi_Time ;
    TH2D* h_cscdPhi_Time ;
-   TH2D* h_ecalT_cscT ;
    TH2D* h_cscdPhi_cscTime ;
    TH2D* h_cscdPhi_rho ;
    TH2D* h_sMaj_Time_EB ;
@@ -143,16 +102,12 @@ private:
    TH2D* h_cHadIso_Time ;
    TH2D* h_nHadIso_Time ;
    TH2D* h_photIso_Time ;
-   TH1D* a_tChi2 ;
-   TH1D* b_tChi2 ;
-   TH1D* c_tChi2 ;
-   TH1D* d_tChi2 ;
    TH1D* h_tChi2 ;
    TH1D* halo_tChi2 ;
    TH1D* spike_tChi2 ;
+   TH1D* noHalo_tChi2 ;
    TH1D* cosmic_tChi2 ;
-
-   TH1D* h_dT ;
+   TH1D* cs_tChi2 ;
 
    TH1D* h_nVtx ;
    TH1D* l_nVtx ;
@@ -163,8 +118,6 @@ private:
    TH2D* h_nXtl_Eta ;
 
    TH2D* sg_Eta_Time ;
-   TH2D* sg_Eta_Time_halo ;
-   TH2D* sg_Eta_Time_spike ;
    TH2D* sg_Phi_Time ;
    TH2D* sg_sigIeta_Time ;
    TH1D* sg_cscdPhi ;
@@ -178,8 +131,6 @@ private:
    TH2D* sg_sMaj_Eta ;
    TH2D* sg_sMin_Time ;
    TH2D* sg_sMin_Eta ;
-   TH2D* sg_sMaj_sigIeta ;
-   TH2D* sg_sMin_sigIeta ;
    TH2D* sg_sMaj_sMin ;
 
    TH1D* sel_Time  ;
@@ -218,8 +169,6 @@ private:
    TH2D* sideband_cscT_ecalT ;
    TH1D* sideband_cscdPhi_u ;
    TH1D* sideband_cscdPhi_d ;
-   TH1D* sideband_nXtl_u ;
-   TH1D* sideband_nXtl_d ;
    TH1D* sideband_sMaj ;
    TH1D* sideband_dtdR ;
    TH2D* sideband_dtdPhidEta ;
@@ -233,90 +182,6 @@ private:
    TH1D* ab_dPhi_gMET ;
    TH1D* cd_dPhi_gMET ;
   
-   TH2D* haloTest_sMaj_sMin ;
-   TH1D* haloTest_cscdPhi ;
-
-   TH2D* haloCS_sMaj_sMin ;
-   TH2D* haloCS_sMaj_Eta ;
-   TH2D* haloCS_sMaj_Phi ;
-   TH2D* haloCS_Eta_Time ;
-   TH1D* haloCS_cscdPhi ;
-   TH1D* haloCS_cscdPhi1 ;
-
-   TH1D* haloAB_Pt_eta[4] ;
-   TH1D* haloAB_MET_eta[4] ;
-   TH1D* haloCD_Pt_eta[4] ;
-   TH1D* haloCD_MET_eta[4] ;
-
-   TH2D* spikeCS_Eta_Time1 ;
-   TH2D* spikeCS_Eta_Time ;
-   TH2D* spikeCS_Phi_Time ;
-   TH2D* spikeCS_sMaj_sMin ;
-   TH1D* spikeCS_nXtl ;
-
-   TH1D* halo_Eta[2] ;
-   TH1D* spike_Eta[2] ;
-   TH1D* sMaj_eta[7] ;
-   TH1D* sMaj_eta_csc[7] ;
-   TH1D* nXtl_eta[7] ;
-   TH1D* nXtl_eta_topo[7] ;
-   
-   TH2D* cosmic_Eta_Time ;
-   TH2D* cosmic_Phi_Time ;
-   TH2D* cosmic_Pt_Time ;
-   TH2D* cosmic_MET_Time ;
-   TH2D* cosmic_sMin_Time ;
-   TH2D* cosmic_sMaj_Time ;
-   TH2D* cosmic_photIso_Time ;
-   TH2D* cosmic_sMaj_sMin ;
-   TH1D* cosmic_Time ;
-   TH1D* cosmic_nXtl ;
-
-   TH2D* halo_Eta_Time ;
-   TH2D* halo_Phi_Time ;
-   TH2D* halo_Pt_Time ;
-   TH2D* halo_MET_Time ;
-   TH2D* halo_sMin_Time ;
-   TH2D* halo_sMaj_Time ;
-   TH2D* halo_photIso_Time ;
-   TH2D* halo_sMaj_sMin ;
-   TH1D* halo_sigIeta ;
-   TH1D* halo_Time ;
-   TH2D* halo_sMaj_sigIeta ;
-   TH2D* halo_sMin_sigIeta ;
-   TH2D* halo_eta_rho ;
-   TH2D* halo_eta_sMaj ;
-   TH2D* halo_ecalT_rho ;
-   TH2D* halo_ecalT_cscT ;
-
-   TH2D* haloFN_Eta_Time ;
-   TH2D* haloFN_Phi_Time ;
-   TH2D* haloFN_Pt_Time ;
-   TH2D* haloFN_MET_Time ;
-   TH2D* haloFN_sMaj_sMin ;
-   TH1D* haloFN_cscdPhi ;
-
-   TH1D* noHalo_Time ;
-   TH2D* noHalo_sMaj_Time ;
-   TH2D* noHalo_sMin_Time ;
-   TH1D* noHalo_nXtl_side ;
-   TH1D* noHalo_nXtl_center ;
-
-   TH2D* spike_Eta_Time ;
-   TH2D* spike_Phi_Time ;
-   TH2D* spike_Pt_Time ;
-   TH2D* spike_MET_Time ;
-   TH2D* spike_sMaj_sMin ;
-   TH2D* spike_sMaj_Time ;
-   TH2D* spike_sMin_Time ;
-   TH2D* spike_photIso_Time ;
-   TH1D* spike_sigIeta ;
-   TH1D* spike_Time ;
-   TH2D* spike_sMaj_sigIeta ;
-   TH2D* spike_sMin_sigIeta ;
-   TH1D* notSpike_nXtl ;
-
-   TH1D* pure_Time ;
 
    TH1D* nJets_center ;
    TH1D* nJets_halo ;
@@ -345,13 +210,44 @@ private:
    TH2D* sideband_dPhi_MET_Jet2 ;
    TH2D* sideband_dPhi_MET_Jet3 ;
 
-   TH2D* halo_T_dPhi_gMET_0J ;
-   TH2D* halo_T_dPhi_gMET_1J ;
-   TH2D* halo_T_dPhi_gMET_2J ;
+private:
 
-   TH2D* spike_T_dPhi_gMET_0J ;
-   TH2D* spike_T_dPhi_gMET_1J ;
-   TH2D* spike_T_dPhi_gMET_2J ;
+   AnaInput*     Input;
+   DPSelection*  select;
+   QCDStudy*     qcdS;
+   HaloStudy*    haloS;
+   SpikeStudy*   spikeS;
+   CosmicStudy*  cosmicS ; 
+
+   hDraw* h_draw_ ;
+
+   // Halo and Spike Efficiency 
+   vector<double> haloEff ;
+   vector<double> spikeEff ;
+   vector<double> haloMis ;
+   vector<double> spikeMis ;
+   int useInFlight ;
+
+   string hfolder  ;
+   string plotType ;
+   string hfileName ;
+   int ProcessEvents ;
+   int SkipEvents ;
+   int isData ;
+
+   vector<objID> selectJets ;
+   vector<objID> selectPho ;
+ 
+   vector<double> photonCuts ;
+   vector<double> jetCuts ;
+   vector<double> timeCalib ;
+
+   // Root File for Rootuple or histograms
+   TFile *theFile ;
+
+   int totalN ;
+   TTree* tr ;
+   Rtuple rt ;
 
 
    //ClassDef(BackgroundStudy, 1);

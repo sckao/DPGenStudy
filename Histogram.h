@@ -70,6 +70,10 @@ struct hSet {
     TH2D* h_nHadIso_t ;
     TH2D* h_photIso_t ;
 
+    TH2D* h_photIso_sMaj ;
+    TH2D* h_photIso_nXtl ;
+    TH2D* h_photIso_nBC ;
+
     TH1D* h_maxSwissEB ; 
     TH1D* h_maxSwissEE ; 
     TH1D* h_seedSwiss  ;
@@ -115,6 +119,8 @@ struct hSet {
     TH1D* pureTime ;
     TH1D* ghostTime ;
 
+    TH1D* m_RecoPt ;
+    TH1D* m_GenPt ;
     TH2D* m_sigIeta_time ;
     TH2D* m_sMaj_sMin ;
     TH2D* m_sMaj_time ;

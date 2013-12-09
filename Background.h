@@ -28,9 +28,11 @@
 #include "DPSelection.h"
 
 using namespace std;
+/*
 #define MAXPHO 10
 #define MAXVTX 10
 #define MAXMU 5
+*/
 
 class Background {
 

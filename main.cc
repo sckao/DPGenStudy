@@ -22,7 +22,7 @@
 #include "BackgroundStudy.h"
 #include "Systematic.h"
 #include "Output.h"
-#include "mtest.h"
+//#include "mtest.h"
 
 using namespace std; 
 
@@ -92,29 +92,29 @@ int main( int argc, const char* argv[] ) {
      //bg->SpikeShape() ;
      delete bg ;
   }
-  if ( module == 7 ||  module == 8 || module == 9 ) {
+  if ( module == 7 ||  module == 8 || module == 9 || module == 10 ) {
      
      BackgroundStudy * bgS = new BackgroundStudy( datacardfile ) ;
      if ( module == 7 ) {
-        bgS->Create() ;
-        bgS->init() ;
-        bgS->Run() ;
-        bgS->DrawHistograms() ;
-     } 
+        bgS->SimpleRun() ;
+     }
+     /* 
      if ( module == 8 ) {
         vector<double >normV = Input->NormalizeComponents( datacardfile );
         bgS->Create() ;
         for ( size_t i = 0 ; i < mcFileNames.size() ; i++ ) { 
             cout<<" Runing MC : "<< mcFileNames[i] << endl ;
             bgS->init( mcFileNames[i] ) ;
-            bgS->Run( normV[i] ) ;
+            //bgS->Run( normV[i] ) ;
         } 
         bgS->DrawHistograms() ;
      } 
+     */
+
      if ( module == 9 ) {
      //if ( isData == 0 ) bgS->Run( mcFileNames[0] ) ;
-         bgS->Open() ;
-         bgS->DrawHistograms() ;
+         bgS->OpenAllHistograms() ;
+         bgS->DrawAllHistograms() ;
      }
 
      delete bgS ;

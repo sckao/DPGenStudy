@@ -30,6 +30,7 @@ class hDraw {
   public:
 
   hDraw( string datacardfile = "DataCard.txt" ) ;
+  hDraw( string hfolder, string plotType ) ;
   ~hDraw() ;
 
   void Draw ( TH1D* h1, string plotName, string xTitle, string yTitle, string logY, float statY, int color = 1, double scale = 1, TLegend* leg = NULL ) ;
@@ -61,7 +62,6 @@ class hDraw {
   void EffProbPlot( double N_all, string graphName = "EffErrFunction" ) ;
 
   void SetHistoAtt( string axis, float labelSize, float tickLength, float titleSize, float titleOffset ) ;
-  void SetHistoInfo( int lineWidth = 1, int fillColor = -1 ) ;
   void SetHistoAtt( TH1D* h1 ) ;
   void SetHistoAtt( TH2D* h2 ) ;
   void SetPlotStyle( bool StatBoxON_, float tMargin=0.1 , float bMargin=0.1 , float lMargin=0.1 , float rMargin=0.1 ) ;

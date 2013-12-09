@@ -3,7 +3,8 @@ ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags`
 LIB=`${ROOTSYS}/bin/root-config --libs`
 GLIB=`${ROOTSYS}/bin/root-config --glibs`
 
-OBJECTS=AnaInput.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o BackgroundStudy.o Trigger.o Output.o Systematic.o
+OBJECTS=AnaInput.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o
+#OBJECTS=AnaInput.o hDraw.o Histogram.o DPSelection.o TestGen.o Background.o BackgroundStudy.o Trigger.o Output.o Systematic.o
 
 all:test.exe
 
@@ -27,6 +28,18 @@ TestGen.o : TestGen.cc TestGen.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 Background.o : Background.cc Background.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+HaloStudy.o : HaloStudy.cc HaloStudy.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+SpikeStudy.o : SpikeStudy.cc SpikeStudy.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+CosmicStudy.o : CosmicStudy.cc CosmicStudy.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+QCDStudy.o : QCDStudy.cc QCDStudy.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 BackgroundStudy.o : BackgroundStudy.cc BackgroundStudy.h

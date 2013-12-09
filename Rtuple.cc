@@ -1,20 +1,91 @@
 #include "Rtuple.h"
 
-void setRtupleAddresses(TTree* chain, Rtuple& treeVars) {
+void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
 
-  chain -> SetBranchAddress("nJets",       &treeVars.nJets      );
-  chain -> SetBranchAddress("nPhotons",    &treeVars.nPhotons   );
+   tr->SetBranchAddress("eventId",    &vr.eventId);
+   tr->SetBranchAddress("triggered",  &vr.triggered);
+   tr->SetBranchAddress("L1a",        &vr.L1a);
+   tr->SetBranchAddress("nPhotons",   &vr.nPhotons);
+   tr->SetBranchAddress("nJets",      &vr.nJets);
+   tr->SetBranchAddress("nMuons",     &vr.nMuons);
+   tr->SetBranchAddress("nElectrons", &vr.nElectrons);
+   tr->SetBranchAddress("nVertices",  &vr.nVertices );
+   tr->SetBranchAddress("totalNVtx",  &vr.totalNVtx);
 
-  chain -> SetBranchAddress("met",         &treeVars.met       );
-  chain -> SetBranchAddress("g1Pt",        &treeVars.g1Pt     );
-  chain -> SetBranchAddress("g2Pt",        &treeVars.g2Pt     );
-  chain -> SetBranchAddress("g1Time",      &treeVars.g1Time   );
-  chain -> SetBranchAddress("g2Time",      &treeVars.g2Time   );
-  chain -> SetBranchAddress("bgTime",      &treeVars.bgTime   );
+   tr->SetBranchAddress("metPx",      &vr.metPx );
+   tr->SetBranchAddress("metPy",      &vr.metPy );
+   tr->SetBranchAddress("met",        &vr.metE );
+   tr->SetBranchAddress("met_dx1",    &vr.met_dx1 );
+   tr->SetBranchAddress("met_dy1",    &vr.met_dy1 );
+   tr->SetBranchAddress("met_dx2",    &vr.met_dx2 );
+   tr->SetBranchAddress("met_dy2",    &vr.met_dy2 );
+   tr->SetBranchAddress("met_dx3",    &vr.met_dx3 );
+   tr->SetBranchAddress("met_dy3",    &vr.met_dy3 );
+
+   tr->SetBranchAddress("jetPx",       &vr.jetPx );
+   tr->SetBranchAddress("jetPy",       &vr.jetPy );
+   tr->SetBranchAddress("jetPz",       &vr.jetPz );
+   tr->SetBranchAddress("jetE",        &vr.jetE );
+   tr->SetBranchAddress("jetNDau",     &vr.jetNDau );
+   tr->SetBranchAddress("jetCM",       &vr.jetCM );
+   tr->SetBranchAddress("jetCEF",      &vr.jetCEF );
+   tr->SetBranchAddress("jetCHF",      &vr.jetCHF );
+   tr->SetBranchAddress("jetNHF",      &vr.jetNHF );
+   tr->SetBranchAddress("jetNEF",      &vr.jetNEF );
+   tr->SetBranchAddress("jecUnc",      &vr.jecUnc );
+   tr->SetBranchAddress("jerUnc",      &vr.jerUnc );
+
+   tr->SetBranchAddress("phoPx",       &vr.phoPx );
+   tr->SetBranchAddress("phoPy",       &vr.phoPy );
+   tr->SetBranchAddress("phoPz",       &vr.phoPz );
+   tr->SetBranchAddress("phoE",        &vr.phoE );
+   tr->SetBranchAddress("phoEcalIso",  &vr.phoEcalIso );
+   tr->SetBranchAddress("phoHcalIso",  &vr.phoHcalIso );
+   tr->SetBranchAddress("phoTrkIso",   &vr.phoTrkIso );
+   tr->SetBranchAddress("cHadIso",     &vr.cHadIso );
+   tr->SetBranchAddress("nHadIso",     &vr.nHadIso );
+   tr->SetBranchAddress("photIso",     &vr.photIso );
+
+   tr->SetBranchAddress("sigmaIeta",   &vr.sigmaIeta );
+   tr->SetBranchAddress("dR_TrkPho",   &vr.dR_TrkPho );
+   tr->SetBranchAddress("phoHoverE",   &vr.phoHovE );
+   tr->SetBranchAddress("sMinPho",     &vr.sMinPho );
+   tr->SetBranchAddress("sMajPho",     &vr.sMajPho );
+   tr->SetBranchAddress("seedTime",    &vr.seedTime );
+   tr->SetBranchAddress("aveTime",     &vr.aveTime );
+   tr->SetBranchAddress("fSpike",      &vr.fSpike );
+   tr->SetBranchAddress("cscdPhi",     &vr.cscdPhi );
+   tr->SetBranchAddress("dtdPhi",      &vr.dtdPhi );
+   tr->SetBranchAddress("dtdEta",      &vr.dtdEta );
+   tr->SetBranchAddress("nXtals",      &vr.nXtals );
+   tr->SetBranchAddress("timeChi2",    &vr.timeChi2 );
+
+   tr->SetBranchAddress("elePx",        &vr.elePx );
+   tr->SetBranchAddress("elePy",        &vr.elePy );
+   tr->SetBranchAddress("elePz",        &vr.elePz );
+   tr->SetBranchAddress("eleE",         &vr.eleE );
+   tr->SetBranchAddress("eleEcalIso",   &vr.eleEcalIso );
+   tr->SetBranchAddress("eleHcalIso",   &vr.eleHcalIso );
+   tr->SetBranchAddress("eleTrkIso",    &vr.eleTrkIso );
+   tr->SetBranchAddress("eleNLostHits", &vr.eleNLostHits );
+
+   tr->SetBranchAddress("muPx",        &vr.muPx );
+   tr->SetBranchAddress("muPy",        &vr.muPy );
+   tr->SetBranchAddress("muPz",        &vr.muPz );
+   tr->SetBranchAddress("muE",         &vr.muE );
+   //tr->SetBranchAddress("muEcalIso",   muEcalIso );
+   //tr->SetBranchAddress("muHcalIso",   muHcalIso );
+   //tr->SetBranchAddress("muTrkIso",    muTrkIso );
+
+   //tr->SetBranchAddress("vtxX",       vtxX );
+   //tr->SetBranchAddress("vtxY",       vtxY );
+   tr->SetBranchAddress("vtxZ",       &vr.vtxZ );
+   tr->SetBranchAddress("vtxChi2",    &vr.vtxChi2 );
+   tr->SetBranchAddress("vtxNdof",    &vr.vtxNdof );
 
 }
 
-
+/*
 void setRtupleBranches(TTree* chain, Rtuple& treeVars) {
 
   chain -> Branch("nJets",       &treeVars.nJets,                "nJets/I");
@@ -43,3 +114,5 @@ void initRtuple(TTree* chain, Rtuple& treeVars) {
   treeVars.bgTime  = -25 ;
 
 }
+*/
+

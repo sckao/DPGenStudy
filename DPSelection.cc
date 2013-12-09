@@ -129,11 +129,91 @@ void DPSelection::Init( TTree* tr ) {
    //tr->SetBranchAddress("muHcalIso",   muHcalIso );
    //tr->SetBranchAddress("muTrkIso",    muTrkIso );
 
-   tr->SetBranchAddress("vtxX",       vtxX );
-   tr->SetBranchAddress("vtxY",       vtxY );
+   //tr->SetBranchAddress("vtxX",       vtxX );
+   //tr->SetBranchAddress("vtxY",       vtxY );
    tr->SetBranchAddress("vtxZ",       vtxZ );
    tr->SetBranchAddress("vtxChi2",    vtxChi2 );
    tr->SetBranchAddress("vtxNdof",    vtxNdof );
+}
+
+void DPSelection::Init( Rtuple& rt ) { 
+
+     SetArray( phoPx,  rt.phoPx, MAXPHO ) ;
+     SetArray( phoPy,  rt.phoPy, MAXPHO ) ;
+     SetArray( phoPz,  rt.phoPz, MAXPHO ) ;
+     SetArray( phoE ,  rt.phoE, MAXPHO ) ;
+
+     SetArray( seedTime , rt.seedTime , MAXPHO );
+     SetArray( aveTime  , rt.aveTime , MAXPHO ) ; 
+     SetArray( dR_TrkPho , rt.dR_TrkPho , MAXPHO ); 
+     SetArray( fSpike    , rt.fSpike , MAXPHO );
+
+     SetArray( phoHovE , rt.phoHovE , MAXPHO );
+     SetArray( sMinPho , rt.sMinPho, MAXPHO ) ;
+     SetArray( sMajPho , rt.sMajPho , MAXPHO ); 
+     SetArray( sigmaIeta , rt.sigmaIeta , MAXPHO );
+     SetArray( phoEcalIso , rt.phoEcalIso , MAXPHO ); 
+     SetArray( phoHcalIso , rt.phoHcalIso , MAXPHO ); 
+     SetArray( phoTrkIso  , rt.phoTrkIso , MAXPHO );
+     SetArray( photIso    , rt.photIso , MAXPHO ); 
+     SetArray( cHadIso    , rt.cHadIso , MAXPHO );  
+     SetArray( nHadIso    , rt.nHadIso , MAXPHO ); 
+     SetArray( cscdPhi    , rt.cscdPhi, MAXPHO ) ;
+     SetArray( dtdPhi     , rt.dtdPhi , MAXPHO ); 
+     SetArray( dtdEta     , rt.dtdEta , MAXPHO );
+     SetArray( nXtals     , rt.nXtals , MAXPHO );
+
+     SetArray( vtxZ , rt.vtxZ, MAXVTX ) ; 
+     SetArray( vtxChi2 , rt.vtxChi2, MAXVTX )  ; 
+     SetArray( vtxNdof  , rt.vtxNdof, MAXVTX )  ;
+
+     SetArray( jetPx , rt.jetPx, MAXJET ) ;
+     SetArray( jetPy , rt.jetPy , MAXJET ) ; 
+     SetArray( jetPz , rt.jetPz , MAXJET ) ;
+     SetArray( jetE  , rt.jetE , MAXJET ) ; 
+ 
+     SetArray( jetNDau , rt.jetNDau , MAXJET ) ; 
+     SetArray( jetCM   , rt.jetCM , MAXJET ) ;
+     SetArray( jetCEF  , rt.jetCEF , MAXJET ) ; 
+     SetArray( jetCHF  , rt.jetCHF , MAXJET ) ; 
+     SetArray( jetNHF  , rt.jetNHF , MAXJET ) ; 
+     SetArray( jetNEF  , rt.jetNEF , MAXJET ) ; 
+     SetArray( jecUnc  , rt.jecUnc , MAXJET ) ;
+     SetArray( jerUnc  , rt.jerUnc , MAXJET ) ;
+
+     SetArray( muPx    , rt.muPx , MAXMU ) ;
+     SetArray( muPy    , rt.muPy , MAXMU ) ; 
+     SetArray( muPz    , rt.muPz , MAXMU ) ;
+     SetArray( muE     , rt.muE , MAXMU ) ; 
+
+     SetArray( elePx   , rt.elePx , MAXELE ) ;
+     SetArray( elePy   , rt.elePy , MAXELE ); 
+     SetArray( elePz   , rt.elePz , MAXELE ); 
+     SetArray( eleE    , rt.eleE , MAXELE ); 
+     SetArray( eleEcalIso  , rt.eleEcalIso , MAXELE ); 
+     SetArray( eleHcalIso  , rt.eleHcalIso , MAXELE ); 
+     SetArray( eleTrkIso   , rt.eleTrkIso , MAXELE ); 
+     SetArray( eleNLostHits , rt.eleNLostHits , MAXELE ) ;
+
+     metPx = rt.metPx ;
+     metPy = rt.metPy ;
+     metE  = rt.metE ;
+     met_dx1 = rt.met_dx1 ;
+     met_dy1 = rt.met_dy1 ;
+     met_dx2 = rt.met_dx2 ;
+     met_dy2 = rt.met_dy2 ;
+     met_dx3 = rt.met_dx3 ;
+     met_dy3 = rt.met_dy3 ;
+
+     nJets = rt.nJets ; 
+     nPhotons = rt.nPhotons ;
+     nElectrons = rt.nElectrons ;
+     nVertices = rt.nVertices ;
+     nMuons = rt.nMuons ; 
+     triggered = rt.triggered ;
+     L1a     = rt.L1a ;
+     eventId = rt.eventId;
+
 }
 
 // analysis template
@@ -166,7 +246,6 @@ bool DPSelection::PhotonFilter() {
        double maxPt = 0 ;
        //vector<bool> shadow( nPhotons ,false );
        //vector<bool> skipPhoIso( nPhotons , false );
-       
        for ( int j=0 ; j< nPhotons; j++ ) {
            nG[0]++ ;
            TLorentzVector phoP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
@@ -253,8 +332,9 @@ bool DPSelection::PhotonFilter() {
            }
        }
 
-       if ( (int)phoV.size() < photonCuts[4] || maxPt < photonCuts[8] ) pass = false ;
+       if ( (int)phoV.size() < photonCuts[4] ) pass = false ;
        if ( (int)phoV.size() > photonCuts[3] ) pass = false ;
+       if ( maxPt < photonCuts[8] ) pass = false ;
        if ( phoV.size() > 1 ) sort( phoV.begin(), phoV.end(), PtDecreasing );
        if ( pass ) photonCutFlow = 8 ;
 
@@ -267,12 +347,11 @@ bool DPSelection::VertexFilter() {
      // 1. vertex cuts
      int nVtx = 0 ;
      for ( int j=0 ; j< nVertices; j++ ) {
-
-         double vtxRho = sqrt( (vtxX[j]*vtxX[j]) + (vtxY[j]*vtxY[j]) ); 
+         //double vtxRho = sqrt( (vtxX[j]*vtxX[j]) + (vtxY[j]*vtxY[j]) ); 
 	 if ( nVertices < 1 )                continue ;
 	 if ( vtxNdof[j]     < vtxCuts[0] )  continue ;
 	 if ( fabs(vtxZ[j]) >= vtxCuts[1] )  continue ;
-	 if ( vtxRho        >= vtxCuts[2] )  continue ;
+	 //if ( vtxRho        >= vtxCuts[2] )  continue ;
          nVtx++ ;
      }
      if ( nVtx < 1 ) pass = false ;
@@ -408,57 +487,49 @@ bool DPSelection::MuonFilter() {
      return pass ;
 }
 
-bool DPSelection::GammaJetsBackground( ) {
+// Catagorize events
+// 1: Pass Datacard selection ; trigger, vertex, photon, jetMET 
+// 2: Control sample, pass trigger+vertex and photon selection without leading photon pt requirement
+// 3: Control sample + non-zero jet
+// 4: Control sample + pass MET cut
+// 0: Fail all above cases
+uint32_t DPSelection::EventIdentification() {
 
-    bool pass = true ;
-
-    if ( jetV.size() < 1 ) return false ;
-    if ( phoV.size() < 1 ) return false ;
-
-    double dR   = phoV[0].second.DeltaR( jetV[0].second ) ;
-    double ratio1 = jetV[0].second.Pt() / phoV[0].second.Pt() ;
-
-    if ( dR <= (2*3.141593/3) )           pass = false ;
-    if ( ratio1 >= 1.3 || ratio1 <= 0.7 ) pass = false ;
-
-    if ( jetV.size() > 1 ) {
-       double ratio2 = jetV[1].second.Pt() / phoV[0].second.Pt() ;
-       if ( ratio2 >= 0.1 ) pass = false ;
-    }
-
-    return pass ;
-
-}
-
-bool DPSelection::GammaJetsControlSample( bool isTightPhoton ) {
-
+       uint32_t eventType = 0 ;
+       counter[0]++ ;
+       // 1. Trigger Information
+       passL1  =  L1Filter() ;
        passHLT  = HLTFilter();
+       passTrigger = ( UseL1 == 1 ) ? passL1 : passHLT ;
+       if ( passTrigger ) counter[1]++ ;
+
+       // 2. Vertices Information
        passVtx  = VertexFilter();
+       if ( passTrigger && passVtx ) counter[2]++ ;
 
-       // reset cuts to tight photon selection
-       if ( isTightPhoton ) {
-          ResetCuts( "PhotonCuts", 0, 100. ) ;  // pt
-	  ResetCuts( "PhotonCuts", 1, 1.4 ) ;   // eta
-	  ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
-	  ResetCuts( "PhotonIso",  0, 0.1 ) ;   // Trk Iso
-	  ResetCuts( "PhotonIso",  1, 2.4 ) ;   // Ecal Et 
-	  ResetCuts( "PhotonIso",  2, 0.05 ) ;  // Ecal Ratio
-	  ResetCuts( "PhotonIso",  3, 2.4 ) ;   // Hcal Et
-	  ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
+       // 3. Photon Information  
+       passPho = PhotonFilter();  // true for selecting Isolation 
+       if ( passTrigger && passVtx ) {
+          int photonStop = GetPhotonCutFlow() ;
+          for ( int i=0; i< photonStop ; i++) { 
+              gCounter[i]++ ;
+          }
        }
-       passPho = PhotonFilter();
+       if ( passTrigger && passVtx && passPho ) counter[3]++ ;
 
-       ResetCuts( "JetCuts",  2, 1 ) ;  // Min Num of Jets
-       ResetCuts( "JetCuts",  3, 2 ) ;  // Max Num of Jets
-       passJet = JetMETFilter();
+       // JetMET information
+       passJetMET = JetMETFilter();
+       if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
 
-       //bool passGJets = GammaJetsBackground() ;
-       bool passGJets = false ;
+
+       if  ( passTrigger && passVtx  && passPho && passJetMET )                      eventType |= (1 <<0)  ;
+       if  ( passTrigger && passVtx  && phoV.size() > 0       )                      eventType |= (1 <<1) ;
+       if  ( passTrigger && passVtx  && phoV.size() > 0 && jetV.size() > 0 )         eventType |= (1 <<2) ;
+       if  ( passTrigger && passVtx  && phoV.size() > 0 && select_met > jetCuts[4] ) eventType |= (1 <<3) ;
 
        ResetCuts() ;  // reset cuts from Datacard
+       return eventType ;      
 
-       bool isGJet = ( passHLT && passVtx  && passPho && passJet && passGJets ) ? true : false ;
-       return isGJet ;
 }
 
 bool DPSelection::SignalSelection( bool isTightPhoton ) {
@@ -475,7 +546,7 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
 
        // reset cuts to tight photon selection
        if ( isTightPhoton ) {
-          ResetCuts( "PhotonCuts", 0, 50. ) ;  // pt
+          ResetCuts( "PhotonCuts", 0, 90. ) ;  // pt
 	  ResetCuts( "PhotonCuts", 1, 1.4 ) ;   // eta
 	  ResetCuts( "PhotonIso",  0, 0.1 ) ;   // Trk Iso
 	  ResetCuts( "PhotonIso",  1, 2.4 ) ;   // Ecal Et 
@@ -715,7 +786,7 @@ void DPSelection::ResetCounter() {
 bool DPSelection::HaloTag( double cscdPhi, double sMaj, double sMin, double eta ) {
 
      bool haloTag  = ( cscdPhi < 0.05 ) ? true : false  ;
-     if ( sMaj > 0.7 && cscdPhi < 0.1 && fabs( eta ) > 0.75 && fabs( eta ) < 1.47 ) haloTag = true;
+     //if ( sMaj > 0.7 && cscdPhi < 0.1 && fabs( eta ) > 0.75 && fabs( eta ) < 1.47 ) haloTag = true;
      if ( sMaj > 0.8 && sMaj < 1.65 && sMin < 0.2 && fabs( eta ) < 1.47 ) haloTag = true;
 
      return haloTag ;
@@ -724,7 +795,7 @@ bool DPSelection::HaloTag( double cscdPhi, double sMaj, double sMin, double eta 
 bool DPSelection::SpikeTag( int nXtl, double sMaj, double sMin ) {
 
     bool spikeTag = ( nXtl < 7 ) ? true : false ;
-    if ( sMaj < 0.4 && sMin < 0.17 ) spikeTag = true;
+    if ( sMaj < 0.6 && sMin < 0.17 ) spikeTag = true;
 
     return spikeTag ;
 
@@ -882,5 +953,13 @@ vector<double> DPSelection::GetComponent( int eta_i, double B12, double h_B12, d
        BG12.push_back( C12 ) ;
        BG12.push_back( Q12 ) ;
        return BG12 ;
+}
+
+void DPSelection::SetArray( int a[], int b[], int size ) {
+   for ( int i=0; i< size; i++ )   a[i] = b[i] ;
+}
+
+void DPSelection::SetArray( float a[], float b[], int size ) {
+   for ( int i=0; i< size; i++ )   a[i] = b[i] ;
 }
 

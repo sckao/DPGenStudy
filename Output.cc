@@ -152,6 +152,7 @@ void Output::RunData( string dataName ) {
            int k = selectPho[j].first ;
            TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
 
+           if ( timeChi2[k] > 4 ) continue ;
            // Background Tagging
            bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , gP4_.Eta() ) ;
 	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k] ) ;
@@ -161,7 +162,7 @@ void Output::RunData( string dataName ) {
            int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
 
            // C and D region
-           if ( seedTime[k] > 3. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+           if ( seedTime[k] > 3. && seedTime[k] < 10. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
 
               if ( !ghostTag ) h_MET->Fill( metE ) ;
          

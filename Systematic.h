@@ -29,10 +29,11 @@
 #include "DPSelection.h"
 #include "hDraw.h"
 
+/*
 #define MAXPHO 10
 #define MAXVTX 10
 #define MAXMU 5
-
+*/
 
 class Systematic : public TObject {
 

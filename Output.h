@@ -16,10 +16,11 @@
 #include "AnaInput.h"
 #include "DPSelection.h"
 
+/*
 #define MAXPHO 10
 #define MAXVTX 10
 #define MAXMU 5
-
+*/
 
 class Output : public TObject {
 

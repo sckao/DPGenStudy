@@ -33,11 +33,12 @@
 #include "DPSelection.h"
 #include "hDraw.h"
 #include "Histogram.h"
-
+/*
 #define MAXPHO 10
 #define MAXVTX 10
 #define MAXGEN 20
 #define MAXMU 5
+*/
 
 struct iMatch {
 
@@ -91,7 +92,8 @@ private:
    float fSpike[MAXPHO], maxSwissX[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
-   float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
+   //float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
+   float vtxZ[MAXVTX] ;
    float muE[MAXMU] ;
 
    float metPx, metPy, metE ;

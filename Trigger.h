@@ -32,12 +32,14 @@
 #include "AnaInput.h"
 #include "DPSelection.h"
 #include "hDraw.h"
-
+#include "Rtuple.h"
+/*
 #define MAXPHO 10
 #define MAXVTX 10
 #define MAXJET 15
 #define MAXGEN 20
 #define MAXMU 5
+*/
 
 class Trigger : public TObject {
 
@@ -47,9 +49,10 @@ public:
    ~Trigger();     
    
    void ReadTree( string dataName ) ;
-   int TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV )  ;
+   int  TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV )  ;
    void EventList( string dataName ) ;
    void CutFlow( string dataName ) ;
+
 
 private:
 
@@ -72,6 +75,7 @@ private:
    vector<double> photonPFIso ;
    int usePFIso ;
    int purity[10] ;
+   Rtuple rt ;
 
    //float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    //float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;

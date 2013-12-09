@@ -91,8 +91,8 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("nXtals",      nXtals );
    tr->SetBranchAddress("nBC",         nBC );
 
-   tr->SetBranchAddress("vtxX",       vtxX );
-   tr->SetBranchAddress("vtxY",       vtxY );
+   //tr->SetBranchAddress("vtxX",       vtxX );
+   //tr->SetBranchAddress("vtxY",       vtxY );
    tr->SetBranchAddress("vtxZ",       vtxZ );
    
    tr->SetBranchAddress("phoPx",       phoPx );
@@ -101,6 +101,7 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("phoE",        phoE );
 
    select->Init( tr1 ) ;
+   //setRtupleAddresses( tr, rt );
 
    int totalN = tr->GetEntries();
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
