@@ -26,11 +26,13 @@ BackgroundStudy::BackgroundStudy( string datacardfile ) {
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("IsData",        &isData ) ; 
   Input->GetParameters("PhotonCuts",    &photonCuts ) ; 
+  Input->GetParameters("PhotonPFIso",   &photonPFIso ) ; 
   Input->GetParameters("JetCuts",       &jetCuts ) ; 
   Input->GetParameters("HFileName",     &hfileName ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
 
   h_draw_ = new hDraw( hfolder, plotType ) ;
+  newMET  = TLorentzVector( 0., 0., 0., 0. )  ;
 }
 
 
@@ -64,12 +66,12 @@ void BackgroundStudy::Write() {
   h_EE_Time2->Write() ;
   h_EE_haloTime->Write() ;
 
+  h_Eta_Phi->Write() ;
   h_Eta_Time->Write() ;
   h_Eta_Time1->Write() ;
   h_Eta_Time2->Write() ;
   h_Eta_Time3->Write() ;
-  h_Eta_Time_out->Write() ;
-  h_Eta_Time_in->Write() ;
+  h_Eta_Time4->Write() ;
 
   h_Phi_Time->Write() ;
   h_cscdPhi_Time->Write() ;
@@ -89,16 +91,28 @@ void BackgroundStudy::Write() {
   h_Pt_Time_EE->Write() ;
   h_MET_Time_EB->Write() ;
   h_MET_Time_EE->Write() ;
+  h_hltMET_Time_EB->Write() ;
+  h_hltMET_Time_EE->Write() ;
   h_cHadIso_Time->Write() ;
   h_nHadIso_Time->Write() ;
   h_photIso_Time->Write() ;
   h_cscdPhi_rho->Write() ;
+  h_met_met1->Write() ;
+  h_met_met2->Write() ;
+  h_eta_time_met1->Write() ;
+  h_eta_time_met2->Write() ;
+  h_nPhoton->Write() ;
+  h_nPhoton_met1->Write() ;
+  h_nPhoton_met2->Write() ;
 
   h_tChi2->Write() ;
   cs_tChi2->Write() ;
 
   l_nVtx->Write() ;
   h_nVtx->Write() ;
+
+  h_pfMET->Write() ;
+  h_hltMET->Write() ;
 
   h_sMaj_Eta->Write() ;
   h_sMaj_Phi->Write() ;
@@ -149,6 +163,7 @@ void BackgroundStudy::Write() {
   cs_Phi_Time->Write() ;
   cs_sigIeta_Time->Write() ;
   cs_nXtl->Write() ;
+  cs_swissX->Write() ;
   cs_sMaj_sMin->Write() ;
   cs_cscdPhi->Write() ;
   cs_cHadIso_Time->Write() ;
@@ -173,6 +188,8 @@ void BackgroundStudy::Write() {
 
   abcd_Pt_Time->Write() ;
   abcd_MET_Time->Write() ;
+  abcd_MET1_Time->Write() ;
+  abcd_MET2_Time->Write() ;
   abcd_NJet_Time->Write() ;
 
   ab_Pt_MET->Write() ;
@@ -196,6 +213,8 @@ void BackgroundStudy::Write() {
   nSpk_Eta->Write() ;
   nCS_Eta->Write() ;
 
+  hBg_F->Write() ;
+  hBg_E->Write() ;
   hBg_D->Write() ;
   hBg_C->Write() ;
   hBg_B->Write() ;
@@ -215,23 +234,23 @@ void BackgroundStudy::Create() {
   obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -14.5, 25.5);
 
   // DOE plots
-  h_EB_Time   = new TH1D( "h_EB_Time", " Ecal time from EB", 200, -25, 25 ) ;
+  h_EB_Time   = new TH1D( "h_EB_Time",  " Ecal time from EB", 200, -25, 25 ) ;
   h_EB_Time0  = new TH1D( "h_EB_Time0", " Ecal time from EB", 200, -25, 25 ) ;
   h_EB_Time1  = new TH1D( "h_EB_Time1", " Ecal time from EB", 200, -25, 25 ) ;
   h_EB_Time2  = new TH1D( "h_EB_Time2", " Ecal time from EB", 200, -25, 25 ) ;
-  h_EE_Time   = new TH1D( "h_EE_Time", " Ecal time from EE", 200, -25, 25 ) ;
+  h_EE_Time   = new TH1D( "h_EE_Time",  " Ecal time from EE", 200, -25, 25 ) ;
   h_EE_Time0  = new TH1D( "h_EE_Time0", " Ecal time from EE", 200, -25, 25 ) ;
   h_EE_Time1  = new TH1D( "h_EE_Time1", " Ecal time from EE", 200, -25, 25 ) ;
   h_EE_Time2  = new TH1D( "h_EE_Time2", " Ecal time from EE", 200, -25, 25 ) ;
   h_EE_haloTime = new TH1D( "h_EE_haloTime", " Halo Ecal time from EE", 200, -25, 25 ) ;
 
   // Raw information
-  h_Eta_Time  = new TH2D( "h_Eta_Time", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
-  h_Eta_Time1  = new TH2D( "h_Eta_Time1", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
-  h_Eta_Time2  = new TH2D( "h_Eta_Time2", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
-  h_Eta_Time3  = new TH2D( "h_Eta_Time3", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
-  h_Eta_Time_in  = new TH2D( "h_Eta_Time_in", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
-  h_Eta_Time_out = new TH2D( "h_Eta_Time_out", " eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_Eta_Phi   = new TH2D( "h_Eta_Phi",  "#eta vs #phi", 102, -2.5, 2.5, 63, -3.15, 3.15 ) ;
+  h_Eta_Time  = new TH2D( "h_Eta_Time", "#eta vs Ecal time", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_Eta_Time1  = new TH2D( "h_Eta_Time1", "#eta vs Ecal time, newMET < pfMET", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_Eta_Time2  = new TH2D( "h_Eta_Time2", "#eta vs Ecal time, newMET > pfMET", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_Eta_Time3  = new TH2D( "h_Eta_Time3", "#eta vs Ecal time, noPhotMET < pfMET", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_Eta_Time4  = new TH2D( "h_Eta_Time4", "#eta vs Ecal time, noPhotMET > pfMET", 102, -2.5, 2.5, 160, -20, 20 ) ;
   h_Phi_Time  = new TH2D( "h_Phi_Time", " phi vs Ecal time", 63, -3.15, 3.15, 160, -20, 20 ) ;
   h_cscdPhi_Time  = new TH2D( "h_cscdPhi_Time", " d#Phi vs Ecal time", 65, 0, 3.25, 160, -20, 20 ) ;
   h_cscdPhi_cscTime  = new TH2D( "h_cscdPhi_cscTime", " d#Phi vs CSC time", 65, 0, 3.25, 300, -75, 75 ) ;
@@ -239,8 +258,8 @@ void BackgroundStudy::Create() {
   h_sigIeta_Time_EE  = new TH2D( "h_sigIeta_Time_EE", " sigma_iEta vs Ecal time", 80, 0, 0.08, 120, -15, 15 ) ;
   h_sMaj_Time_EB = new TH2D( "h_sMaj_Time_EB", " sMaj vs Ecal time", 100, 0, 2, 160, -20, 20 ) ;
   h_sMaj_Time_EE = new TH2D( "h_sMaj_Time_EE", " sMaj vs Ecal time", 100, 0, 2, 160, -20, 20 ) ;
-  h_sMin_Time_EB = new TH2D( "h_sMin_Time_EB",  "sMin vs. Ecal time ", 100, 0., 0.5 , 80, 0, 0.08 ) ;
-  h_sMin_Time_EE = new TH2D( "h_sMin_Time_EE",  "sMin vs. Ecal time ", 100, 0., 0.5 , 80, 0, 0.08 ) ;
+  h_sMin_Time_EB = new TH2D( "h_sMin_Time_EB",  "sMin vs. Ecal time ", 100, 0., 0.5 , 160, -20., 20. ) ;
+  h_sMin_Time_EE = new TH2D( "h_sMin_Time_EE",  "sMin vs. Ecal time ", 100, 0., 0.5 , 160, -20., 20. ) ;
   h_sMaj_sigIeta_EB = new TH2D( "h_sMaj_sigIeta_EB", " sMaj vs Ecal time", 100, 0, 2, 80, 0, 0.08 ) ;
   h_sMaj_sigIeta_EE = new TH2D( "h_sMaj_sigIeta_EE", " sMaj vs Ecal time", 100, 0, 2, 80, 0, 0.08 ) ;
   h_sMin_sigIeta_EB = new TH2D( "h_sMin_sigIeta_EB",  "sMin vs. Ecal time ", 100, 0., 0.5 , 80, 0, 0.08 ) ;
@@ -248,19 +267,32 @@ void BackgroundStudy::Create() {
   h_Pt_MET       = new TH2D( "h_Pt_MET",        " Leading Pt vs MET", 50, 0, 500, 50, 0, 500 ) ;
 
   h_tChi2     = new TH1D( "h_tChi2", " chi2 of time ", 100, 0, 10  ) ;
-  cs_tChi2     = new TH1D( "cs_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+  cs_tChi2    = new TH1D( "cs_tChi2", " chi2 of time ", 100, 0, 10  ) ;
 
   h_nVtx     = new TH1D( "h_nVtx", "nVtx in good control region w/ MET > 60", 41,-0.5,40.5  ) ;
   l_nVtx     = new TH1D( "l_nVtx", "nVtx in good control region w/ MET < 60", 41,-0.5,40.5  ) ;
+
+  h_pfMET        = new TH1D("h_pfMET", "PF MET ",   100, 0, 100 ) ;
+  h_hltMET       = new TH1D("h_hltMET", "HLT MET ", 100, 0, 100 ) ;
 
   h_Pt_Time_EB   = new TH2D( "h_Pt_Time_EB",  " Pt vs Ecal time", 50, 0, 500, 120, -15, 15 ) ;
   h_Pt_Time_EE   = new TH2D( "h_Pt_Time_EE",  " Pt vs Ecal time", 50, 0, 500, 120, -15, 15 ) ;
   h_MET_Time_EB  = new TH2D( "h_MET_Time_EB",  " MET vs Ecal time", 50, 0, 500, 120, -15, 15 ) ;
   h_MET_Time_EE  = new TH2D( "h_MET_Time_EE",  " MET vs Ecal time", 50, 0, 500, 120, -15, 15 ) ;
+  h_hltMET_Time_EB  = new TH2D( "h_hltMET_Time_EB",  " MET vs Ecal time", 50, 0, 500, 120, -15, 15 ) ;
+  h_hltMET_Time_EE  = new TH2D( "h_hltMET_Time_EE",  " MET vs Ecal time", 50, 0, 500, 120, -15, 15 ) ;
   h_cHadIso_Time = new TH2D( "h_cHadIso_Time", " Charged Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
   h_nHadIso_Time = new TH2D( "h_nHadIso_Time", " Neutral Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
   h_photIso_Time = new TH2D( "h_photIso_Time", " Photon IsoDeposit vs time",           100, 0, 10., 120, -15, 15 );
   h_cscdPhi_rho  = new TH2D( "h_cscdPhi_rho", " d#Phi vs rho", 65, 0, 3.25, 100, 100, 500. ) ;
+
+  h_met_met1     = new TH2D( "h_met_met1",    " MET vs MET1", 50, 0, 500, 50, 0, 500 ) ;
+  h_met_met2     = new TH2D( "h_met_met2",    " MET vs MET2", 50, 0, 500, 50, 0, 500 ) ;
+  h_eta_time_met1= new TH2D( "h_eta_time_met1", "#eta vs Ecal time ", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_eta_time_met2= new TH2D( "h_eta_time_met2", "#eta vs Ecal time ", 102, -2.5, 2.5, 160, -20, 20 ) ;
+  h_nPhoton      = new TH1D( "h_nPhoton", "N Photons", 11, -0.5, 10.5 ) ;
+  h_nPhoton_met1 = new TH1D( "h_nPhoton_met1", "N Selected Photons", 11, -0.5, 10.5 ) ;
+  h_nPhoton_met2 = new TH1D( "h_nPhoton_met2", "N Selected Photons", 11, -0.5, 10.5 ) ;
 
   h_sMaj_Eta  = new TH2D( "h_sMaj_Eta", " sMaj vs photon #eta", 100, 0, 2, 51, -2.5, 2.5 ) ;
   h_sMaj_Phi  = new TH2D( "h_sMaj_Phi", " sMaj vs photon #phi", 100, 0, 2, 63, -3.15, 3.15 ) ;
@@ -279,6 +311,7 @@ void BackgroundStudy::Create() {
   sg_Phi_Time  = new TH2D( "sg_Phi_Time", " phi vs Ecal time", 63, -3.15, 3.15, 160, -20, 20 ) ;
   sg_nXtl_Eta  = new TH2D( "sg_nXtl_Eta", " N crystals vs #eta", 50, 0, 50 ,  51, -2.5, 2.5) ;
   sg_sigIeta_Time = new TH2D("sg_sigIeta_Time", " sigma_iEta vs Ecal time", 80, 0, 0.08, 120, -15, 15 ) ;
+
   sel_cHadIso_Time = new TH2D("sel_cHadIso_Time", " Charged Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
   sel_nHadIso_Time = new TH2D("sel_nHadIso_Time", " Neutral Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
   sel_photIso_Time = new TH2D("sel_photIso_Time", " Photon IsoDeposit vs time",           100, 0, 10., 120, -15, 15 );
@@ -311,6 +344,7 @@ void BackgroundStudy::Create() {
   cs_Phi_Time  = new TH2D( "cs_Phi_Time", " phi vs Ecal time", 63, -3.15, 3.15, 160, -20, 20 ) ;
   cs_sMaj_sMin  = new TH2D( "cs_sMaj_sMin", " sMaj vs sMin", 100, 0, 2, 50, 0.1, 0.4 ) ;
   cs_nXtl      = new TH1D( "cs_nXtl", "N crystals ", 50, 0, 50 ) ;
+  cs_swissX    = new TH1D( "cs_swissX", "Swiss-X ", 110, 0, 1.1 ) ;
   cs_cscdPhi   = new TH1D( "cs_cscdPhi", " d#Phi ", 65, 0, 3.25 ) ;
   cs_cHadIso_Time = new TH2D("cs_cHadIso_Time", " Charged Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
   cs_nHadIso_Time = new TH2D("cs_nHadIso_Time", " Neutral Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
@@ -335,6 +369,8 @@ void BackgroundStudy::Create() {
 
   abcd_Pt_Time   = new TH2D( "abcd_Pt_Time",  " Pt vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET_Time  = new TH2D( "abcd_MET_Time",  " MET vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_Time  = new TH2D( "abcd_MET1_Time", "newMET vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET2_Time  = new TH2D( "abcd_MET2_Time", "newMET vs Ecal time, newMET < MET for |t|>3", 50, 0, 500, 200, -25, 25 ) ;
   abcd_NJet_Time = new TH2D( "abcd_NJet_Time",  " NJet vs Ecal time", 10, 0, 10, 200, -25, 25 ) ;
   ab_dPhi_gMET   = new TH1D( "ab_dPhi_gMET",  "#Delta#Phi(photon, MET)", 64, 0, 3.2 ) ;
   cd_dPhi_gMET   = new TH1D( "cd_dPhi_gMET",  "#Delta#Phi(photon, MET)", 64, 0, 3.2 ) ;
@@ -358,33 +394,48 @@ void BackgroundStudy::Create() {
   nCS_Eta  = new TH1D( "nCS_Eta",  " N of CS in |#eta|", 5, 0., 1.4 ) ;
  
   // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike, 3: cosmic
-  hBg_D  = new TH2D( "hBg_D",  "Background in D (signal) region",   5,  0., 5, 4, 0, 4 ) ;
-  hBg_C  = new TH2D( "hBg_C",  "Background in C ", 5,  0., 5, 4, 0, 4 ) ;
-  hBg_B  = new TH2D( "hBg_B",  "Background in B ", 5,  0., 5, 4, 0, 4 ) ;
-  hBg_A  = new TH2D( "hBg_A",  "Background in A ", 5,  0., 5, 4, 0, 4 ) ;
+  // z is jet multiplicity 
+  hBg_F  = new TH3D( "hBg_F",  "Background in |t| < 2ns region",   5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hBg_E  = new TH3D( "hBg_E",  "Background in |t| < 2ns region",   5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hBg_D  = new TH3D( "hBg_D",  "Background in D (signal) region",  5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hBg_C  = new TH3D( "hBg_C",  "Background in C ",                 5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hBg_B  = new TH3D( "hBg_B",  "Background in B ",                 5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hBg_A  = new TH3D( "hBg_A",  "Background in A ",                 5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
 
 }
 
 void BackgroundStudy::OpenAllHistograms() {
 
-     qcdS->Open() ;
-     haloS->Open() ;
-     spikeS->Open() ;
-     cosmicS->Open() ;
-     Open() ;
+     TString Path_fName = hfolder + hfileName + ".root" ;
+     TFile* hFile = new TFile( Path_fName, "UPDATE" );
+     cout<<" file opened ! "<<endl ;
+
+     qcdS->Open( hFile ) ;
+     haloS->Open( hFile ) ;
+     spikeS->Open( hFile ) ;
+     cosmicS->Open( hFile ) ;
+     Open( hFile ) ;
 }
 
-void BackgroundStudy::Open() {
+void BackgroundStudy::Open( TFile* hFile ) {
 
-     //Input->GetParameters("Path",      &hfolder ) ; 
-     //hfolder += "backgrounds/" ;
+     if ( hFile == NULL ) {
+        TString Path_fName = hfolder + hfileName + ".root" ;
+        theFile = new TFile( Path_fName, "UPDATE" );
+        //createFile = true ;
+        cout<<" file opened ! "<<endl ;
+     } else {
+        theFile = hFile ;
+        //createFile = false ;
+     }
 
+     /*
      TString Path_fName = hfolder + hfileName + ".root" ; 
      cout<<" Opening : "<< Path_fName <<endl ;
 
      theFile = (TFile*) TFile::Open( Path_fName , "READ" );
      //hFile->cd() ;
-     cout<<" file opened ! "<<endl ;
+     */
 
      obsTime    = (TH1D*) theFile->Get("obsTime")     ;
 
@@ -398,12 +449,12 @@ void BackgroundStudy::Open() {
      h_EE_Time2 = (TH1D*) theFile->Get("h_EE_Time2");
      h_EE_haloTime = (TH1D*) theFile->Get("h_EE_haloTime");
 
+     h_Eta_Phi   = (TH2D*) theFile->Get("h_Eta_Phi");
      h_Eta_Time  = (TH2D*) theFile->Get("h_Eta_Time");
      h_Eta_Time1  = (TH2D*) theFile->Get("h_Eta_Time1");
      h_Eta_Time2  = (TH2D*) theFile->Get("h_Eta_Time2");
      h_Eta_Time3  = (TH2D*) theFile->Get("h_Eta_Time3");
-     h_Eta_Time_in  = (TH2D*) theFile->Get("h_Eta_Time_in");
-     h_Eta_Time_out = (TH2D*) theFile->Get("h_Eta_Time_out");
+     //h_Eta_Time4  = (TH2D*) theFile->Get("h_Eta_Time4");
      h_Phi_Time  = (TH2D*) theFile->Get("h_Phi_Time");
      h_cscdPhi_Time = (TH2D*) theFile->Get("h_cscdPhi_Time");
      h_cscdPhi_cscTime = (TH2D*) theFile->Get("h_cscdPhi_cscTime");
@@ -422,10 +473,20 @@ void BackgroundStudy::Open() {
      h_Pt_Time_EE  = (TH2D*) theFile->Get("h_Pt_Time_EE");
      h_MET_Time_EB = (TH2D*) theFile->Get("h_MET_Time_EB");
      h_MET_Time_EE = (TH2D*) theFile->Get("h_MET_Time_EE");
+     h_hltMET_Time_EB = (TH2D*) theFile->Get("h_hltMET_Time_EB");
+     h_hltMET_Time_EE = (TH2D*) theFile->Get("h_hltMET_Time_EE");
      h_cHadIso_Time = (TH2D*) theFile->Get("h_cHadIso_Time");
      h_nHadIso_Time = (TH2D*) theFile->Get("h_nHadIso_Time");
      h_photIso_Time = (TH2D*) theFile->Get("h_photIso_Time");
-
+     /*
+     h_met_met1     = (TH2D*) theFile->Get("h_met_met1");
+     h_met_met2     = (TH2D*) theFile->Get("h_met_met2");
+     h_eta_time_met1= (TH2D*) theFile->Get("h_eta_time_met1");
+     h_eta_time_met2= (TH2D*) theFile->Get("h_eta_time_met2");
+     h_nPhoton      = (TH1D*) theFile->Get("h_nPhoton");
+     h_nPhoton_met1 = (TH1D*) theFile->Get("h_nPhoton_met1");
+     h_nPhoton_met2 = (TH1D*) theFile->Get("h_nPhoton_met2");
+     */
      h_sMaj_Eta  = (TH2D*) theFile->Get("h_sMaj_Eta");
      h_sMaj_Phi  = (TH2D*) theFile->Get("h_sMaj_Phi");
      h_sMaj_sMin_EB = (TH2D*) theFile->Get("h_sMaj_sMin_EB");
@@ -441,6 +502,9 @@ void BackgroundStudy::Open() {
 
      h_nVtx    = (TH1D*) theFile->Get("h_nVtx");
      l_nVtx    = (TH1D*) theFile->Get("l_nVtx");
+
+     h_pfMET   = (TH1D*) theFile->Get("h_pfMET");
+     h_hltMET  = (TH1D*) theFile->Get("h_hltMET");
 
      sg_Eta_Time = (TH2D*) theFile->Get("sg_Eta_Time");
      sg_Phi_Time = (TH2D*) theFile->Get("sg_Phi_Time");
@@ -485,6 +549,7 @@ void BackgroundStudy::Open() {
      cs_sigIeta_Time = (TH2D*) theFile->Get("cs_sigIeta_Time");
      cs_cscdPhi      = (TH1D*) theFile->Get("cs_cscdPhi");
      cs_nXtl         = (TH1D*) theFile->Get("cs_nXtl");
+     cs_swissX       = (TH1D*) theFile->Get("cs_swissX");
      cs_sMaj_sMin     = (TH2D*) theFile->Get("cs_sMaj_sMin");
      cs_cHadIso_Time = (TH2D*) theFile->Get("cs_cHadIso_Time");
      cs_nHadIso_Time = (TH2D*) theFile->Get("cs_nHadIso_Time");
@@ -508,6 +573,8 @@ void BackgroundStudy::Open() {
 
      abcd_Pt_Time = (TH2D*) theFile->Get("abcd_Pt_Time");
      abcd_MET_Time = (TH2D*) theFile->Get("abcd_MET_Time");
+     abcd_MET1_Time = (TH2D*) theFile->Get("abcd_MET1_Time");
+     abcd_MET2_Time = (TH2D*) theFile->Get("abcd_MET2_Time");
      abcd_NJet_Time = (TH2D*) theFile->Get("abcd_NJet_Time");
      ab_dPhi_gMET   = (TH1D*) theFile->Get("ab_dPhi_gMET");
      cd_dPhi_gMET   = (TH1D*) theFile->Get("cd_dPhi_gMET");
@@ -530,12 +597,24 @@ void BackgroundStudy::Open() {
      nSpk_Eta = (TH1D*) theFile->Get("nSpk_Eta");
      nCS_Eta  = (TH1D*) theFile->Get("nCS_Eta");
 
-     hBg_D   = (TH2D*) theFile->Get("hBg_D") ;
-     hBg_C    = (TH2D*) theFile->Get("hBg_C") ;
-     hBg_B    = (TH2D*) theFile->Get("hBg_B") ;
-     hBg_A   = (TH2D*) theFile->Get("hBg_A") ;
+     hBg_F   = (TH3D*) theFile->Get("hBg_F") ;
+     hBg_E   = (TH3D*) theFile->Get("hBg_E") ;
+     hBg_D   = (TH3D*) theFile->Get("hBg_D") ;
+     hBg_C   = (TH3D*) theFile->Get("hBg_C") ;
+     hBg_B   = (TH3D*) theFile->Get("hBg_B") ;
+     hBg_A   = (TH3D*) theFile->Get("hBg_A") ;
 
      cout<<" link all histograms  "<<endl ;
+}
+
+void BackgroundStudy::CreateHistograms() {
+
+   Create() ;
+   qcdS->Create( theFile ) ;
+   haloS->Create( theFile ) ;
+   spikeS->Create( theFile ) ;
+   cosmicS->Create( theFile ) ;
+
 }
 
 void BackgroundStudy::SimpleRun( string dataName, double weight ) { 
@@ -555,21 +634,15 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
 
    gSystem->mkdir( hfolder.c_str() );
 
-   TString Path_fName = hfolder + hfileName + ".root" ; 
-   theFile = new TFile( Path_fName, "RECREATE" );
-   theFile->cd() ;
-
-   // Create hitograms
-   Create() ;
-   qcdS->Create( theFile ) ;
-   haloS->Create( theFile ) ;
-   spikeS->Create( theFile ) ;
-   cosmicS->Create( theFile ) ;
+   //TString Path_fName = hfolder + hfileName + ".root" ; 
+   //theFile = new TFile( Path_fName, "RECREATE" );
+   //theFile->cd() ;
 
    int beginEvent = SkipEvents + 1 ;
    cout<<" Event start from : "<< beginEvent << endl ;
    cout<<" from  "<< dataFileNames  <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
+   int nTrig[2] = { 0. , 0 } ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
 
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
@@ -581,6 +654,10 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
        select->ResetCuts() ;
        select->ResetCollection() ;
 
+       // Trigger selection 
+       //if ( rt.triggered != 1 && rt.triggered != 3 ) continue ;
+       bool passTrigger = select->HLTFilter() ;
+       if ( !passTrigger ) continue ;
        // 2. ControlSelection  - Events containing at least 1 photon 
        uint32_t evtType = select->EventIdentification();
 
@@ -589,9 +666,26 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
        select->GetCollection("Photon", selectPho ) ;
+       //// Trigger Efficiency 
+       if ( selectPho.size() > 0 ) {
+          if ( rt.triggered == 1 || rt.triggered == 3 ) nTrig[0]++ ;
+          if ( rt.triggered == 3 ) nTrig[1]++ ;
+       }
     
+       //// Propagate the MET2 to others
+       newMET    = select->newMET ;
+       noPhotMET = select->noPhotMET ;
+       //TLorentzVector met1 = select->noPhotMET ;
+       //printf(" pf: %.2f, met1: %.2f , met2: %.2f \n", rt.metE, noPhotMET.E() , newMET.E() ) ;
+
+       haloS->GetNewMET( newMET, select->noPhotMET ) ;
+       spikeS->GetNewMET( newMET, select->noPhotMET ) ;
+       cosmicS->GetNewMET( newMET, select->noPhotMET ) ;
+       qcdS->GetNewMET( newMET, select->noPhotMET ) ;
+
        // 4. Raw Information - without applying any cuts
        RawInfo( selectPho, selectJets, weight ) ;
+       qcdS->Run(   selectPho, selectJets, rt, weight  )   ;
  
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        bool wanted = ( (evtType >> 1) & 1  ) ;
@@ -601,17 +695,20 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
 
        // 5. Study each components   
        ControlStudy( selectPho, selectJets, weight ) ;
-       qcdS->Run(   selectPho, selectJets, rt, weight  )   ;
        haloS->Run(   selectPho, selectJets, rt, weight  )   ;
        spikeS->Run(  selectPho, selectJets, rt, weight  )   ;
        cosmicS->Run( selectPho, selectJets, rt, weight  )   ;
      
    }
+   printf( "MET Trigger Efficiency = %d / %d = %.2f \n\n", nTrig[1] , nTrig[0], (float)nTrig[1]/(float)nTrig[0] ) ;  
 
    // Display cut flow
    select->PrintCutFlow() ;
 
-   // Write histograms
+}
+
+void BackgroundStudy::WriteDrawHistograms() {
+
    theFile->cd() ;
    Write() ;
    qcdS->Write() ;
@@ -625,51 +722,41 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
    spikeS->DrawHistograms( h_draw_ ) ;
    cosmicS->DrawHistograms( h_draw_ ) ;
    DrawHistograms( h_draw_ ) ;
-
 }
 
 // The overview of the data, without applying any cuts
 void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJets, double weight ) {
 
-       TLorentzVector met(    rt.metPx, rt.metPy, 0, rt.metE)  ;
-       TLorentzVector newMET( rt.metPx, rt.metPy, 0, rt.metE)  ;
+       TLorentzVector met( rt.metPx, rt.metPy, 0, rt.metE )  ;
+
+       double pfMET_  = ( rt.metE > 99.5  ) ? 99.5 : rt.metE ;
+       double hltMET_ = ( rt.t_met > 99.5 ) ? 99.5 : rt.t_met ;
+       h_pfMET->Fill( pfMET_ ) ;
+       h_hltMET->Fill( hltMET_ ) ;
+       h_nPhoton->Fill( rt.nPhotons ) ;
 
        for ( int k=0 ; k < rt.nPhotons ; k++ ) {
 
 	   TLorentzVector gP4_ = TLorentzVector( rt.phoPx[k], rt.phoPy[k], rt.phoPz[k], rt.phoE[k] ) ;
+           if ( fabs(gP4_.Eta() ) < 1.47 ) h_Eta_Phi->Fill( gP4_.Eta() , gP4_.Phi() , weight );
+
+           bool badseed   = badCrystal( gP4_.Eta() , gP4_.Phi() ) ;
+           if ( badseed ) continue ;
+
 	   bool haloTag   = haloS->HaloTag( rt , k) ;
-	   bool cosmicTag = cosmicS->CosmicTag(rt, k ) ;
-	   bool spikeTag  = spikeS->SpikeTag(rt, k) ;
-	   bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+	   bool cosmicTag = cosmicS->CosmicTag( rt , k) ;
+	   bool spikeTag  = spikeS->SpikeTag( rt , k) ;
+           bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+
 	   double nHIso = max( rt.nHadIso[k] - (0.04*gP4_.Pt()) , 0. ) ;
 	   double phIso = max( rt.photIso[k] - (0.005*gP4_.Pt()) , 0. ) ;
-
 	   double cscdPhi_ =  ( rt.cscdPhi[k] > 9. ) ? 3.24 : rt.cscdPhi[k] ;
 
-           if ( met.E() > jetCuts[4] ) h_Eta_Time1->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
-
-           // Correct MET
-           if ( fabs( rt.seedTime[k]) > 3.0 && fabs( gP4_.Eta() ) < 1.47 ) { 
-              //printf(" ============================= \n" ) ;
-	      //printf(" met = [%.1f,%.1f,%.1f,%.1f] \n", met.Px(), met.Py(), met.Pz(), met.E() ) ;
-              double newEx =  met.Px() - gP4_.Px()  ;
-              double newEy =  met.Py() - gP4_.Py()  ;
-              double newE  = sqrt( newEx*newEx + newEy*newEy ) ;
-              newMET.SetPxPyPzE( newEx, newEy, 0., newE ) ;
-              //printf(" pho = [%.1f,%.1f,%.1f,%.1f] \n", phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
-	      //printf(" MET = [%.1f,%.1f,%.1f,%.1f] \n", met.Px(), met.Py(), met.Pz(), met.E() ) ;
-	      //printf(" \n" ) ;
-           }
-           if ( fabs(rt.seedTime[k]) > 10.0 && fabs( gP4_.Eta() ) > 1.47 ) { 
-              double newEx =  met.Px() - gP4_.Px()  ;
-              double newEy =  met.Py() - gP4_.Py()  ;
-              double newE  = sqrt( newEx*newEx + newEy*newEy ) ;
-              newMET.SetPxPyPzE( newEx, newEy, 0., newE ) ;
-           }
-	   if ( newMET.E() > jetCuts[4] )                          h_Eta_Time2->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
-	   if ( newMET.E() > jetCuts[4] && !ghostTag )             h_Eta_Time3->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
-	   if ( newMET.E() > jetCuts[4] &&  rt.metE < jetCuts[4] ) h_Eta_Time_in->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
-	   if ( newMET.E() < jetCuts[4] &&  rt.metE > jetCuts[4] ) h_Eta_Time_out->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
+           if ( met.E() - newMET.E() > 1. )    h_Eta_Time1->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
+	   if ( newMET.E() - met.E() > 1. )    h_Eta_Time2->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
+           
+           if ( met.E() - noPhotMET.E() > 1. ) h_Eta_Time3->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
+	   if ( noPhotMET.E() - met.E() > 1. ) h_Eta_Time4->Fill( gP4_.Eta() , rt.seedTime[k] , weight );
 
            if ( fabs(gP4_.Eta()) < 1.45 ) {
               if ( selectJets.size() >= 0 ) h_EB_Time->Fill(  rt.seedTime[k] , weight );
@@ -701,6 +788,7 @@ void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJe
 	      h_sigIeta_Time_EB->Fill( rt.sigmaIeta[k], rt.seedTime[k] , weight  ) ;
 	      h_Pt_Time_EB->Fill(  gP4_.Pt(), rt.seedTime[k] , weight  ) ;
 	      h_MET_Time_EB->Fill( met.E(),   rt.seedTime[k] , weight  ) ;
+	      h_hltMET_Time_EB->Fill( rt.t_met,   rt.seedTime[k] , weight  ) ;
 	      h_sMaj_sMin_EB->Fill( rt.sMajPho[k] , rt.sMinPho[k] , weight );
 	      h_nXtl_Pt_EB->Fill( rt.nXtals[k],  gP4_.Pt() , weight );
            }
@@ -712,6 +800,7 @@ void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJe
 	      h_sigIeta_Time_EE->Fill( rt.sigmaIeta[k], rt.seedTime[k] , weight  ) ;
 	      h_Pt_Time_EE->Fill( gP4_.Pt(), rt.seedTime[k] , weight  ) ;
 	      h_MET_Time_EE->Fill( met.E(), rt.seedTime[k] , weight  ) ;
+	      h_hltMET_Time_EE->Fill( rt.t_met , rt.seedTime[k] , weight  ) ;
            }
 
 	   h_sMaj_Eta->Fill( rt.sMajPho[k] , gP4_.Eta() , weight ) ;
@@ -724,11 +813,17 @@ void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJe
        }
 }
 
+
 void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& selectJets, double weight ) {
 
        TLorentzVector met(    rt.metPx, rt.metPy, 0, rt.metE)  ;
        TLorentzVector ajet = JetVectorSum( selectJets ) ;
        double dPhi_jMET = ( selectJets.size() > 0 ) ? fabs( met.DeltaPhi( ajet ) ) : -0.1 ;
+
+       h_met_met1->Fill( rt.metE, noPhotMET.E() ) ;
+       h_met_met2->Fill( rt.metE, newMET.E() ) ;
+       if ( rt.metE > 70  &&  noPhotMET.E() < 50 ) h_nPhoton_met1->Fill( (int)selectPho.size() ) ;
+       if ( rt.metE < 60  &&  newMET.E()    > 60 ) h_nPhoton_met2->Fill( (int)selectPho.size() ) ;
 
        for ( size_t kk =0; kk < selectPho.size() ; kk++) {
 
@@ -738,6 +833,11 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   double cscdPhi_  = ( rt.cscdPhi[k] > 9. ) ? 3.24 : rt.cscdPhi[k] ;
 	   double nHIso     = max( rt.nHadIso[k] - (0.04*gP4_.Pt()) , 0. ) ;
 	   double phIso     = max( rt.photIso[k] - (0.005*gP4_.Pt()) , 0. ) ;
+           bool isPFIso =  ( rt.cHadIso[k] >= photonPFIso[0] || nHIso >= photonPFIso[1] || phIso >= photonPFIso[2] )  ;
+           if ( isPFIso ) continue ;
+
+           if ( rt.metE > 70 && noPhotMET.E() < 50 ) h_eta_time_met1->Fill( gP4_.Eta(), rt.seedTime[k] ) ;
+           if ( rt.metE < 60 && newMET.E()    > 60 ) h_eta_time_met2->Fill( gP4_.Eta(), rt.seedTime[k] ) ;
 
 	   // Define the Tag and Check the efficiency 
 	   bool haloTag   = haloS->HaloTag( rt , k) ;
@@ -745,13 +845,22 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   bool spikeTag  = spikeS->SpikeTag(rt, k) ;
 	   bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
 
+           
            // Test for ABCD region
            if ( !ghostTag && rt.timeChi2[k] < 4. ) {
-              if ( met.E() > jetCuts[4] && selectJets.size() >= jetCuts[2] )           
+              if ( met.E() > jetCuts[4] && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] )           
                  abcd_Pt_Time->Fill( gP4_.Pt() , rt.seedTime[k], weight) ;
 
-	      if ( selectPho[0].second.Pt() > 80. && selectJets.size() >= jetCuts[2] ) 
+	      if ( selectPho[0].second.Pt() > 80. && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3]) {
                  abcd_MET_Time->Fill( met.E(), rt.seedTime[k], weight);
+                 abcd_MET1_Time->Fill( newMET.E(), rt.seedTime[k], weight);
+
+                 if ( fabs( rt.seedTime[k]) > 3. ) {
+                    if ( newMET.E() < met.E() ) abcd_MET2_Time->Fill( newMET.E(), rt.seedTime[k], weight);
+                 } else {
+                    abcd_MET2_Time->Fill( newMET.E(), rt.seedTime[k], weight);
+                 }                    
+              }
 
 	      if ( met.E() > jetCuts[4] && selectPho[0].second.Pt() > 80. ) 
                  abcd_NJet_Time->Fill( selectJets.size(), rt.seedTime[k], weight);
@@ -769,59 +878,54 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
            // ******************
 	   //   Region A and B - Real Photon: -0.024 +/- 0.426
 	   // ******************
-	   if ( rt.seedTime[k] < -3. && rt.seedTime[k] > -10. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
-
+           bool passABCDSelection = ( newMET.E() < jetCuts[4] && rt.timeChi2[k] < 4 && selectPho[0].second.Pt() > photonCuts[8] ) ; 
+  	   int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
+           int nj = ( selectJets.size() > 2 ) ? 2 : (int)selectJets.size() ;
+           // Region E , |t| < 2 ns  
+           if ( fabs(rt.seedTime[k]) < 2. && passABCDSelection ) {
+              if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj,  weight );
+              if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj,  weight );
+           }
+	   if ( rt.seedTime[k] < -3. && rt.seedTime[k] > -10. && passABCDSelection ) {
               // Region B
-              if ( met.E() > jetCuts[4] ) {
-  	         int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
+              //if ( met.E() > jetCuts[4] ) {
+              if ( noPhotMET.E() > jetCuts[4] ) {
 
-                 if ( rt.timeChi2[k] < 4 ) {
-   	            hBg_B->Fill( ih, 0.5, weight );
-		    if ( haloTag  )  hBg_B->Fill( ih, 1.5, weight );
-		    if ( spikeTag )  hBg_B->Fill( ih, 2.5, weight );
-		    if ( cosmicTag ) hBg_B->Fill( ih, 3.5, weight );
-                 }
+   	         hBg_B->Fill( ih, 0.5, nj,  weight );
+		 if ( haloTag  && !cosmicTag && !spikeTag )  hBg_B->Fill( ih, 1.5, nj, weight );
+		 if ( spikeTag && !cosmicTag )               hBg_B->Fill( ih, 2.5, nj, weight );
+		 if ( cosmicTag )                            hBg_B->Fill( ih, 3.5, nj, weight );
               }
-                 // Region A
-		 if ( met.E() < jetCuts[4] ) {
-	  	    int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
+	      // Region A
+              if ( noPhotMET.E() < jetCuts[4] ) {
 
-                    if ( rt.timeChi2[k] < 4 ) {
-		       hBg_A->Fill( ih, 0.5, weight );
-		       if ( haloTag  )  hBg_A->Fill( ih, 1.5, weight );
-		       if ( spikeTag )  hBg_A->Fill( ih, 2.5, weight );
-		       if ( cosmicTag ) hBg_A->Fill( ih, 3.5, weight );
-                    }
-                 }
-             }
-              // ******************
-              //   Region C and D
-              // ******************
-              if ( rt.seedTime[k] > 3.0 && rt.seedTime[k] < 10.0 && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
-                 // Region D
-		 if ( met.E() > jetCuts[4] ) {
-                    int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
-
-                    if ( rt.timeChi2[k] < 4 ) {
-                       hBg_D->Fill( ih, 0.5, weight );
-		       if ( haloTag  )  hBg_D->Fill( ih, 1.5, weight );
-		       if ( spikeTag )  hBg_D->Fill( ih, 2.5, weight );
-		       if ( cosmicTag ) hBg_D->Fill( ih, 3.5, weight );
-                    }
-                 }
-                 // Check the background estimation at MET > 60 GeV, t < -3ns Region
-                 // Region C
-		 if ( met.E() < jetCuts[4] ) {
-                    int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
-
-                    if ( rt.timeChi2[k] < 4 ) {
-	    	       hBg_C->Fill( ih, 0.5, weight );
-		       if ( haloTag  )  hBg_C->Fill( ih, 1.5, weight );
-		       if ( spikeTag )  hBg_C->Fill( ih, 2.5, weight );
-		       if ( cosmicTag ) hBg_C->Fill( ih, 3.5, weight );
-                    }
-                 }
+		    hBg_A->Fill( ih, 0.5, nj, weight );
+		    if ( haloTag && !cosmicTag && !spikeTag )  hBg_A->Fill( ih, 1.5, nj, weight );
+		    if ( spikeTag && !cosmicTag )              hBg_A->Fill( ih, 2.5, nj, weight );
+		    if ( cosmicTag )                           hBg_A->Fill( ih, 3.5, nj, weight );
               }
+           }
+	   // ******************
+	   //   Region C and D
+	   // ******************
+           if ( rt.seedTime[k] > 3.0 && rt.seedTime[k] < 10.0 && passABCDSelection ) {
+              // Region D
+              if ( noPhotMET.E() > jetCuts[4] ) {
+
+		 hBg_D->Fill( ih, 0.5, nj, weight );
+		 if ( haloTag && !cosmicTag && !spikeTag )  hBg_D->Fill( ih, 1.5, nj, weight );
+		 if ( spikeTag && !cosmicTag )              hBg_D->Fill( ih, 2.5, nj, weight );
+		 if ( cosmicTag )                           hBg_D->Fill( ih, 3.5, nj, weight );
+              }
+	      // Region C
+              if ( noPhotMET.E() < jetCuts[4] ) {
+
+		 hBg_C->Fill( ih, 0.5, nj, weight );
+		 if ( haloTag && !cosmicTag && !spikeTag )  hBg_C->Fill( ih, 1.5, nj, weight );
+		 if ( spikeTag && !cosmicTag )              hBg_C->Fill( ih, 2.5, nj, weight );
+		 if ( cosmicTag )                           hBg_C->Fill( ih, 3.5, nj, weight );
+              }
+           }
 
            // ******************
 	   //   vertex studies
@@ -941,6 +1045,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 		 cs_dtdPhidEta->Fill( rt.dtdPhi[k] , rt.dtdEta[k], weight );
 		 cs_sigIeta_Time->Fill( rt.sigmaIeta[k], rt.seedTime[k] , weight ) ;
 		 cs_nXtl->Fill( rt.nXtals[k] , weight );
+		 cs_swissX->Fill( rt.seedSwissX[k] , weight );
 		 cs_sMaj_sMin->Fill( rt.sMajPho[k], rt.sMinPho[k] , weight );
 		 cs_cscdPhi->Fill( cscdPhi_, weight  ) ;
 		 cs_cHadIso_Time->Fill( rt.cHadIso[k] , rt.seedTime[k] , weight ) ;
@@ -950,7 +1055,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 		 nCS_Eta->Fill( fabs(gP4_.Eta()) , weight )  ;
 		 if ( haloTag ) nHL_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
 		 if ( spikeTag ) nSpk_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
-              }
+           }
        } // end of photon looping 
 }
 
@@ -999,14 +1104,31 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw(        h_EB_Time2, "",     "Time from EB ", "", "logY", 0.95, 2, 100./max( 100., h_EB_Time2->Integral()) ) ;
    h_draw->DrawAppend(  h_EE_Time2, "h_EB_Time2", 0.75, 4 , 100./ max( 100., h_EE_Time2->Integral() ) ) ;
 
+   // MET Efficiency 
+   
+   leg3->Clear() ;
+   leg3->SetX1NDC(0.45) ;
+   char leg_pf[50] , leg_hlt[50] ;
+   double pf_H  = h_pfMET->Integral(25,100 ) ;
+   double pf_A  = h_pfMET->Integral() ;
+   double hlt_H = h_hltMET->Integral(25,100 ) ;
+   double hlt_A = h_hltMET->Integral() ;
+   sprintf( leg_pf,  " PF MET : %.1f/%.1f = %.2f ",  pf_H,  pf_A , pf_H/pf_A ) ;
+   sprintf( leg_hlt, " HLT MET: %.1f/%.1f = %.2f ", hlt_H, hlt_A , hlt_H/hlt_A ) ;
+   leg3->AddEntry( h_pfMET, leg_pf , "L" ) ;
+   leg3->AddEntry( h_hltMET, leg_hlt , "L" ) ;
+   h_draw->Draw(        h_hltMET, "",  " MET ", "", "logY", 0.95, 2 ) ;
+   h_draw->DrawAppend(  h_pfMET,  "h_MET",  0.75, 4 , 1.,  leg3  ) ;
+   leg3->SetX1NDC(0.6) ;
+   
    //h_draw->SetHistoInfo(1) ;
 
    gStyle->SetOptStat("e");
+   h_draw->Draw2D( h_Eta_Phi,     "h_Eta_Phi",      "#eta", "#phi ",  "logZ", 8 ) ;
    h_draw->Draw2D( h_Eta_Time1,   "h_Eta_Time1",    "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
    h_draw->Draw2D( h_Eta_Time2,   "h_Eta_Time2",    "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
    h_draw->Draw2D( h_Eta_Time3,   "h_Eta_Time3",    "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
-   h_draw->Draw2D( h_Eta_Time_in, "h_Eta_Time_in",   "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
-   h_draw->Draw2D( h_Eta_Time_out,"h_Eta_Time_out",  "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
+   //h_draw->Draw2D( h_Eta_Time4,   "h_Eta_Time4",    "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
    gStyle->SetOptStat("");
    h_draw->Draw2D( h_Eta_Time,    "h_Eta_Time",    "#eta", "EcalTime (ns)",  "logZ", 8 ) ;
    h_draw->Draw2D( h_Phi_Time,    "h_Phi_Time",    "#phi", "EcalTime (ns)",  "logZ", 8 ) ;
@@ -1023,15 +1145,17 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( h_sigIeta_Time_EB,"h_sigIeta_Time_EB","#sigma_{i#eta i#eta}", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h_Pt_Time_EB,     "h_Pt_Time_EB", "P_T", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h_MET_Time_EB,    "h_MET_Time_EB", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( h_hltMET_Time_EB, "h_hltMET_Time_EB", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h_cscdPhi_rho,    "h_cscdPhi_rho", "#Delta#Phi( cscSeg, #gamma) ", "#rho", "logZ", 8 ) ;
 
    h_draw->Draw2D( h_sMaj_Time_EE,   "h_sMaj_Time_EE",   "sMaj", "EcalTime (ns)",  "logZ"  ) ;
    h_draw->Draw2D( h_sMin_Time_EE,   "h_sMin_Time_EE",   "sMin", "EcalTime (ns)",  "logZ"  ) ;
-   h_draw->Draw2D( h_sMaj_sigIeta_EE,   "h_sMaj_sigIeta_EE",   "sMaj", "#sigma_{i#eta i#eta}",  "logZ"  ) ;
-   h_draw->Draw2D( h_sMin_sigIeta_EE,   "h_sMin_sigIeta_EE",   "sMin", "#sigma_{i#eta i#eta}",  "logZ"  ) ;
+   h_draw->Draw2D( h_sMaj_sigIeta_EE,"h_sMaj_sigIeta_EE",   "sMaj", "#sigma_{i#eta i#eta}",  "logZ"  ) ;
+   h_draw->Draw2D( h_sMin_sigIeta_EE,"h_sMin_sigIeta_EE",   "sMin", "#sigma_{i#eta i#eta}",  "logZ"  ) ;
    h_draw->Draw2D( h_sigIeta_Time_EE,"h_sigIeta_Time_EE","#sigma_{i#eta i#eta}", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h_Pt_Time_EE,     "h_Pt_Time_EE", "P_T", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h_MET_Time_EE,    "h_MET_Time_EE", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( h_hltMET_Time_EE, "h_hltMET_Time_EE", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
 
    h_draw->Draw2D( h_Pt_MET,      "h_Pt_MET", "P_T", " MET", "logZ" , 8 ) ;
    h_draw->Draw2D( h_sMaj_Eta,    "h_sMaj_Eta",    "sMaj", "#eta ",  "logZ", 8 ) ;
@@ -1039,9 +1163,20 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( h_sMaj_sMin_EB,"h_sMaj_sMin_EB",   "sMaj", "sMin ",  "logZ", 8 ) ;
    h_draw->Draw2D( h_nXtl_Eta,    "h_nXtl_Eta",    "N crystals", "#eta", "logZ", 8  ) ;
    h_draw->Draw2D( h_nXtl_Pt_EB,  "h_nXtl_Pt_EB",     "N crystals", "P_{T}", "logZ", 8  ) ;
+   /*
+   h_draw->Draw2D( h_met_met1,     "h_met_met1",     "MET", "MET1", "logZ", 8  ) ;
+   h_draw->Draw2D( h_met_met2,     "h_met_met2",     "MET", "MET2", "logZ", 8  ) ;
+   h_draw->Draw2D( h_eta_time_met1, "h_eta_time_met1",     "#eta", "time", "logZ", 8  ) ;
+   h_draw->Draw2D( h_eta_time_met2, "h_eta_time_met2",     "#eta", "time", "logZ", 8  ) ;
+   h_draw->Draw(   h_nPhoton,      "h_nPhoton", " N Selected Photons ", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw(   h_nPhoton_met1, "h_nPhoton_met1", " N Selected Photons ", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw(   h_nPhoton_met2, "h_nPhoton_met2", " N Selected Photons ", "", "logY", 0.95, 1 ) ;
+   */
 
    h_draw->Draw2D( abcd_Pt_Time,   "abcd_Pt_Time", "P_T", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET_Time,  "abcd_MET_Time", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_Time,  "abcd_MET1_Time", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET2_Time,  "abcd_MET2_Time", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_NJet_Time, "abcd_NJet_Time", "NJet", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( ab_Pt_MET,      "ab_Pt_MET", "P_T", "MET", "logZ" , 8 ) ;
    h_draw->Draw2D( cd_Pt_MET,      "cd_Pt_MET", "P_T", "MET", "logZ" , 8 ) ;
@@ -1166,6 +1301,7 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( cs_nHadIso_Time,"cs_nHadIso_Time", " Neutral Hadronic Iso", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( cs_photIso_Time,"cs_photIso_Time", " Photon Iso", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( cs_dtdPhidEta,  "cs_dtdPhidEta",   "#Delta#eta", "#Delta#phi", "logZ", 8  ) ;
+   h_draw->Draw(   cs_swissX,      "cs_swissX",       "Swiss-X ", "", "logY", 0.95, 1 ) ;
 
    gStyle->SetOptStat(kFALSE);
    h_draw->Draw2D( sideband_photIso_cscdPhi,"sideband_photIso_cscdPhi",  " Photon Iso", "d#Phi", "logZ" , 8 ) ;
@@ -1179,7 +1315,7 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw(   sideband_sMaj,      "sideband_sMaj",    " sMajor ", "", "", 0.95, 1 ) ;
    h_draw->Draw(   sideband_dtdR,      "sideband_dtdR", "#Delta R( dtSeg, #gamma) ", "", "logY", 0.95, 1 ) ;
    h_draw->Draw2D( sideband_Pt_nJet,   "sideband_Pt_nJet", "P_{T}", " N Jets", "logZ", 8  ) ;
-   h_draw->Draw2D( sideband_dtdPhidEta,"sideband_dtdPhidEta", "#Delta#eta", "#Delta#phi", "logZ", 8  ) ;
+   h_draw->Draw2D( sideband_dtdPhidEta,"sideband_dtdPhidEta", "#Delta#phi", "#Delta#eta", "logZ", 8  ) ;
    h_draw->Draw2D( sideband_dPhi_MET_csc, "sideband_dPhi_MET_csc",  "dPhi( photon, MET)", " dPhi( photon, cscseg)", "logZ", 8 ) ;
    h_draw->Draw2D( sideband_dPhi_MET_Jet1, "sideband_dPhi_MET_Jet1",  "dPhi( photon, MET)", " dPhi( photon, Jet)", "logZ", 8 ) ;
    h_draw->Draw2D( sideband_dPhi_MET_Jet2, "sideband_dPhi_MET_Jet2",  "dPhi( photon, MET)", " dPhi( photon, Jet)", "logZ", 8 ) ;
@@ -1196,7 +1332,7 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    //sideband_cscdPhi_u->SetLineWidth(2) ;
    //sideband_cscdPhi_d->SetLineWidth(2) ;
 
-   leg2->AddEntry( cs_cscdPhi,       "Nominal" , "F" ) ;
+   leg2->AddEntry( cs_cscdPhi,              "Nominal" , "F" ) ;
    leg2->AddEntry( haloS->haloCS_cscdPhi,   "Halo CS" , "L" ) ;
    //leg2->AddEntry( sideband_cscdPhi_u, "Late-timing" , "L" ) ;
    //leg2->AddEntry( sideband_cscdPhi_d, "Early-timing" , "L" ) ;
@@ -1322,13 +1458,13 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    */
    }
 
-   ABCD( hBg_A, hBg_B, hBg_C, hBg_D ) ;
+   ABCD( hBg_A, hBg_B, hBg_C, hBg_D, hBg_E, hBg_F ) ;
 
    if ( createDrawer ) delete h_draw ;
 }
 
  // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike 3: cosmic
-void BackgroundStudy::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
+void BackgroundStudy::ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) {
 
    // Tagging efficiency 
    Input->GetParameters("UseInFlight",   &useInFlight ) ;
@@ -1336,12 +1472,19 @@ void BackgroundStudy::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
       printf(" Get Efficiency and fake rate from Datacard !! \n") ;
       Input->GetParameters("HaloEff",    &haloEff ) ;
       Input->GetParameters("SpikeEff",   &spikeEff ) ;
+      Input->GetParameters("CosmicEff",  &cosEff ) ;
       // Mis-tag rate
       Input->GetParameters("HaloFake",   &haloMis ) ;
       Input->GetParameters("SpikeFake",  &spikeMis ) ;
+      Input->GetParameters("CosmicFake", &cosMis ) ;
    }
  
    //  GetEstimation returns QCD components
+   cout<<" ===  E  === "<<endl ;
+   double rE = GetEstimation( hE ) ;
+   cout<<" ===  F  === "<<endl ;
+   double rF = GetEstimation( hF ) ;
+   printf("=== F/E (%.2f/%.2f) = %.2f  \n", rF, rE, rF/rE ) ;
    cout<<" ===  A  === "<<endl ;
    double rA = GetEstimation( hA ) ;
    cout<<" ===  B  === "<<endl ;
@@ -1356,40 +1499,64 @@ void BackgroundStudy::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
    if ( rA < 0.0001 ) cout<<" Residual Background ABCD Fail ! " <<endl ;
    else               printf(" B/A (%.2f/%.2f) = %.2f  ==> D/C (%.2f/%.2f) = %.2f \n", rB, rA, rB/rA , rD, rC, rD/rC ) ;
 
-   printf(" Observe :%f -> Predict : %f \n", rD, predict ) ;
+   printf(" Observe :%.2f -> Predict : %.2f \n", rD, predict ) ;
 
 }
 
 // Return the sum of spike and halo component or QCD component of background
 // xbin : 5 eta region ( 0 ~ 1.4 ) , bin width : 0.28
 // ybin : [bin1]: Total count , [bin2]: Halo , [bin3]: Spike, [bin4]: Cosmic
-double BackgroundStudy::GetEstimation( TH2D* hCount, bool getQCD ) {
+double BackgroundStudy::GetEstimation( TH3D* hCount, bool getQCD ) {
 
    double ghostB = 0 ;
    double Bg_exp = 0 ; 
    double residual = 0 ;
-   printf("| eta |    spike    |     halo    |   cosmic   |  QCD  |  Total  |\n" ) ;
-   for ( int i=0; i< 5; i++ ) {
 
-       double nB = hCount->GetBinContent(i+1, 1) ; // total number in control region 
-       double nH = hCount->GetBinContent(i+1, 2) ; // number of halo tagged in control region
-       double nS = hCount->GetBinContent(i+1, 3) ; // number of spike tagged in control region
-       double nC = hCount->GetBinContent(i+1, 4) ; // number of cosmic tagged in control region
-       
+   printf("| eta |    spike    |     halo    |   cosmic    |  unkown  | Total |\n" ) ;
+   // 5 different eta region
+   float sum[9] = {0.} ;
+   for ( int i=0; i< 5; i++ ) {
+       // 3 jet multiplicity
+       double nB = 0 ; 
+       double nH = 0 ;
+       double nS = 0 ;
+       double nC = 0 ;
+       for ( int j=1; j<4; j++ ) { 
+
+           if ( j-1 < jetCuts[2] || j-1 > jetCuts[3] ) continue ;
+           
+	   nB += hCount->GetBinContent( i+1, 1, j ) ; // total number in control region 
+	   nH += hCount->GetBinContent( i+1, 2, j ) ; // number of halo tagged in control region
+	   nS += hCount->GetBinContent( i+1, 3, j ) ; // number of spike tagged in control region
+	   nC += hCount->GetBinContent( i+1, 4, j ) ; // number of cosmic tagged in control region
+       }
+
        vector<double> bgV = GetComponent( i, nB, nH, nS, nC ) ;
        ghostB   += bgV[0] ;  // spike
        ghostB   += bgV[1] ;  // halo
        ghostB   += bgV[2] ; // cosmic
        residual += bgV[3] ; // qcd
        Bg_exp   += nB ;
-       //printf(" eta(%d) : spike:%f , halo:%f , cosmic:%f , QCD:%f  from %f \n ", i, bgV[0], bgV[1], bgV[2], bgV[3], nB ) ;
-       //printf(" eta  |  spike  |   halo   |  cosmic  |  QCD  |  from  |\n " ) ;
-       printf("|  %d  | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f | %4.f |\n", 
-                   i,     bgV[0], nS,   bgV[1], nH,    bgV[2], nC,   bgV[3],  nB ) ;
+       printf("|  %d  | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) |  %4.f |\n", 
+                   i,     bgV[0], nS,   bgV[1], nH,    bgV[2], nC,    bgV[3], nB-nS-nH-nC ,    nB ) ;
+
+       sum[0] += bgV[0] ;
+       sum[1] +=     nS ;
+       sum[2] += bgV[1] ;
+       sum[3] +=     nH ;
+       sum[4] += bgV[2] ;
+       sum[5] +=     nC ;
+       sum[6] += bgV[3] ;
+       sum[7] += nB-nS-nH-nC ;
+       sum[8] +=     nB ;
 
    }
-
-   printf(" Background :  QCD:%f , Ghost:%f -> %f \n ", residual, ghostB, Bg_exp ) ;
+       printf("| sum | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) |  %4.f |\n", 
+                        sum[0],sum[1], sum[2],sum[3], sum[4],sum[5], sum[6],sum[7], sum[8]  ) ;
+  
+   printf("|----------------------------------------------------------------------\n") ;
+   printf("| Background :  Unknown:%.2f , halo+spike+cosmic = %.2f from total %.1f \n", residual, ghostB, Bg_exp ) ;
+   printf("|----------------------------------------------------------------------\n") ;
 
    if ( getQCD ) return residual ;
    else          return Bg_exp ;
@@ -1407,36 +1574,36 @@ vector<double> BackgroundStudy::GetComponent( int eta_i, int B12, int h_B12, int
 }
 
 // Get halo/spike/QCD component using tagging efficiency and mis-tagging rate 
-vector<double> BackgroundStudy::GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) {
+vector<double> BackgroundStudy::GetComponent( int eta_i, double B0 , double h_B, double s_B, double c_B ) {
 
        double h = haloEff[ eta_i ] ;  // halo
        double s = spikeEff[ eta_i ] ;  // spike
-       //double c = cEff[ eta_i ] ;  // comsic
+       double c = cosEff[ eta_i ] ;  // comsic
        
        double m = haloMis[ eta_i ] ;   // halo
        double n = spikeMis[ eta_i ] ;   // spike
-       //double o = oA[ eta_i ] ;   // cosmic
+       double o = cosMis[ eta_i ] ;   // cosmic
 
        // cosmic content 
-       double C12 = c_B12 ;
-       double B12_noC = B12 - C12 ;
+       double C_ = (c_B - o*B0 ) / ( c - o ) ; 
+       C_ = ( C_ < 0. ) ? 0 : C_ ;
        // spike content
-       double S12 = ( s_B12 - (n*B12_noC) ) / ( s - n ) ;
-       S12 = ( S12 < 0. ) ? 0 : S12 ;
+       double S_ = (s_B - n*B0 ) / ( s - n ) ; 
+       S_ = ( S_ < 0. ) ? 0 : S_ ;
        // halo content 
-       double H12 = ( h_B12 - (m*B12_noC) ) / ( h - m ) ;
-       H12 = ( H12 < 0. ) ? 0 : H12 ;
+       double H_ = (h_B - m*B0 ) / ( h - m ) ; 
+       H_ = ( H_ < 0. ) ? 0 : H_ ;
        // QCD content 
-       double Q12 = (double)(B12) - S12 - H12 - C12;
-       Q12 = ( Q12 < 0. ) ? 0 : Q12 ;
+       double Q_ = (double)(B0) - S_ - H_ - C_;
+       Q_ = ( Q_ < 0. ) ? 0 : Q_ ;
 
        //printf("(%d) B12 %d = (S12: %.2f ) + ( H12: %.2f ) + ( Q12: %.2f )\n ", eta_i, B12, S12, H12, Q12 ) ;
 
        vector<double> BG12 ;
-       BG12.push_back( S12 ) ;
-       BG12.push_back( H12 ) ;
-       BG12.push_back( C12 ) ;
-       BG12.push_back( Q12 ) ;
+       BG12.push_back( S_ ) ;
+       BG12.push_back( H_ ) ;
+       BG12.push_back( C_ ) ;
+       BG12.push_back( Q_ ) ;
        return BG12 ;
 }
 
@@ -1503,5 +1670,4 @@ Double_t BackgroundStudy::HaloFunction( Double_t* eta, Double_t* par  ) {
 
      return T ;
 }
-
 

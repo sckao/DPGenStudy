@@ -54,10 +54,13 @@ Output::Output( string datacardfile ) {
 
   // ABCD use
   // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike, 3: cosmic
-  hBg_D  = new TH2D( "hBg_D", "Background in D region ",  5,  0., 5, 4, 0, 4 ) ;
-  hBg_C  = new TH2D( "hBg_C", "Background in C region ",  5,  0., 5, 4, 0, 4 ) ;
-  hBg_B  = new TH2D( "hBg_B", "Background in B region ",  5,  0., 5, 4, 0, 4 ) ;
-  hBg_A  = new TH2D( "hBg_A", "Background in A region ",  5,  0., 5, 4, 0, 4 ) ;
+  // z is jet mulitplicity
+  hBg_F  = new TH3D( "hBg_F", "Background in F region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
+  hBg_E  = new TH3D( "hBg_E", "Background in E region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
+  hBg_D  = new TH3D( "hBg_D", "Background in D region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
+  hBg_C  = new TH3D( "hBg_C", "Background in C region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
+  hBg_B  = new TH3D( "hBg_B", "Background in B region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
+  hBg_A  = new TH3D( "hBg_A", "Background in A region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
 
 
   theFile->cd() ;
@@ -77,7 +80,7 @@ Output::~Output(){
 void Output::RunData( string dataName ) { 
 
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
+   float seedTime[MAXPHO], seedSwissX[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
    float metE ;
    int   nPhotons, nJets ;
    float cscdPhi[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
@@ -109,6 +112,7 @@ void Output::RunData( string dataName ) {
    tr->SetBranchAddress("timeChi2",    timeChi2 );
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("sMajPho",     sMajPho );
+   tr->SetBranchAddress("seedSwissX",  seedSwissX );
    tr->SetBranchAddress("nXtals",      nXtals );
    tr->SetBranchAddress("cscdPhi",     cscdPhi );
    tr->SetBranchAddress("dtdPhi",     dtdPhi );
@@ -143,6 +147,9 @@ void Output::RunData( string dataName ) {
        selectPho.clear() ;
        select->GetCollection("Photon", selectPho ) ;
 
+       newMET    = select->newMET ;
+       noPhotMET = select->noPhotMET ;
+
        nEvt++; 
        if ( !pass ) continue ;
        //cout<<" EVT# : "<< nEvt <<endl ;
@@ -155,61 +162,69 @@ void Output::RunData( string dataName ) {
            if ( timeChi2[k] > 4 ) continue ;
            // Background Tagging
            bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , gP4_.Eta() ) ;
-	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k] ) ;
+	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], gP4_.Eta() ) ;
            bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
            bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
 
            int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
+           int nj = ( selectJets.size() > 2 ) ? 2 : (int)selectJets.size() ;
+
+           bool passABCDSelection = ( newMET.E() > 60. && timeChi2[k] < 4 && selectPho[0].second.Pt() > 80. ) ;
+           // Region E , |t| < 2 ns  
+           if ( fabs( seedTime[k]) < 2. && passABCDSelection ) {
+              if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj );
+              if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj );
+           }
 
            // C and D region
-           if ( seedTime[k] > 3. && seedTime[k] < 10. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+           if ( seedTime[k] >  3. && seedTime[k] < 10. && passABCDSelection ) {
 
               if ( !ghostTag ) h_MET->Fill( metE ) ;
-         
               // Region C
-              if ( metE < jetCuts[4]  ) {
-                 hBg_C->Fill( ih, 0.5 );
-                 if ( haloTag  ) hBg_C->Fill( ih, 1.5 );
-                 if ( spikeTag ) hBg_C->Fill( ih, 2.5 );
-                 if ( cosmicTag ) hBg_C->Fill( ih, 3.5 );
+              if ( noPhotMET.E() < jetCuts[4] ) {
 
+                 hBg_C->Fill( ih, 0.5, nj );
+                 if ( haloTag && !cosmicTag && !spikeTag )  hBg_C->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )              hBg_C->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                           hBg_C->Fill( ih, 3.5, nj );
 	         h_bgTime->Fill( seedTime[k] ) ; 
- 	         if ( timeChi2[k] < 5 )  h_bgTimeA->Fill( aveTime[k] ) ;
+ 	         if ( timeChi2[k] < 4 )  h_bgTimeA->Fill( aveTime[k] ) ;
               }
+
               // Region D
-              if ( metE > jetCuts[4] ) {
-                 hBg_D->Fill( ih, 0.5 );
-                 if ( haloTag  ) hBg_D->Fill( ih, 1.5 );
-                 if ( spikeTag ) hBg_D->Fill( ih, 2.5 );
-                 if ( cosmicTag ) hBg_D->Fill( ih, 3.5 );
+              if ( noPhotMET.E() > jetCuts[4] ) {
+                 hBg_D->Fill( ih, 0.5, nj );
+                 if ( haloTag && !cosmicTag && !spikeTag )  hBg_D->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )              hBg_D->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                           hBg_D->Fill( ih, 3.5, nj );
 
                  // Signal template - D region
    	         h_dataTimeAll->Fill( seedTime[k] ) ;
    	         h_dataTime->Fill( seedTime[k] ) ;
-	         if ( timeChi2[k] < 5 )  h_dataTimeA->Fill( aveTime[k] ) ;
+	         if ( timeChi2[k] < 4 )  h_dataTimeA->Fill( aveTime[k] ) ;
               }
 
            }
 
            // Background template
            // A and B region
-           if ( seedTime[k] < -3. && seedTime[k] > -10. && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3]   ) {
+           if ( seedTime[k] < -3. && seedTime[k] > -10. && passABCDSelection ) {
 
               if ( !ghostTag )  h_bgMET->Fill( metE ) ;
               
               // Region A 
-              if (  metE < jetCuts[4] ) {
-                 hBg_A->Fill( ih, 0.5 );
-                 if ( haloTag  ) hBg_A->Fill( ih, 1.5 );
-                 if ( spikeTag ) hBg_A->Fill( ih, 2.5 );
-                 if ( cosmicTag ) hBg_A->Fill( ih, 3.5 );
+              if (  noPhotMET.E() < jetCuts[4] ) {
+                 hBg_A->Fill( ih, 0.5, nj );
+		 if ( haloTag && !cosmicTag && !spikeTag )  hBg_A->Fill( ih, 1.5, nj );
+		 if ( spikeTag && !cosmicTag )              hBg_A->Fill( ih, 2.5, nj );
+		 if ( cosmicTag )                           hBg_A->Fill( ih, 3.5, nj );
               }
               // Region B
-              if (  metE > jetCuts[4] ) {
-                 hBg_B->Fill( ih, 0.5 );
-                 if ( haloTag  ) hBg_B->Fill( ih, 1.5 );
-                 if ( spikeTag ) hBg_B->Fill( ih, 2.5 );
-                 if ( cosmicTag ) hBg_B->Fill( ih, 3.5 );
+              if (  noPhotMET.E() > jetCuts[4] ) {
+                 hBg_B->Fill( ih, 0.5, nj );
+                 if ( haloTag  && !cosmicTag && !spikeTag )  hBg_B->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )               hBg_B->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                            hBg_B->Fill( ih, 3.5, nj );
               }
            }
        }
@@ -270,7 +285,7 @@ void Output::RunMC( string mcName, double weight ) {
 
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float cscdPhi[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
+   float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO], seedSwissX[MAXPHO] ;
    int nXtals[MAXPHO]  ; 
    float metE ;
    int   nPhotons, nJets ;
@@ -338,7 +353,7 @@ void Output::RunMC( string mcName, double weight ) {
            int k = selectPho[j].first ;
            // Background Tagging
            bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , selectPho[j].second.Eta() ) ;
-	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k] ) ;
+	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], selectPho[j].second.Eta() ) ;
            bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
            bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
            if ( ghostTag && j ==0 ) break ;
@@ -684,6 +699,8 @@ void Output::WriteDataHisto() {
      hBg_B->Write() ;
      hBg_C->Write() ;
      hBg_D->Write() ;
+     hBg_E->Write() ;
+     hBg_F->Write() ;
 }
 
 void Output::WriteMcHisto() { 

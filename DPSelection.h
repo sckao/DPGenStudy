@@ -8,6 +8,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include "TLorentzVector.h"
+#include "TH3.h"
 
 #include "AnaInput.h"
 #include "Rtuple.h"
@@ -44,6 +45,7 @@ public:
    bool VertexFilter();
    bool ElectronFilter();
    bool MuonFilter();
+   TLorentzVector CorrectMET() ;
 
    bool GetEventStat( string flagName ) ;
 
@@ -54,7 +56,7 @@ public:
    uint32_t  EventIdentification() ;
 
    bool HaloTag( double cscdPhi, double sMaj, double sMin, double eta ) ;
-   bool SpikeTag( int nXtl, double sMaj, double sMin ) ;
+   bool SpikeTag( int nXtl, double sMaj, double sMin , double swissX, double eta ) ;
    bool CosmicTag( double dtdEta , double dtdPhi ) ;
 
    void ResetCuts( string cutName, vector<int>& cutId, vector<double>& newValue ) ;
@@ -68,12 +70,13 @@ public:
    void PrintCutFlow() ;
    inline int GetPhotonCutFlow() { return photonCutFlow ; }
 
-   double ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) ;
-   double GetEstimation( TH2D* hCount, bool getQCD = true ) ;
+   double ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) ;
+   double GetEstimation( TH3D* hCount, bool getQCD = true ) ;
    void UpdateEfficiency( double halo_Eff[], double halo_FR[], double spike_Eff[], double spike_FR[] );
    vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12, bool updateEff = false ) ;
    vector<double> GetComponent( int eta_i,    int B12,    int h_B12,    int s_B12,    int c_B12, bool updateEff = false ) ;
 
+   
 
    // results
    bool passL1 ;
@@ -84,6 +87,8 @@ public:
    bool passJet ;
    bool passMET ;
    bool passJetMET ;
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
 
 private:
 
@@ -106,11 +111,11 @@ private:
 
    unsigned int eventId ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO], fSpike[MAXPHO] ;
-   float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO] ;
+   float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO] ;
+   float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO], seedSwissX[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
    float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
-   float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
+   float cscdPhi[MAXPHO] , cscRho[MAXPHO], cscTime[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
    int   nXtals[MAXPHO] ;
 
    //float vtxX[MAXVTX],    vtxY[MAXVTX] ; 

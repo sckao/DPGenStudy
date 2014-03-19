@@ -66,6 +66,9 @@ private:
    vector<objID> selectJets ;
    vector<objID> selectPho ;
 
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
+
    TH1D* h_dataTime  ;
    TH1D* h_dataTimeA  ;
    TH1D* h_dataTimeAll  ;
@@ -80,10 +83,12 @@ private:
    TH1D* h_NJets     ;
    TH1D* h_sgNJets     ;
 
-   TH2D* hBg_A ;
-   TH2D* hBg_B ;
-   TH2D* hBg_C ;
-   TH2D* hBg_D ;
+   TH3D* hBg_A ;
+   TH3D* hBg_B ;
+   TH3D* hBg_C ;
+   TH3D* hBg_D ;
+   TH3D* hBg_E ;
+   TH3D* hBg_F ;
 
    TH1D* rh_dataTime  ;
    TH1D* rh_dataTimeA  ;

@@ -1,4 +1,4 @@
-CC=g++ -g -fPIC -Wall -O -ansi -D_GNU_SOURCE -g -O2 -m64
+CC=g++ -g -fPIC -Wall -O -ansi -D_GNU_SOURCE -O2 -m64
 ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags`
 LIB=`${ROOTSYS}/bin/root-config --libs`
 GLIB=`${ROOTSYS}/bin/root-config --glibs`

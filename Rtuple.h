@@ -5,27 +5,27 @@
 
 //#define MAXPHO 10
 //#define MAXVTX 10
-#define MAXPHO 12
-#define MAXVTX 30
 #define MAXJET 15
 #define MAXMU 5
 #define MAXELE 5
 #define MAXGEN 20
 
+#define MAXPHO 12
+#define MAXVTX 30
 
 struct Rtuple {
 
    unsigned int eventId ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO], fSpike[MAXPHO], timeChi2[MAXPHO] ;
+   float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO], timeChi2[MAXPHO] ;
    float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
    float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
-   float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO] ;
+   float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO], seedSwissX[MAXPHO] ;
    int   nXtals[MAXPHO] ;
 
    //float vtxX[MAXVTX],    vtxY[MAXVTX] ; 
-   float vtxZ[MAXVTX], vtxChi2[MAXVTX], vtxNdof[MAXVTX];
+   float vtxZ[MAXVTX], vtxChi2[MAXVTX], vtxNdof[MAXVTX] ;
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
    float jetNDau[MAXJET], jetCM[MAXJET], jetCEF[MAXJET], jetCHF[MAXJET], jetNHF[MAXJET], jetNEF[MAXJET];
    float jecUnc[MAXJET],  jerUnc[MAXJET] ;
@@ -36,6 +36,7 @@ struct Rtuple {
    float eleEcalIso[MAXELE], eleHcalIso[MAXELE], eleTrkIso[MAXELE] ;
    int   eleNLostHits[MAXELE] ;
 
+   float t_metPx, t_metPy, t_met ;
    float metPx, metPy, metE, met_dx1, met_dy1, met_dx2, met_dy2, met_dx3, met_dy3 ;
    int   nJets, nPhotons, nElectrons, nVertices, totalNVtx, nMuons, triggered, L1a ;
 

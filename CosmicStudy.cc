@@ -58,6 +58,9 @@ void CosmicStudy::Create( TFile* hFile ) {
      cosmic_MET_Time_0J = new TH2D( "cosmic_MET_Time_0J", " MET vs photon time for cosmic photon ", 50, 0, 500, 160, -20, 20 ) ;
      cosmic_MET_Time_1J = new TH2D( "cosmic_MET_Time_1J", " MET vs photon time for cosmic photon ", 50, 0, 500, 160, -20, 20 ) ;
      cosmic_MET_Time_2J = new TH2D( "cosmic_MET_Time_2J", " MET vs photon time for cosmic photon ", 50, 0, 500, 160, -20, 20 ) ;
+     cosmic_MET2_Time_0J = new TH2D("cosmic_MET2_Time_0J", "MET2 vs photon time for cosmic photon ", 50, 0, 500, 160, -20, 20 ) ;
+     cosmic_MET2_Time_1J = new TH2D("cosmic_MET2_Time_1J", "MET2 vs photon time for cosmic photon ", 50, 0, 500, 160, -20, 20 ) ;
+     cosmic_MET2_Time_2J = new TH2D("cosmic_MET2_Time_2J", "MET2 vs photon time for cosmic photon ", 50, 0, 500, 160, -20, 20 ) ;
      cosmic_sMin_Time = new TH2D( "cosmic_sMin_Time",  "sMin vs Ecal time for cosmic photon", 100, 0., 0.5 , 160, -20, 20  ) ;
      cosmic_sMaj_Time = new TH2D( "cosmic_sMaj_Time",  "sMaj vs Ecal time for cosmic Photon", 100, 0, 2, 160, -20, 20 ) ;
      cosmic_sMaj_sMin = new TH2D( "cosmic_sMaj_sMin", "sMajor vs sMinor for cosmic photon ", 100, 0., 2., 50, 0.1, 0.4 ) ;
@@ -68,17 +71,24 @@ void CosmicStudy::Create( TFile* hFile ) {
 
 }
 
-void CosmicStudy::Open() {
+void CosmicStudy::Open( TFile* hFile) {
 
-     //Input->GetParameters("Path",      &hfolder ) ; 
-     //hfolder += "backgrounds/" ;
+     if ( hFile == NULL ) {
+        TString Path_fName = hfolder + hfileName + ".root" ;
+        theFile = new TFile( Path_fName, "UPDATE" );
+        createFile = true ;
+        cout<<" root file opened ! "<<endl ;
+     } else {
+        theFile = hFile ;
+        createFile = false ;
+     }
 
+     /*
      TString Path_fName = hfolder + hfileName + ".root" ; 
      cout<<" Opening : "<< Path_fName <<" for comsic-study " << endl ;
 
      theFile = (TFile*) TFile::Open( Path_fName , "READ" );
-     //hFile->cd() ;
-     cout<<" root file opened ! "<<endl ;
+     */
 
      cosmic_tChi2 = (TH1D*) theFile->Get("cosmic_tChi2");
      cosmic_Eta_Time = (TH2D*) theFile->Get("cosmic_Eta_Time");
@@ -88,6 +98,9 @@ void CosmicStudy::Open() {
      cosmic_MET_Time_0J = (TH2D*) theFile->Get("cosmic_MET_Time_0J");
      cosmic_MET_Time_1J = (TH2D*) theFile->Get("cosmic_MET_Time_1J");
      cosmic_MET_Time_2J = (TH2D*) theFile->Get("cosmic_MET_Time_2J");
+     cosmic_MET2_Time_0J = (TH2D*) theFile->Get("cosmic_MET2_Time_0J");
+     cosmic_MET2_Time_1J = (TH2D*) theFile->Get("cosmic_MET2_Time_1J");
+     cosmic_MET2_Time_2J = (TH2D*) theFile->Get("cosmic_MET2_Time_2J");
      cosmic_sMin_Time = (TH2D*) theFile->Get("cosmic_sMin_Time");
      cosmic_sMaj_Time = (TH2D*) theFile->Get("cosmic_sMaj_Time");
      cosmic_photIso_Time = (TH2D*) theFile->Get("cosmic_photIso_Time");
@@ -107,6 +120,9 @@ void CosmicStudy::Write() {
      cosmic_MET_Time_0J->Write() ;
      cosmic_MET_Time_1J->Write() ;
      cosmic_MET_Time_2J->Write() ;
+     cosmic_MET2_Time_0J->Write() ;
+     cosmic_MET2_Time_1J->Write() ;
+     cosmic_MET2_Time_2J->Write() ;
      cosmic_sMin_Time->Write() ;
      cosmic_sMaj_Time->Write() ;
      cosmic_photIso_Time->Write() ;
@@ -144,10 +160,16 @@ void CosmicStudy::Run(  vector<objID>& selectPho, vector<objID>& selectJets, Rtu
 		       cosmic_nXtl->Fill( rt.nXtals[k] , weight );
                     }
 		    cosmic_MET_Time->Fill( met.E() , rt.seedTime[k] , weight );
-                    if ( selectJets.size() == 0 ) cosmic_MET_Time_0J->Fill( met.E(), rt.seedTime[k] , weight ) ;
-                    if ( selectJets.size() == 1 ) cosmic_MET_Time_1J->Fill( met.E(), rt.seedTime[k] , weight ) ;
-                    if ( selectJets.size() >= 2 ) cosmic_MET_Time_2J->Fill( met.E(), rt.seedTime[k] , weight ) ;
-
+                    if ( noPhotMET.E() < 60 && rt.timeChi2[k] < 4. ) {
+                       if ( selectJets.size() == 0 ) cosmic_MET_Time_0J->Fill( newMET.E(), rt.seedTime[k] , weight ) ;
+		       if ( selectJets.size() == 1 ) cosmic_MET_Time_1J->Fill( newMET.E(), rt.seedTime[k] , weight ) ;
+		       if ( selectJets.size() >= 2 ) cosmic_MET_Time_2J->Fill( newMET.E(), rt.seedTime[k] , weight ) ;
+                    }
+                    if ( noPhotMET.E() > 60 && rt.timeChi2[k] < 4. ) {
+                       if ( selectJets.size() == 0 ) cosmic_MET2_Time_0J->Fill( newMET.E(), rt.seedTime[k] , weight ) ;
+		       if ( selectJets.size() == 1 ) cosmic_MET2_Time_1J->Fill( newMET.E(), rt.seedTime[k] , weight ) ;
+		       if ( selectJets.size() >= 2 ) cosmic_MET2_Time_2J->Fill( newMET.E(), rt.seedTime[k] , weight ) ;
+                    }
                  }
               }
        } // end of photon looping 
@@ -200,6 +222,12 @@ bool CosmicStudy::CosmicTag( Rtuple& rt, int k ) {
 
 }
 
+void CosmicStudy::GetNewMET( TLorentzVector& newMET_, TLorentzVector& noPhotMET_ ) {
+
+     newMET    = newMET_ ;
+     noPhotMET = noPhotMET_ ;
+}
+
 void CosmicStudy::ABCD_Report() {
 
     // MET: ( 50, 0, 500)  Time: ( 160, -20, 20 )
@@ -221,26 +249,26 @@ void CosmicStudy::ABCD_Report() {
     printf(" ============ Cosmics 0Jet ============\n") ;
     double rDC0 = ( nC0 < 0.0001 ) ? -1 : nD0/nC0 ;
     double rBA0 = ( nA0 < 0.0001 ) ? -1 : nB0/nA0 ;
-    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.1f \n", nC0, nD0 , rDC0 ) ;
-    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.1f \n", nA0, nB0 , rBA0 ) ;
+    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.2f \n", nC0, nD0 , rDC0 ) ;
+    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.2f \n", nA0, nB0 , rBA0 ) ;
 
     printf(" ============ Cosmics 1Jet ============\n") ;
     double rDC1 = ( nC1 < 0.0001 ) ? -1 : nD1/nC1 ;
     double rBA1 = ( nA1 < 0.0001 ) ? -1 : nB1/nA1 ;
-    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.1f \n", nC1, nD1, rDC1 ) ;
-    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.1f \n", nA1, nB1, rBA1 ) ;
+    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.2f \n", nC1, nD1, rDC1 ) ;
+    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.2f \n", nA1, nB1, rBA1 ) ;
 
     printf(" ============ Cosmics >= 2Jet ============\n") ;
     double rDC2 = ( nC2 < 0.0001 ) ? -1 : nD2/nC2 ;
     double rBA2 = ( nA2 < 0.0001 ) ? -1 : nB2/nA2 ;
-    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.1f \n", nC2, nD2, rDC2 ) ;
-    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.1f \n", nA2, nB2, rBA2 ) ;
+    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.2f \n", nC2, nD2, rDC2 ) ;
+    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.2f \n", nA2, nB2, rBA2 ) ;
 
     printf(" ============ Cosmics >= 1Jet ============\n") ;
     double rDC = ( (nC2 + nC1) < 0.0001 ) ? -1 : (nD2+nD1)/(nC2+nC1) ;
     double rBA = ( (nA2 + nA1) < 0.0001 ) ? -1 : (nB2+nB1)/(nA2+nA1) ;
-    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.1f \n", nC2+nC1, nD2+nD1, rDC ) ;
-    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.1f \n", nA2+nA1, nB2+nB1, rBA ) ;
+    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.2f \n", nC2+nC1, nD2+nD1, rDC ) ;
+    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.2f \n", nA2+nA1, nB2+nB1, rBA ) ;
 
     printf(" =====================================\n") ;
 

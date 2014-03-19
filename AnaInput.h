@@ -26,15 +26,20 @@
 
 //#define MAXPHO 10
 //#define MAXVTX 10
+/*
 #define MAXPHO 12
 #define MAXVTX 30
 #define MAXJET 15
 #define MAXMU 5
 #define MAXELE 5
 #define MAXGEN 20
+*/
 
 using namespace std;
 typedef pair<int, TLorentzVector> objID ;
+
+// some definitions of global functions
+bool badCrystal( double eta, double phi ) ;
 
 class AnaInput : public TObject {
 

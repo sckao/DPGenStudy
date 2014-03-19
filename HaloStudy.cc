@@ -108,6 +108,9 @@ void HaloStudy::Create( TFile* hFile ) {
   halo_MET_Time_0J  = new TH2D( "halo_MET_Time_0J", "MET vs photon time for halo photon", 50, 0, 500, 160, -20, 20 ) ;
   halo_MET_Time_1J  = new TH2D( "halo_MET_Time_1J", "MET vs photon time for halo photon", 50, 0, 500, 160, -20, 20 ) ;
   halo_MET_Time_2J  = new TH2D( "halo_MET_Time_2J", "MET vs photon time for halo photon", 50, 0, 500, 160, -20, 20 ) ;
+  halo_MET2_Time_0J = new TH2D( "halo_MET2_Time_0J", "MET2 vs photon time for halo photon", 50, 0, 500, 160, -20, 20 ) ;
+  halo_MET2_Time_1J = new TH2D( "halo_MET2_Time_1J", "MET2 vs photon time for halo photon", 50, 0, 500, 160, -20, 20 ) ;
+  halo_MET2_Time_2J = new TH2D( "halo_MET2_Time_2J", "MET2 vs photon time for halo photon", 50, 0, 500, 160, -20, 20 ) ;
   halo_sMin_Time = new TH2D( "halo_sMin_Time",  "sMin vs Ecal time for halo photon", 100, 0., 0.5 , 160, -20, 20  ) ;
   halo_sMaj_Time = new TH2D( "halo_sMaj_Time",  "sMaj vs Ecal time for halo Photon", 100, 0, 2, 160, -20, 20 ) ;
   halo_sMaj_sMin = new TH2D( "halo_sMaj_sMin", "sMajor vs sMinor for halo photon ", 100, 0., 2., 50, 0.1, 0.4 ) ;
@@ -124,6 +127,7 @@ void HaloStudy::Create( TFile* hFile ) {
   halo_eta_sMaj       = new TH2D( "halo_eta_sMaj", " #eta vs sMajor", 51, -2.5, 2.5, 100, 0, 2 ) ;
   halo_ecalT_rho      = new TH2D( "halo_ecalT_rho", " Ecal time vs rho", 160, -20, 20, 100, 100, 500. ) ;
   halo_nXtl     = new TH1D( "halo_nXtl", " N of crystals ", 50, 0, 50 ) ;
+  halo_swissX   = new TH1D( "halo_swissX", " Swiss-X ", 110, 0, 1.1 ) ;
   halo_tChi2   = new TH1D( "halo_tChi2", " chi2 of time ", 100, 0, 10  ) ;
   noHalo_tChi2   = new TH1D( "noHalo_tChi2", " chi2 of time ", 100, 0, 10  ) ;
 
@@ -136,14 +140,24 @@ void HaloStudy::Create( TFile* hFile ) {
 
 }
 
-void HaloStudy::Open() {
+void HaloStudy::Open( TFile* hFile ) {
 
+     if ( hFile == NULL ) {
+        TString Path_fName = hfolder + hfileName + ".root" ;
+        theFile = new TFile( Path_fName, "UPDATE" );
+        createFile = true ;
+        cout<<" file opened ! "<<endl ;
+     } else {
+        theFile = hFile ;
+        createFile = false ;
+     }
+
+     /*
      TString Path_fName = hfolder + hfileName + ".root" ; 
      cout<<" Opening : "<< Path_fName <<" for halo-study"<<endl ;
 
      theFile = (TFile*) TFile::Open( Path_fName , "READ" );
-     //hFile->cd() ;
-     cout<<" file opened ! "<<endl ;
+     */
 
      haloTest_sMaj_sMin  = (TH2D*) theFile->Get("haloTest_sMaj_sMin");
      haloTest_cscdPhi    = (TH1D*) theFile->Get("haloTest_cscdPhi");
@@ -196,6 +210,9 @@ void HaloStudy::Open() {
      halo_MET_Time_0J = (TH2D*) theFile->Get("halo_MET_Time_0J");
      halo_MET_Time_1J = (TH2D*) theFile->Get("halo_MET_Time_1J");
      halo_MET_Time_2J = (TH2D*) theFile->Get("halo_MET_Time_2J");
+     halo_MET2_Time_0J = (TH2D*) theFile->Get("halo_MET2_Time_0J");
+     halo_MET2_Time_1J = (TH2D*) theFile->Get("halo_MET2_Time_1J");
+     halo_MET2_Time_2J = (TH2D*) theFile->Get("halo_MET2_Time_2J");
 
      halo_Eta_Time = (TH2D*) theFile->Get("halo_Eta_Time");
      halo_Phi_Time = (TH2D*) theFile->Get("halo_Phi_Time");
@@ -217,6 +234,7 @@ void HaloStudy::Open() {
      halo_eta_sMaj        = (TH2D*) theFile->Get("halo_eta_sMaj");
      halo_ecalT_rho       = (TH2D*) theFile->Get("halo_ecalT_rho");
      halo_nXtl            = (TH1D*) theFile->Get("halo_nXtl");
+     halo_swissX          = (TH1D*) theFile->Get("halo_swissX");
 
      noHalo_Time = (TH1D*) theFile->Get("noHalo_Time");
      noHalo_sMaj_Time = (TH2D*) theFile->Get("noHalo_sMaj_Time");
@@ -279,6 +297,9 @@ void HaloStudy::Write( ) {
   halo_MET_Time_0J->Write() ;
   halo_MET_Time_1J->Write() ;
   halo_MET_Time_2J->Write() ;
+  halo_MET2_Time_0J->Write() ;
+  halo_MET2_Time_1J->Write() ;
+  halo_MET2_Time_2J->Write() ;
 
   halo_Eta_Time->Write() ;
   halo_Pt_Time->Write() ;
@@ -300,6 +321,7 @@ void HaloStudy::Write( ) {
   halo_eta_sMaj->Write() ;
   halo_ecalT_rho->Write() ;
   halo_nXtl->Write() ;
+  halo_swissX->Write() ;
   halo_tChi2->Write() ;
 
   noHalo_Time->Write() ;
@@ -323,7 +345,7 @@ void HaloStudy::Run( vector<objID>& selectPho, vector<objID>& selectJets, Rtuple
 	   double cscdPhi_     = ( rt.cscdPhi[k] > 9. ) ? 3.24 : rt.cscdPhi[k] ;
            double nHIso = max( rt.nHadIso[k] - (0.04*gP4_.Pt()) , 0. ) ;
            double phIso = max( rt.photIso[k] - (0.005*gP4_.Pt()) , 0. ) ;          
-	   bool haloTag  = HaloTag( rt, k ) ;
+	   bool haloTag = HaloTag( rt, k ) ;
 
 
 	   // Test Halo Stuff - cross -check
@@ -421,14 +443,22 @@ void HaloStudy::Run( vector<objID>& selectPho, vector<objID>& selectJets, Rtuple
 		       halo_Pt_Time->Fill( gP4_.Pt(),   rt.seedTime[k] , weight );
 		       halo_MET_Time->Fill( met.E(),    rt.seedTime[k] , weight );
 		       halo_nXtl->Fill( rt.nXtals[k] , weight );
+		       halo_swissX->Fill( rt.seedSwissX[k] , weight );
                  }
 		 if ( selectJets.size() == 0 ) halo_T_dPhi_gMET_0J->Fill( rt.seedTime[k] , dPhi_gMET, weight ) ;
 		 if ( selectJets.size() == 1 ) halo_T_dPhi_gMET_1J->Fill( rt.seedTime[k] , dPhi_gMET, weight ) ;
 		 if ( selectJets.size() >= 2 ) halo_T_dPhi_gMET_2J->Fill( rt.seedTime[k] , dPhi_gMET, weight ) ;
                
-		 if ( selectJets.size() == 0 ) halo_MET_Time_0J->Fill( met.E(),  rt.seedTime[k] , weight );
-		 if ( selectJets.size() == 1 ) halo_MET_Time_1J->Fill( met.E(),  rt.seedTime[k] , weight );
-		 if ( selectJets.size() >= 2 ) halo_MET_Time_2J->Fill( met.E(),  rt.seedTime[k] , weight );
+                 if ( noPhotMET.E() < 60 && rt.timeChi2[k] < 4. ) {
+   		    if ( selectJets.size() == 0 ) halo_MET_Time_0J->Fill( newMET.E(),  rt.seedTime[k] , weight );
+		    if ( selectJets.size() == 1 ) halo_MET_Time_1J->Fill( newMET.E(),  rt.seedTime[k] , weight );
+		    if ( selectJets.size() >= 2 ) halo_MET_Time_2J->Fill( newMET.E(),  rt.seedTime[k] , weight );
+                 }
+                 if ( noPhotMET.E() > 60 && rt.timeChi2[k] < 4. ) {
+    		    if ( selectJets.size() == 0 ) halo_MET2_Time_0J->Fill( newMET.E(),  rt.seedTime[k] , weight );
+		    if ( selectJets.size() == 1 ) halo_MET2_Time_1J->Fill( newMET.E(),  rt.seedTime[k] , weight );
+		    if ( selectJets.size() >= 2 ) halo_MET2_Time_2J->Fill( newMET.E(),  rt.seedTime[k] , weight );
+                 }
 
               } else {
 		    noHalo_sMaj_Time->Fill( rt.sMajPho[k], rt.seedTime[k] , weight ) ;
@@ -531,6 +561,7 @@ void HaloStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( halo_eta_rho,     "halo_eta_rho",    "#eta ", "#rho", "logZ", 8 ) ;
    h_draw->Draw2D( halo_eta_sMaj,    "halo_eta_sMaj",    "#eta ", "s_{Major}", "logZ", 8 ) ;
    h_draw->Draw2D( halo_ecalT_rho,   "halo_ecalT_rho",    "Ecal time ", "#rho", "logZ", 8 ) ;
+   h_draw->Draw(   halo_swissX,      "halo_swissX",       " Swiss-X ", "", "logY", 0.95, 1 ) ;
 
    h_draw->Draw2D( noHalo_sMaj_Time, "noHalo_sMaj_Time",  "sMaj", " EcalTime (ns) ",  "logZ"  ) ;
    h_draw->Draw2D( noHalo_sMin_Time, "noHalo_sMin_Time",  "sMin", " EcalTime (ns) ",  "logZ"  ) ;
@@ -546,14 +577,14 @@ void HaloStudy::DrawHistograms( hDraw* h_draw ) {
        sMaj_eta[i]->SetLabelSize(0.1, "X") ;
        sMaj_eta[i]->SetLabelSize(0.1, "Y") ;
    }
-   h_draw->CreateNxM( "sMaj_EtaSlice", 1,5 );
+   h_draw->CreateNxM( "sMaj_EtaSlice", 2,3 );
    h_draw->DrawNxM( 1, sMaj_eta[0] , "",          "", "logY", 1, false );
    h_draw->DrawNxM( 2, sMaj_eta[1] , "",          "", "logY", 2, false );
    h_draw->DrawNxM( 3, sMaj_eta[2] , "",          "", "logY", 4, false );
    h_draw->DrawNxM( 4, sMaj_eta[3] , "",          "", "logY", 6, false ) ;
    h_draw->DrawNxM( 5, sMaj_eta[4] , "s_{Major}", "", "logY", 8, true ) ;
 
-   h_draw->CreateNxM( "sMaj_EtaSlice_CSC", 1,5 );
+   h_draw->CreateNxM( "sMaj_EtaSlice_CSC", 2,3 );
    for (int i=0; i<5; i++) { 
        sMaj_eta_csc[i]->SetLabelSize(0.1, "X") ;
        sMaj_eta_csc[i]->SetLabelSize(0.1, "Y") ;
@@ -703,6 +734,12 @@ Double_t HaloStudy::HaloFunction( Double_t* eta, Double_t* par  ) {
      return T ;
 }
 
+void HaloStudy::GetNewMET( TLorentzVector& newMET_, TLorentzVector& noPhotMET_ ) {
+     
+     newMET    = newMET_ ;
+     noPhotMET = noPhotMET_ ;
+}
+
 void HaloStudy::ABCD_Report( ) {
 
     // MET: ( 50, 0, 500)  Time: ( 160, -20, 20 )
@@ -724,26 +761,26 @@ void HaloStudy::ABCD_Report( ) {
     printf(" ============ Halo 0Jet ============\n") ;
     double rDC0 = ( nC0 < 0.0001 ) ? -1 : nD0/nC0 ;
     double rBA0 = ( nA0 < 0.0001 ) ? -1 : nB0/nA0 ;
-    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.1f \n", nC0, nD0 , rDC0 ) ;
-    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.1f \n", nA0, nB0 , rBA0 ) ;
+    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.2f \n", nC0, nD0 , rDC0 ) ;
+    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.2f \n", nA0, nB0 , rBA0 ) ;
 
     printf(" ============ Halo 1Jet ============\n") ;
     double rDC1 = ( nC1 < 0.0001 ) ? -1 : nD1/nC1 ;
     double rBA1 = ( nA1 < 0.0001 ) ? -1 : nB1/nA1 ;
-    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.1f \n", nC1, nD1, rDC1 ) ;
-    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.1f \n", nA1, nB1, rBA1 ) ;
+    printf(" | [C] %.1f  | [D] %.1f | [D/C] = %.2f \n", nC1, nD1, rDC1 ) ;
+    printf(" | [A] %.1f  | [B] %.1f | [B/A] = %.2f \n", nA1, nB1, rBA1 ) ;
 
     printf(" ============ Halo >= 2Jet ============\n") ;
     double rDC2 = ( nC2 < 0.0001 ) ? -1 : nD2/nC2 ;
     double rBA2 = ( nA2 < 0.0001 ) ? -1 : nB2/nA2 ;
-    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.1f \n", nC2, nD2, rDC2 ) ;
-    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.1f \n", nA2, nB2, rBA2 ) ;
+    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.2f \n", nC2, nD2, rDC2 ) ;
+    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.2f \n", nA2, nB2, rBA2 ) ;
 
     printf(" ============ Halo >= 1Jet ============\n") ;
     double rDC = ( (nC2 + nC1) < 0.0001 ) ? -1 : (nD2+nD1)/(nC2+nC1) ;
     double rBA = ( (nA2 + nA1) < 0.0001 ) ? -1 : (nB2+nB1)/(nA2+nA1) ;
-    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.1f \n", nC2+nC1, nD2+nD1, rDC ) ;
-    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.1f \n", nA2+nA1, nB2+nB1, rBA ) ;
+    printf(" | [C] %.1f | [D] %.1f | [D/C] = %.2f \n", nC2+nC1, nD2+nD1, rDC ) ;
+    printf(" | [A] %.1f | [B] %.1f | [B/A] = %.2f \n", nA2+nA1, nB2+nB1, rBA ) ;
 
     printf(" =====================================\n") ;
 

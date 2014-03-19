@@ -1,21 +1,21 @@
-#This is the data card for the input of M2M3 analysis and TopMassFitter 
-# Auther : SCKao - UMN
-#
+########################################################
+# This is the data card for Displaced Photon Analysis  #
+# Auther : SCKao - UMN                                 #
+########################################################
 
 # root files directory
 RootFiles = rootfiles/
 
 # Folder to store results
-Path = TCuts_RunCD/
-#Path = CosmicsTest/
+Path = TCuts_RunBCD/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
 #HFileName = hStats_RunCD_1J
-HFileName = bgRunCD_1J
-#HFileName = TGen_RunCD
+#HFileName = testGen_RunCD_1J
+HFileName = bgRunBCD_MET2_LT60_NoIso
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC
@@ -26,14 +26,14 @@ Module = 7
 # MC = 0 , Data = 1
 IsData = 1
 # Files , '+' is the flag for TChain,  
+
 TheData = ( data+ )
-#dataChain = ( run2012d_1008_1, run2012d_1008_2, run2012d_1008_3, run2012c_1008_3, run2012c_1008_2, run2012c_1008_1 )
-dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
-#dataChain = ( run2012d_0829_1, run2012d_0829_2, run2012d_0829_3 )
-#dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3 )
-#dataChain = ( run2012c_0820_1, run2012c_0820_2, run2012c_0820_3 )
-#dataChain = ( run2012d_1, run2012d_2, run2012c )
-#dataChain = ( sys2012b, sys2012c , sys2012c2 )
+dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3, run2012c_1024_3, run2012c_1024_2, run2012c_1024_1, run2012b_1024_1, run2012b_1024_2 )
+#dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
+#dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3 )
+#dataChain = ( run2012c_1024_1, run2012c_1024_2, run2012c_1024_3 )
+#dataChain = ( run2012b_1024_1, run2012b_1024_2 )
+
 
 # for use of Output class,
 TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gmsb180_4000, gmsb180_6000 ) 
@@ -75,7 +75,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        2,       99,   60,  0.3)
+JetCuts = (   35., 2.4,        0,       99,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
@@ -124,15 +124,19 @@ TimeCalib = (  -0.167, 0.26 )
 # Background Tagging efficiency and fake rate
 # 0 : Use the value in this DataCard , 1: Calculate in flight
 
-UseInFlight = 1
+UseInFlight = 0
 
-HaloEff  = ( 1, 1, 1, 1, 1 )
-SpikeEff = ( 1, 1, 1, 1, 1 )
-HaloFake  = ( 0, 0, 0, 0, 0 )
-SpikeFake = ( 0, 0, 0, 0, 0 )
+# Efficiencies and fake rates in 5 eta regions
+#HaloEff  = ( 1, 1, 1, 1, 1 )
+#HaloFake  = ( 0, 0, 0, 0, 0 )
+#SpikeEff = ( 1, 1, 1, 1, 1 )
+#SpikeFake = ( 0, 0, 0, 0, 0 )
 
-#HaloEff  = ( 0.89, 0.86, 0.97, 0.90, 0.89 )
-#SpikeEff = ( 0.94, 0.89, 0.77, 0.68, 0.56 )
-#HaloFake  = ( 0.01349, 0.00629, 0.00154, 0.00088, 0.00038 )
-#SpikeFake = ( 0.02219, 0.02256, 0.01493, 0.00162, 0.00290 )
+HaloEff  = ( 0.93, 0.98, 0.99, 1.00, 0.98 )
+HaloFake = ( 0.0245, 0.0252, 0.0248, 0.0307, 0.05 )
+SpikeEff = ( 0.971, 0.967, 0.940, 0.953, 0.949 )
+SpikeFake = ( 0.0512, 0.0270, 0.0103, 0.00518, 0.00579 )
+CosmicEff = ( 0.785, 0.785, 0.785, 0.785, 0.785 )
+CosmicFake = ( 0.014, 0.014, 0.014, 0.014, 0.014 )
 
+#SpikeFake = ( 0.0219, 0.02256, 0.01493, 0.00162, 0.00290 )

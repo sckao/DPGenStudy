@@ -96,20 +96,22 @@ int main( int argc, const char* argv[] ) {
      
      BackgroundStudy * bgS = new BackgroundStudy( datacardfile ) ;
      if ( module == 7 ) {
+        bgS->CreateHistograms() ;
         bgS->SimpleRun() ;
+        bgS->WriteDrawHistograms() ;
      }
-     /* 
+      
      if ( module == 8 ) {
         vector<double >normV = Input->NormalizeComponents( datacardfile );
-        bgS->Create() ;
+        bgS->CreateHistograms() ;
         for ( size_t i = 0 ; i < mcFileNames.size() ; i++ ) { 
             cout<<" Runing MC : "<< mcFileNames[i] << endl ;
-            bgS->init( mcFileNames[i] ) ;
+            bgS->SimpleRun( mcFileNames[i], normV[i] ) ;
             //bgS->Run( normV[i] ) ;
         } 
-        bgS->DrawHistograms() ;
+        bgS->WriteDrawHistograms() ;
      } 
-     */
+     
 
      if ( module == 9 ) {
      //if ( isData == 0 ) bgS->Run( mcFileNames[0] ) ;
@@ -126,4 +128,11 @@ int main( int argc, const char* argv[] ) {
 
 }
 
+bool badCrystal( double eta , double phi ) {
 
+     bool badSeed = false ; 
+     if ( eta > -0.75 && eta < -0.6 && phi > -1.   && phi < -0.8 ) badSeed = true  ;
+     if ( eta > 0.80  && eta < 0.95 && phi > -1.95 && phi < -1.8 ) badSeed = true  ;
+
+     return badSeed ;
+}

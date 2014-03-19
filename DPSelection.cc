@@ -43,6 +43,8 @@ DPSelection::DPSelection( string datacardfile ){
   passJet     = false ;  
   passMET     = false ;  
   passJetMET  = false ;  
+  newMET    = TLorentzVector(0., 0., 0., 0.) ;
+  noPhotMET = TLorentzVector(0., 0., 0., 0.) ;
 
   select_met = -1 ; 
 }
@@ -105,9 +107,11 @@ void DPSelection::Init( TTree* tr ) {
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("sMajPho",     sMajPho );
    tr->SetBranchAddress("seedTime",    seedTime );
+   tr->SetBranchAddress("seedSwissX",  seedSwissX );
    tr->SetBranchAddress("aveTime",     aveTime );
-   tr->SetBranchAddress("fSpike",      fSpike );
    tr->SetBranchAddress("cscdPhi",     cscdPhi );
+   tr->SetBranchAddress("cscRho",      cscRho );
+   tr->SetBranchAddress("cscTime",     cscTime );
    tr->SetBranchAddress("dtdPhi",      dtdPhi );
    tr->SetBranchAddress("dtdEta",      dtdEta );
    tr->SetBranchAddress("nXtals",      nXtals );
@@ -144,9 +148,9 @@ void DPSelection::Init( Rtuple& rt ) {
      SetArray( phoE ,  rt.phoE, MAXPHO ) ;
 
      SetArray( seedTime , rt.seedTime , MAXPHO );
+     SetArray( seedSwissX , rt.seedSwissX , MAXPHO );
      SetArray( aveTime  , rt.aveTime , MAXPHO ) ; 
      SetArray( dR_TrkPho , rt.dR_TrkPho , MAXPHO ); 
-     SetArray( fSpike    , rt.fSpike , MAXPHO );
 
      SetArray( phoHovE , rt.phoHovE , MAXPHO );
      SetArray( sMinPho , rt.sMinPho, MAXPHO ) ;
@@ -159,6 +163,8 @@ void DPSelection::Init( Rtuple& rt ) {
      SetArray( cHadIso    , rt.cHadIso , MAXPHO );  
      SetArray( nHadIso    , rt.nHadIso , MAXPHO ); 
      SetArray( cscdPhi    , rt.cscdPhi, MAXPHO ) ;
+     SetArray( cscRho     , rt.cscRho,  MAXPHO ) ;
+     SetArray( cscTime    , rt.cscTime, MAXPHO ) ;
      SetArray( dtdPhi     , rt.dtdPhi , MAXPHO ); 
      SetArray( dtdEta     , rt.dtdEta , MAXPHO );
      SetArray( nXtals     , rt.nXtals , MAXPHO );
@@ -244,8 +250,8 @@ bool DPSelection::PhotonFilter() {
        // 0. photon cuts
        phoV.clear() ;
        double maxPt = 0 ;
-       //vector<bool> shadow( nPhotons ,false );
-       //vector<bool> skipPhoIso( nPhotons , false );
+       double newEx(0), newEy(0), newE(0) ;
+       double met1x(0), met1y(0), met1E(0) ;
        for ( int j=0 ; j< nPhotons; j++ ) {
            nG[0]++ ;
            TLorentzVector phoP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
@@ -254,50 +260,58 @@ bool DPSelection::PhotonFilter() {
            if ( systType == 6 ) egScale = ( fabs(phoP4.Eta()) < 1.479 ) ? 0.994 : 0.985 ;
            phoP4 = phoP4 * egScale ;
 
-           //if ( shadow[j] ) continue ;
-	   if ( fabs(fSpike[j]) > 0.001 ) continue ;
+           // MET correction
+	   bool badseed  = badCrystal( phoP4.Eta() , phoP4.Phi() ) ;
+	   if ( badseed ) continue ;
+
+	   bool isHalo   = HaloTag( cscdPhi[j], sMajPho[j], sMinPho[j], phoP4.Eta() ) ;
+	   bool isSpike  = SpikeTag( nXtals[j], sMajPho[j], sMinPho[j], seedSwissX[j], phoP4.Eta() ) ;
+	   bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
+	   bool ghostTag = ( isHalo || isSpike || isCosmic ) ? true : false ;
+
+           // For MET2 calculation
+	   if ( fabs( seedTime[j]) > 3.0 && fabs( phoP4.Eta() ) < 1.47 ) {
+		   newEx -= phoP4.Px()  ;
+		   newEy -= phoP4.Py()  ;
+	   }
+	   if ( fabs( seedTime[j]) > 10.0 && fabs( phoP4.Eta() ) > 1.47 ) {
+		   newEx -= phoP4.Px()  ;
+		   newEy -= phoP4.Py()  ;
+	   }
+           // For MET1 calculation
+           //printf("   met1 corr -- x:%.2f , y:%.2f \n", met1x,  met1y ) ;
+	   if ( fabs( seedTime[j]) < 3.0 && fabs( phoP4.Eta() ) < 1.47 ) {
+		   met1x += phoP4.Px()  ;
+		   met1y += phoP4.Py()  ;
+	   }
+	   if ( fabs( seedTime[j]) < 10.0 && fabs( phoP4.Eta() ) > 1.47 ) {
+		   met1x += phoP4.Px()  ;
+		   met1y += phoP4.Py()  ;
+	   }
+
            if (        phoP4.Pt() < photonCuts[0] )          continue ;
            if ( fabs(phoP4.Eta()) > photonCuts[1] )          continue ;
            nG[1]++ ;
 
            if ( phoHovE[j] > photonCuts[2] ) continue ;
            nG[2]++ ;
-           if ( sMinPho[j] < photonCuts[5] || sMinPho[j] > photonCuts[6] )                continue ;
+           if ( sMinPho[j] < photonCuts[5] || sMinPho[j] > photonCuts[6] ) continue ;
            nG[3]++ ;
            if ( dR_TrkPho[j] < photonCuts[7] ) continue; 
            nG[4]++ ;
 
            // Possible bad crystals 
-           if ( phoP4.Eta() > -0.75 && phoP4.Eta() < -0.6 && phoP4.Phi() > -1. && phoP4.Phi() < -0.8 ) continue ;
-           if ( phoP4.Eta() > 0.80 && phoP4.Eta() < 0.95 && phoP4.Phi() > -1.95 && phoP4.Phi() < -1.8 ) continue ;
-
-           // Reject nearby photon 
-           /*
-           for ( int k = 1 ; k < nPhotons ; k++ ) {
-               if (  k == j || k < j ) continue ;
-                  TLorentzVector phoP4_( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
-                  phoP4_ = phoP4_ * egScale ;
-                  if ( phoP4.DeltaR( phoP4_ ) < 0.2 )  { 
-                     shadow[k]     = true ;
-                     skipPhoIso[j] = true ;
-                  }
-           }
-           */
-
-           //
-           //bool isHalo   = HaloTag( cscdPhi[j], sMajPho[j], sMinPho[j], phoP4.Eta() ) ;
-           //bool isSpike  = SpikeTag( nXtals[j], sMajPho[j], sMinPho[j] ) ;
-           //bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
-           //if ( isHalo || isSpike || isCosmic ) continue ;
-           //if ( isHalo || isSpike ) continue ;
+           //if ( phoP4.Eta() > -0.75 && phoP4.Eta() < -0.6 && phoP4.Phi() > -1. && phoP4.Phi() < -0.8 ) continue ;
+           //if ( phoP4.Eta() > 0.80 && phoP4.Eta() < 0.95 && phoP4.Phi() > -1.95 && phoP4.Phi() < -1.8 ) continue ;
 
            nG[5]++ ;
-           // Isolation
+           // PF Isolation
            if ( usePFIso == 1 ) {
 	      if ( cHadIso[j] >= photonPFIso[0] ) continue ;  // chargedHadron
 	      if ( nHadIso[j] >= photonPFIso[1] + ( 0.04*phoP4.Pt()   ) ) continue ;  // neutralHadron
 	      if ( photIso[j] >= photonPFIso[2] + ( 0.005*phoP4.Pt() ) ) continue ;  // photon
            } 
+           // Detector Iso
            if ( usePFIso == 2 ) {
               if ( phoTrkIso[j] / phoP4.Pt()  >= photonIso[0] )                                continue ;
               if ( phoEcalIso[j] >= photonIso[1] || phoEcalIso[j] / phoE[j] >= photonIso[2] )  continue ;
@@ -323,6 +337,17 @@ bool DPSelection::PhotonFilter() {
            phoV.push_back( make_pair( j , phoP4) );
        }
        if ( maxPt >= photonCuts[8] ) nG[8]++ ;
+
+       // set newMET value 
+       newEx = metPx + newEx  ;
+       newEy = metPy + newEy  ;
+       newE  = sqrt( newEx*newEx + newEy*newEy ) ;
+       newMET.SetPxPyPzE( newEx, newEy, 0., newE ) ;
+
+       met1x = metPx + met1x  ;
+       met1y = metPy + met1y  ;
+       met1E  = sqrt( met1x*met1x + met1y*met1y ) ;
+       noPhotMET.SetPxPyPzE( met1x, met1y, 0., met1E ) ;
 
        // identify which photon cut kill the events
        for ( int i=0; i < 9; i++ ) { 
@@ -386,9 +411,6 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
          }
 
 	 double dR_gj = 999. ;
-	 //for ( size_t k=0; k< phoV.size() ; k++) {
-	 //    if ( phoV[k].second.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoV[k].second.DeltaR( jp4 ) ;
-	 //}
          for ( int k=0 ; k< nPhotons; k++ ) {
              TLorentzVector phoP4( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
              if ( phoP4.Pt() < photonCuts[0] ) continue ;
@@ -463,6 +485,44 @@ bool DPSelection::ElectronFilter() {
      return pass = false ;
 }
 
+// Correct MET by taking late photon into account 
+TLorentzVector DPSelection::CorrectMET() { 
+
+     double newEx(0), newEy(0), newE(0) ;
+     for ( int j=0 ; j< nPhotons; j++ ) {
+         TLorentzVector gP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
+         bool badseed  = badCrystal( gP4.Eta() , gP4.Phi() ) ;
+         if ( badseed ) continue ;
+
+         bool isHalo   = HaloTag( cscdPhi[j], sMajPho[j], sMinPho[j], gP4.Eta() ) ;
+         bool isSpike  = SpikeTag( nXtals[j], sMajPho[j], sMinPho[j], seedSwissX[j], gP4.Eta() ) ;
+         bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
+         bool ghostTag = ( isHalo || isSpike || isCosmic ) ? true : false ;
+
+         if (  ghostTag && fabs( seedTime[j]) < 3.0 && fabs( gP4.Eta() ) < 1.47 ) {
+            newEx += gP4.Px()  ;
+            newEy += gP4.Py()  ;
+         }
+         if ( !ghostTag && fabs( seedTime[j]) > 3.0 && fabs( gP4.Eta() ) < 1.47 ) {
+            newEx -= gP4.Px()  ;
+            newEy -= gP4.Py()  ;
+         }
+         if (  ghostTag && fabs( seedTime[j]) < 10.0 && fabs( gP4.Eta() ) > 1.47 ) {
+            newEx += gP4.Px()  ;
+            newEy += gP4.Py()  ;
+         }
+         if ( !ghostTag && fabs( seedTime[j]) > 10.0 && fabs( gP4.Eta() ) > 1.47 ) {
+            newEx -= gP4.Px()  ;
+            newEy -= gP4.Py()  ;
+         }
+     }
+     newEx = metPx + newEx  ;
+     newEy = metPy + newEy  ;
+     newE  = sqrt( newEx*newEx + newEy*newEy ) ;
+     TLorentzVector newMET_( newEx, newEy, 0., newE ) ;
+     return newMET_ ;
+}
+
 bool DPSelection::MuonFilter() { 
 
      bool pass =  true ;
@@ -522,10 +582,10 @@ uint32_t DPSelection::EventIdentification() {
        if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
 
 
-       if  ( passTrigger && passVtx  && passPho && passJetMET )                      eventType |= (1 <<0)  ;
-       if  ( passTrigger && passVtx  && phoV.size() > 0       )                      eventType |= (1 <<1) ;
-       if  ( passTrigger && passVtx  && phoV.size() > 0 && jetV.size() > 0 )         eventType |= (1 <<2) ;
-       if  ( passTrigger && passVtx  && phoV.size() > 0 && select_met > jetCuts[4] ) eventType |= (1 <<3) ;
+       if  ( passVtx  && passPho && passJetMET )                      eventType |= (1 <<0)  ;
+       if  ( passVtx  && phoV.size() > 0       )                      eventType |= (1 <<1) ;
+       if  ( passVtx  && phoV.size() > 0 && jetV.size() > 0 )         eventType |= (1 <<2) ;
+       if  ( passVtx  && phoV.size() > 0 && select_met > jetCuts[4] ) eventType |= (1 <<3) ;
 
        ResetCuts() ;  // reset cuts from Datacard
        return eventType ;      
@@ -792,13 +852,13 @@ bool DPSelection::HaloTag( double cscdPhi, double sMaj, double sMin, double eta 
      return haloTag ;
 }
 
-bool DPSelection::SpikeTag( int nXtl, double sMaj, double sMin ) {
 
-    bool spikeTag = ( nXtl < 7 ) ? true : false ;
-    if ( sMaj < 0.6 && sMin < 0.17 ) spikeTag = true;
+bool DPSelection::SpikeTag( int nXtl, double sMaj, double sMin, double swissX, double eta ) {
+
+    bool spikeTag = ( nXtl < 7 || swissX > 0.9 ) ? true : false ;
+    if ( sMaj < 0.6 && sMin < 0.17 && fabs(eta) < 1.47 ) spikeTag = true;
 
     return spikeTag ;
-
 }
 
 bool DPSelection::CosmicTag( double dtdEta , double dtdPhi ) {
@@ -810,7 +870,7 @@ bool DPSelection::CosmicTag( double dtdEta , double dtdPhi ) {
 
 // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike 3: cosmic
 // return B/A which is for scaling C 
-double DPSelection::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
+double DPSelection::ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) {
 
    //  GetEstimation returns QCD components
    cout<<" ===  A  === "<<endl ;
@@ -839,7 +899,7 @@ double DPSelection::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
 // Return the sum of spike and halo component or QCD component of background
 // xbin : 5 eta region ( 0 ~ 1.4 ) , bin width : 0.28
 // ybin : [bin1]: Total count , [bin2]: Halo , [bin3]: Spike, [bin4]: Cosmic
-double DPSelection::GetEstimation( TH2D* hCount, bool getQCD ) {
+double DPSelection::GetEstimation( TH3D* hCount, bool getQCD ) {
 
    double ghostB = 0 ;
    double Bg_exp = 0 ;
@@ -847,10 +907,20 @@ double DPSelection::GetEstimation( TH2D* hCount, bool getQCD ) {
    printf("| eta |   spike    |    halo    |   cosmic   |  QCD  |  Total  |\n" ) ;
    for ( int i=0; i< 5; i++ ) {
 
-       double nB = hCount->GetBinContent(i+1, 1) ; // total number in control region 
-       double nH = hCount->GetBinContent(i+1, 2) ; // number of halo tagged in control region
-       double nS = hCount->GetBinContent(i+1, 3) ; // number of spike tagged in control region
-       double nC = hCount->GetBinContent(i+1, 4) ; // number of cosmic tagged in control region
+       // 3 jet multiplicity
+       double nB = 0 ;
+       double nH = 0 ;
+       double nS = 0 ;
+       double nC = 0 ;
+       for ( int j=1; j<4; j++ ) {
+
+           if ( j-1 < jetCuts[2] || j-1 > jetCuts[3] ) continue ;
+
+           nB += hCount->GetBinContent( i+1, 1, j ) ; // total number in control region 
+           nH += hCount->GetBinContent( i+1, 2, j ) ; // number of halo tagged in control region
+           nS += hCount->GetBinContent( i+1, 3, j ) ; // number of spike tagged in control region
+           nC += hCount->GetBinContent( i+1, 4, j ) ; // number of cosmic tagged in control region
+       }
 
        vector<double> bgV = GetComponent( i, nB, nH, nS, nC ) ;
        ghostB   += bgV[0] ;  // spike

@@ -27,10 +27,11 @@ public:
    ~CosmicStudy();     
    
    void Create( TFile* hFile = NULL ) ;
-   void Open() ;
+   void Open( TFile* hFile = NULL ) ;
    void Write() ;
    void Run( vector<objID>& selectPho, vector<objID>& selectJets,  Rtuple& rt, double weight = 1. ) ;
    void DrawHistograms( hDraw* h_draw = NULL ) ;
+   void GetNewMET( TLorentzVector& newMET_, TLorentzVector& noPhotMET_ ) ;
 
    bool CosmicTag( Rtuple& rt, int k ) ;
    void ABCD_Report() ;
@@ -44,6 +45,9 @@ public:
    TH2D* cosmic_MET_Time_0J ;
    TH2D* cosmic_MET_Time_1J ;
    TH2D* cosmic_MET_Time_2J ;
+   TH2D* cosmic_MET2_Time_0J ;
+   TH2D* cosmic_MET2_Time_1J ;
+   TH2D* cosmic_MET2_Time_2J ;
    TH2D* cosmic_sMin_Time ;
    TH2D* cosmic_sMaj_Time ;
    TH2D* cosmic_photIso_Time ;
@@ -69,7 +73,8 @@ private:
    bool createFile ;
 
    Rtuple tp ;
-
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
 
    //ClassDef(CosmicStudy, 1);
 };

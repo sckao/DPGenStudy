@@ -27,10 +27,12 @@ public:
    ~HaloStudy();     
    
    void Create( TFile* hFile = NULL ) ;
-   void Open() ;
+   void Open( TFile* hFile = NULL ) ;
    void Write() ;
    void Run( vector<objID>& selectPho, vector<objID>& selectJets,  Rtuple& rt, double weight = 1. ) ;
    void DrawHistograms( hDraw* h_draw = NULL ) ;
+   void GetNewMET( TLorentzVector& newMET_, TLorentzVector& noPhotMET_ ) ;
+
 
    bool HaloTag( Rtuple& rt, int k ) ;
    static Double_t HaloFunction( Double_t* eta, Double_t* par ) ;
@@ -63,6 +65,9 @@ public:
    TH2D* halo_MET_Time_0J ;
    TH2D* halo_MET_Time_1J ;
    TH2D* halo_MET_Time_2J ;
+   TH2D* halo_MET2_Time_0J ;
+   TH2D* halo_MET2_Time_1J ;
+   TH2D* halo_MET2_Time_2J ;
    TH2D* halo_sMin_Time ;
    TH2D* halo_sMaj_Time ;
    TH2D* halo_photIso_Time ;
@@ -76,6 +81,7 @@ public:
    TH2D* halo_eta_sMaj ;
    TH2D* halo_ecalT_rho ;
    TH1D* halo_nXtl ;
+   TH1D* halo_swissX ;
    TH1D* halo_tChi2 ;
 
    TH2D* haloFN_Eta_Time ;
@@ -116,6 +122,8 @@ private:
    bool createFile ;
 
    Rtuple tp ;
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
 
 
    //ClassDef(HaloStudy, 1);

@@ -12,6 +12,9 @@ void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
    tr->SetBranchAddress("nVertices",  &vr.nVertices );
    tr->SetBranchAddress("totalNVtx",  &vr.totalNVtx);
 
+   tr->SetBranchAddress("t_metPx",    &vr.t_metPx );
+   tr->SetBranchAddress("t_metPy",    &vr.t_metPy );
+   tr->SetBranchAddress("t_met",      &vr.t_met );
    tr->SetBranchAddress("metPx",      &vr.metPx );
    tr->SetBranchAddress("metPy",      &vr.metPy );
    tr->SetBranchAddress("met",        &vr.metE );
@@ -53,12 +56,14 @@ void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
    tr->SetBranchAddress("sMajPho",     &vr.sMajPho );
    tr->SetBranchAddress("seedTime",    &vr.seedTime );
    tr->SetBranchAddress("aveTime",     &vr.aveTime );
-   tr->SetBranchAddress("fSpike",      &vr.fSpike );
    tr->SetBranchAddress("cscdPhi",     &vr.cscdPhi );
+   tr->SetBranchAddress("cscRho",      &vr.cscRho );
+   tr->SetBranchAddress("cscTime",     &vr.cscTime );
    tr->SetBranchAddress("dtdPhi",      &vr.dtdPhi );
    tr->SetBranchAddress("dtdEta",      &vr.dtdEta );
    tr->SetBranchAddress("nXtals",      &vr.nXtals );
    tr->SetBranchAddress("timeChi2",    &vr.timeChi2 );
+   tr->SetBranchAddress("seedSwissX",  &vr.seedSwissX );
 
    tr->SetBranchAddress("elePx",        &vr.elePx );
    tr->SetBranchAddress("elePy",        &vr.elePy );

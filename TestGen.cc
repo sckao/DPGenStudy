@@ -57,6 +57,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
       Input->GetParameters( "TheData", &dataFileNames );
    }
    TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
+   cout<<" Get the tree ! "<<endl ;
 
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
@@ -131,7 +132,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
    // initialize selection
    select->Init( tr1 ) ;
-
+   
    // Prepare a random number generator for gen Time smearing 
    TRandom3* tRan = new TRandom3();
    tRan->SetSeed( 0 );
@@ -177,7 +178,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
        if ( pass ) {
 
           nEvt++; 
-
 	  //cout<<" EVT# : "<< nEvt <<endl ;
 	  TLorentzVector g1P4(0,0,0,0)  ;
 	  double max_gPt  = 0 ;
@@ -193,8 +193,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
               // Define the Tag 
               bool haloTag  = ( cscdPhi[k] < 0.05 ) ? true : false  ;
-             // if ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.1  && fabs( gP4_.Eta() ) > 0.75 && fabs(gP4_.Eta()) < 1.47 ) haloTag = true;
-             // if ( sMajPho[k] > 0.8 && sMajPho[k] < 1.65 && sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
+              // if ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.1  && fabs( gP4_.Eta() ) > 0.75 && fabs(gP4_.Eta()) < 1.47 ) haloTag = true;
+              // if ( sMajPho[k] > 0.8 && sMajPho[k] < 1.65 && sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
 
               bool spikeTag = ( nXtals[k] < 7 && !haloTag ) ? true : false  ;
               if ( sMajPho[k] < 0.6 && sMinPho[k] < 0.17 && fabs( gP4_.Eta() ) < 1.47 ) spikeTag = true;

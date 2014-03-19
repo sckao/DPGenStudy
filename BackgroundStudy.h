@@ -11,6 +11,7 @@
 #include <TF1.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TH3.h>
 #include <TFile.h>
 #include <TString.h>
 #include "TLorentzVector.h"
@@ -33,8 +34,10 @@ public:
    
    //void init( string dataName = "") ;
    void Create() ;
-   void Open() ;
+   void Open( TFile* hFile = NULL ) ;
    void OpenAllHistograms() ;
+   void CreateHistograms() ;
+   void WriteDrawHistograms() ;
    void Write() ;
 
    void RawInfo( vector<objID>& selectPho, vector<objID>& selectJets, double weight = 1. ) ;
@@ -43,10 +46,9 @@ public:
 
    void DrawHistograms( hDraw* h_draw = NULL ) ;
    void DrawAllHistograms() ;
-
    // ABCD Method
-   void ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) ;
-   double GetEstimation( TH2D* hCount, bool getQCD = true ) ;
+   void ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) ;
+   double GetEstimation( TH3D* hCount, bool getQCD = true ) ;
    vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) ;
    vector<double> GetComponent( int eta_i, int B12,    int h_B12,    int s_B12,    int c_B12 ) ;
 
@@ -72,12 +74,12 @@ public:
 
    TH1D* h_EE_haloTime ;
 
+   TH2D* h_Eta_Phi ;
    TH2D* h_Eta_Time ;
    TH2D* h_Eta_Time1 ;
    TH2D* h_Eta_Time2 ;
    TH2D* h_Eta_Time3 ;
-   TH2D* h_Eta_Time_in ;
-   TH2D* h_Eta_Time_out ;
+   TH2D* h_Eta_Time4 ;
    TH2D* h_Phi_Time ;
    TH2D* h_cscdPhi_Time ;
    TH2D* h_cscdPhi_cscTime ;
@@ -99,9 +101,19 @@ public:
    TH2D* h_Pt_Time_EE ;
    TH2D* h_MET_Time_EB ;
    TH2D* h_MET_Time_EE ;
+   TH2D* h_hltMET_Time_EB ;
+   TH2D* h_hltMET_Time_EE ;
    TH2D* h_cHadIso_Time ;
    TH2D* h_nHadIso_Time ;
    TH2D* h_photIso_Time ;
+   TH2D* h_met_met1;
+   TH2D* h_met_met2;
+   TH2D* h_eta_time_met1;
+   TH2D* h_eta_time_met2;
+   TH1D* h_nPhoton ;
+   TH1D* h_nPhoton_met1 ;
+   TH1D* h_nPhoton_met2 ;
+
    TH1D* h_tChi2 ;
    TH1D* halo_tChi2 ;
    TH1D* spike_tChi2 ;
@@ -111,6 +123,8 @@ public:
 
    TH1D* h_nVtx ;
    TH1D* l_nVtx ;
+   TH1D* h_pfMET ;
+   TH1D* h_hltMET ;
 
    TH2D* h_sMaj_Eta  ;
    TH2D* h_sMaj_Phi  ;
@@ -153,6 +167,7 @@ public:
    TH2D* cs_sigIeta_Time ;
    TH1D* cs_cscdPhi ;
    TH1D* cs_nXtl  ;
+   TH1D* cs_swissX  ;
    TH2D* cs_sMaj_sMin  ;
    TH2D* cs_cHadIso_Time ;
    TH2D* cs_nHadIso_Time ;
@@ -176,6 +191,8 @@ public:
 
    TH2D* abcd_Pt_Time ;
    TH2D* abcd_MET_Time ;
+   TH2D* abcd_MET1_Time ;
+   TH2D* abcd_MET2_Time ;
    TH2D* abcd_NJet_Time ;
    TH2D* ab_Pt_MET ;
    TH2D* cd_Pt_MET ;
@@ -192,10 +209,12 @@ public:
    TH1D* nSpk_Eta ;
    TH1D* nCS_Eta ;
 
-   TH2D* hBg_D ;
-   TH2D* hBg_C ;
-   TH2D* hBg_B ;
-   TH2D* hBg_A ;
+   TH3D* hBg_F ;
+   TH3D* hBg_E ;
+   TH3D* hBg_D ;
+   TH3D* hBg_C ;
+   TH3D* hBg_B ;
+   TH3D* hBg_A ;
 
    TH2D* sel_T_dPhi_gMET_1J ;
    TH2D* sel_T_dPhi_gMET_2J ;
@@ -209,6 +228,9 @@ public:
    TH2D* sideband_dPhi_MET_Jet1 ;
    TH2D* sideband_dPhi_MET_Jet2 ;
    TH2D* sideband_dPhi_MET_Jet3 ;
+
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
 
 private:
 
@@ -224,8 +246,10 @@ private:
    // Halo and Spike Efficiency 
    vector<double> haloEff ;
    vector<double> spikeEff ;
+   vector<double> cosEff ;
    vector<double> haloMis ;
    vector<double> spikeMis ;
+   vector<double> cosMis ;
    int useInFlight ;
 
    string hfolder  ;
@@ -239,6 +263,7 @@ private:
    vector<objID> selectPho ;
  
    vector<double> photonCuts ;
+   vector<double> photonPFIso ;
    vector<double> jetCuts ;
    vector<double> timeCalib ;
 

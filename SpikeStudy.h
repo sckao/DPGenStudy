@@ -27,11 +27,12 @@ public:
    SpikeStudy( string datacardfile = "DataCard.txt");     
    ~SpikeStudy();     
    
-   void Create( TFile* hfile ) ;
-   void Open() ;
+   void Create( TFile* hfile = NULL ) ;
+   void Open( TFile* hfile = NULL ) ;
    void Write() ;
    void Run( vector<objID>& selectPho, vector<objID>& selectJets, Rtuple& rt, double weight = 1. ) ;
    void DrawHistograms( hDraw* h_draw = NULL ) ;
+   void GetNewMET( TLorentzVector& newMET_, TLorentzVector& noPhotMET_ ) ;
 
    bool SpikeTag( Rtuple& rt, int k ) ;
    void ABCD_Report() ;
@@ -43,6 +44,7 @@ public:
    TH2D* spikeCS_Phi_Time ;
    TH2D* spikeCS_sMaj_sMin ;
    TH1D* spikeCS_nXtl ;
+   TH1D* spikeCS_swissX ;
 
    TH1D* spike_Eta[2] ;
    TH1D* nXtl_eta[7] ;
@@ -55,6 +57,9 @@ public:
    TH2D* spike_MET_Time_0J ;
    TH2D* spike_MET_Time_1J ;
    TH2D* spike_MET_Time_2J ;
+   TH2D* spike_MET2_Time_0J ;
+   TH2D* spike_MET2_Time_1J ;
+   TH2D* spike_MET2_Time_2J ;
    TH2D* spike_sMaj_sMin ;
    TH2D* spike_sMaj_Time ;
    TH2D* spike_sMin_Time ;
@@ -83,13 +88,15 @@ private:
    vector<double> photonCuts ;
    vector<double> jetCuts ;
    vector<double> timeCalib ;
+   vector<double> spikeEff ;
 
    // Root File for Rootuple or histograms
    TFile *theFile ;
    bool createFile ;
 
    Rtuple tp ;
-
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
 
    //ClassDef(SpikeStudy, 1);
 };
