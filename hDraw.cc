@@ -534,7 +534,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
    delete gr1 ;
 }
 
-// return asymmetry errors <H,L>
+// return asymmetry errors <upward,downward>
 pair<double, double> hDraw::EffError( double N_all, double N_pass ) {
 
     if ( N_all < 0.0001 ) {
@@ -611,6 +611,96 @@ Double_t hDraw::BinomialErr( Double_t* x, Double_t* par ) {
 
 }
 
+// <upward, downward> errors
+pair<double,double>  hDraw::StatErr( double m ){
+
+  pair<double,double> pErr ;
+  if ( m < 1. ) {
+     pErr = make_pair( m, m );
+  }
+  else if ( m > 25. ) {
+     pErr = make_pair( sqrt(m), sqrt(m) );
+  }
+  else {
+
+     double step = 0.01 ;
+
+     // -34%
+     double k = m ;
+     double lm = 0. ;
+     double pp = 0. ;
+     while (lm <= 0.34 || k < 0 ) {
+          k = k - step ;
+          pp = TMath::Poisson( k, m );
+          lm = lm + (pp*step) ;
+     }
+     // +34%
+     double j = m ;
+     double hm = 0 ;
+     double hp = 0 ;
+     while ( hm <=0.34 || j < 0 ) {
+           j = j + step ;
+           hp = TMath::Poisson( j, m );
+           hm = hm + (hp*step) ;
+           //cout<<" j = "<< j <<" , p = "<< hp <<" int_P = "<< hm <<endl;
+     }
+     pErr      = make_pair( k-m, m-j );
+  }
+  return pErr ;
+
+}
+
+pair<double,double> hDraw::ErrAxB( double A, double B, double u_A, double d_A, double u_B, double d_B ){
+
+    pair<double,double> sA = StatErr( A ) ;
+    double sAp = (u_A != -1 ) ? u_A : sA.first  ;
+    double sAn = (d_A != -1 ) ? d_A : sA.second ;
+    pair<double,double> sB = StatErr( B ) ;
+    double sBp = (u_B != -1 ) ? u_B : sB.first  ;
+    double sBn = (d_B != -1 ) ? d_B : sB.second ;
+
+    //double f = A * B ;
+    double s_fp = sqrt( B*B*sAp*sAp + A*A*sBp*sBp ) ;
+    double s_fn = sqrt( B*B*sAn*sAn + A*A*sBn*sBn ) ;
+
+    pair<double,double> sf = make_pair( s_fp, s_fn ) ;
+    return sf ;
+}
+
+pair<double,double> hDraw::ErrAovB( double A, double B, double u_A, double d_A, double u_B, double d_B ){
+
+    pair<double,double> sA = StatErr( A ) ;
+    double sAp = (u_A != -1 ) ? u_A : sA.first  ;
+    double sAn = (d_A != -1 ) ? d_A : sA.second ;
+    pair<double,double> sB = StatErr( B ) ;
+    double sBp = (u_B != -1 ) ? u_B : sB.first  ;
+    double sBn = (d_B != -1 ) ? d_B : sB.second ;
+
+    double f = A / B ;
+    double s_fp = sqrt( (sAp*sAp) + (f*f*sBp*sBp) ) / B ;
+    double s_fn = sqrt( (sAn*sAn) + (f*f*sBn*sBn) ) / B ;
+
+    pair<double,double> sf = make_pair( s_fp, s_fn ) ;
+    return sf ;
+
+}
+
+pair<double,double> hDraw::ErrApnB( double A, double B, double u_A, double d_A, double u_B, double d_B ){
+
+    pair<double,double> sA = StatErr( A ) ;
+    double sAp = (u_A != -1 ) ? u_A : sA.first  ;
+    double sAn = (d_A != -1 ) ? d_A : sA.second ;
+    pair<double,double> sB = StatErr( B ) ;
+    double sBp = (u_B != -1 ) ? u_B : sB.first  ;
+    double sBn = (d_B != -1 ) ? d_B : sB.second ;
+
+    // f = a+b or a-b
+    double s_fp =  sqrt( (sAp*sAp) + (sBp*sBp) ) ;
+    double s_fn =  sqrt( (sAn*sAn) + (sBn*sBn) ) ;
+
+    pair<double,double> sf = make_pair( s_fp, s_fn ) ;
+    return sf ;
+}
 
 Double_t hDraw::fExp(Double_t *v, Double_t *par) {
       Double_t arg = v[0] /par[1];

@@ -53,7 +53,11 @@ class hDraw {
 
   void EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent, int beginBin = 1, int endBin = -1 , string graphName = "Efficiency",  TPaveText* pavetex = NULL ) ;
 
-  pair<double, double> EffError( double N_all, double N_pass ) ;
+  pair<double,double> EffError( double N_all, double N_pass ) ;
+  pair<double,double> ErrAxB( double A, double B, double u_A = -1, double d_A = -1, double u_B = -1, double d_B = -1 ) ;
+  pair<double,double> ErrAovB( double A, double B, double u_A = -1, double d_A = -1, double u_B = -1, double d_B = -1 ) ;
+  pair<double,double> ErrApnB( double A, double B, double u_A = -1, double d_A = -1, double u_B = -1, double d_B = -1 ) ;
+  pair<double,double> StatErr( double m ) ;
 
   static Double_t BinomialErr( Double_t* x, Double_t* par ) ;
   static Double_t fExp(Double_t *v, Double_t *par) ;

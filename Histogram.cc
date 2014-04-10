@@ -60,8 +60,6 @@ void Histogram::Init( hSet& hS ) {
    hS.h_photIso_nXtl = new TH2D("h_photIso_nXtl", " Photon IsoDeposit vs nXtl",   100, 0, 10.,  50, 0, 50 );
    hS.h_photIso_nBC  = new TH2D("h_photIso_nBC", " Photon IsoDeposit vs nBCs",    100, 0, 10.,  12, 0, 12 );
 
-   hS.h_maxSwissEB = new TH1D("h_maxSwissEB", " max SwissCross value from seed EB BC ", 150,  0., 1.5 );
-   hS.h_maxSwissEE = new TH1D("h_maxSwissEE", " max SwissCross value from seed EE BC ", 150,  0., 1.5 );
    hS.h_seedSwiss  = new TH1D("h_seedSwiss", " seed SwissCross value ", 150,  0., 1.5 );
    hS.h_nXtals     = new TH1D("h_nXtals", "N of crystals of the photon ", 50,  0, 50 );
    hS.h_nBC        = new TH1D("h_nBC",    "N of basic cluster of the photon ", 12,  0, 12 );
@@ -98,7 +96,7 @@ void Histogram::Init( hSet& hS ) {
    hS.h_cscdPhi_Time  = new TH2D( "h_cscdPhi_Time", " d#Phi vs Ecal time", 64, 0, 3.2, 160, -20, 20 ) ;
    hS.h_sigIeta_Time  = new TH2D( "h_sigIeta_Time", " sigma_iEta vs Ecal time", 80, 0, 0.08, 120, -15, 15 ) ;
 
-   hS.h_RhoPhi_Halo = new TH2D( "h_RhoPhi_Halo", " phi vs rho for halo tracks", 63, -3.15, 3.15, 50, 0, 500 ) ;
+   //hS.h_RhoPhi_Halo = new TH2D( "h_RhoPhi_Halo", " phi vs rho for halo tracks", 63, -3.15, 3.15, 50, 0, 500 ) ;
    hS.h_nHaloHits   = new TH1D( "h_nHaloHits",   " N of out of time CSC rechits", 50, 0, 50 ) ;
    hS.h_nHaloTracks = new TH1D( "h_nHaloTracks",   " N of CSC Halo Tracks", 10, 0, 10 ) ;
 
@@ -188,8 +186,6 @@ void Histogram::Open() {
      h.h_photIso_nXtl = (TH2D*) hFile->Get("h_photIso_nXtl") ;
      h.h_photIso_nBC  = (TH2D*) hFile->Get("h_photIso_nBC") ;
 
-     h.h_maxSwissEB = (TH1D*) hFile->Get("h_maxSwissEB") ;
-     h.h_maxSwissEE = (TH1D*) hFile->Get("h_maxSwissEE") ;
      h.h_seedSwiss = (TH1D*) hFile->Get("h_seedSwiss")  ;
      h.h_nXtals = (TH1D*) hFile->Get("h_nXtals")    ;
      h.h_nBC = (TH1D*) hFile->Get("h_nBC")       ;
@@ -225,7 +221,7 @@ void Histogram::Open() {
      h.h_cscdPhi_Time  = (TH2D*) hFile->Get("h_cscdPhi_Time")  ;
      h.h_sigIeta_Time  = (TH2D*) hFile->Get("h_sigIeta_Time")  ;
 
-     h.h_RhoPhi_Halo = (TH2D*) hFile->Get("h_RhoPhi_Halo")  ;
+     //h.h_RhoPhi_Halo = (TH2D*) hFile->Get("h_RhoPhi_Halo")  ;
      h.h_nHaloHits   = (TH1D*) hFile->Get("h_nHaloHits")  ;
      h.h_nHaloTracks = (TH1D*) hFile->Get("h_nHaloTracks")  ;
 
@@ -302,8 +298,6 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_photIso_nXtl->Write() ;
      h.h_photIso_nBC->Write() ;
 
-     h.h_maxSwissEB->Write() ;
-     h.h_maxSwissEE->Write() ;
      h.h_seedSwiss->Write()  ;
      h.h_nXtals->Write()    ;
      h.h_nBC->Write()       ;
@@ -339,7 +333,7 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_cscdPhi_Time->Write() ;
      h.h_sigIeta_Time->Write() ;
 
-     h.h_RhoPhi_Halo->Write() ;
+     //h.h_RhoPhi_Halo->Write() ;
      h.h_nHaloHits->Write() ;
      h.h_nHaloTracks->Write() ;
 
@@ -531,8 +525,6 @@ void Histogram::DrawHistograms() {
    h_draw->Draw( h.h_g1Pt,   "PhotonPt",    " Pt (GeV/c) ", "", "logY", 0.95, 1 ) ;
    h_draw->Draw( h.h_Eta,    "Eta",         " #eta ",       "", "logY", 0.95, 1 ) ;
    h_draw->Draw( h.h_nChi2,  "TimeChi2",    " #chi^{2} / ndof", "",      "logY", 0.95, 1 ) ;
-   h_draw->Draw( h.h_maxSwissEB, "maxSwissXEB", " max SwissCross value from EB", "", "logY", 0.95, 1 ) ;
-   h_draw->Draw( h.h_maxSwissEE, "maxSwissXEE", " max SwissCross value from EE", "", "logY", 0.95, 1 ) ;
    h_draw->Draw( h.h_seedSwiss, "seedSwissX", " seed SwissCross value ", "", "logY", 0.95, 1 ) ;
    h_draw->Draw( h.h_nXtals, "nXtals",      " N of xtals ", "",         "logY", 0.95, 1 ) ;
    h_draw->Draw( h.h_nBC,    "nBC",         " N of basic cluster ", "", "", 0.95, 1 ) ;
@@ -585,7 +577,7 @@ void Histogram::DrawHistograms() {
    h_draw->Draw2D( h.h_photIso_nXtl, "h_photIso_nXtl",   " Photon Iso", "nXtl", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_photIso_nBC,  "h_photIso_nBC",    " Photon Iso", "nBC ", "logZ" , 8 ) ;
 
-   h_draw->Draw2D( h.h_RhoPhi_Halo,   "h_RhoPhi_Halo", "#phi", " #rho",  ""  ) ;
+   //h_draw->Draw2D( h.h_RhoPhi_Halo,   "h_RhoPhi_Halo", "#phi", " #rho",  ""  ) ;
    h_draw->Draw(   h.h_nHaloHits,     "h_nHaloHits",    " N of Halo csc rechits ", "",  "logY", 0.95, 1 ) ;
    h_draw->Draw(   h.h_nHaloTracks,   "h_nHaloTracks",  " N of Halo csc tracks  ", "",  "logY", 0.95, 1 ) ;
 

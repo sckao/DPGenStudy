@@ -7,33 +7,29 @@
 RootFiles = rootfiles/
 
 # Folder to store results
-Path = TCuts_RunBCD/
+Path = TCuts_RunBCD_new/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
 #HFileName = hStats_RunCD_1J
-#HFileName = testGen_RunCD_1J
-HFileName = bgRunBCD_MET2_LT60_NoIso
+# bgRunBCD_MET2_GT60_s : new spike tag without nXtal cut
+HFileName = bgRunBCD_MET2_GT60
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC
 #        4: Stats Output 5: Systematic, 6: background , 7: Halo Study 8: MC Halo Study 9: Halo Drawer
 ######################################
-Module = 7
+Module = 9
 
 # MC = 0 , Data = 1
 IsData = 1
 # Files , '+' is the flag for TChain,  
 
 TheData = ( data+ )
-dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3, run2012c_1024_3, run2012c_1024_2, run2012c_1024_1, run2012b_1024_1, run2012b_1024_2 )
-#dataChain = ( run2012d_0820_1, run2012d_0820_2, run2012d_0820_3, run2012c_0820_1, run2012c_0820_2, run2012c_0820_3  )
-#dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3 )
-#dataChain = ( run2012c_1024_1, run2012c_1024_2, run2012c_1024_3 )
-#dataChain = ( run2012b_1024_1, run2012b_1024_2 )
-
+dataChain = ( run2012d_0324_1, run2012d_0324_2, run2012d_0324_3, run2012c_0324_1, run2012c_0324_2, run2012c_0324_3, run2012b_0324_1, run2012b_0324_2 )
+#dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3, run2012c_1024_3, run2012c_1024_2, run2012c_1024_1, run2012b_1024_1, run2012b_1024_2 )
 
 # for use of Output class,
 TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gmsb180_4000, gmsb180_6000 ) 
@@ -55,7 +51,7 @@ TriggerBits = ( 2, 3 )
 UseL1 = 0
 
 # Photon Cuts  Pt,  Eta, hoverE,  maxNPhot, minNPhot, sMinMin, sMinMax, dR_trk, leadingPt, sigmaIeta  
-PhotonCuts = ( 45,  1.47,  0.05,        99,        1,    0.12,    0.38,     0.6,       80,    0.99  )
+PhotonCuts = ( 45,  1.47,  0.05,        99,        1,    0.12,    0.38,     0.6,      80.,    0.99  )
 
 # vertex cut   ndof,   z,  d0 
 VertexCuts = (    0,  24,   2 )
@@ -75,7 +71,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        0,       99,   60,  0.3)
+JetCuts = (   35., 2.4,        0,       1,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
@@ -127,16 +123,17 @@ TimeCalib = (  -0.167, 0.26 )
 UseInFlight = 0
 
 # Efficiencies and fake rates in 5 eta regions
-#HaloEff  = ( 1, 1, 1, 1, 1 )
-#HaloFake  = ( 0, 0, 0, 0, 0 )
-#SpikeEff = ( 1, 1, 1, 1, 1 )
-#SpikeFake = ( 0, 0, 0, 0, 0 )
+HaloEff  = ( 1, 1, 1, 1, 1 )
+HaloFake  = ( 0, 0, 0, 0, 0 )
+SpikeEff = ( 1, 1, 1, 1, 1 )
+SpikeFake = ( 0, 0, 0, 0, 0 )
+CosmicEff = ( 1, 1, 1, 1, 1 )
+CosmicFake = ( 0, 0, 0, 0, 0 )
 
-HaloEff  = ( 0.93, 0.98, 0.99, 1.00, 0.98 )
-HaloFake = ( 0.0245, 0.0252, 0.0248, 0.0307, 0.05 )
-SpikeEff = ( 0.971, 0.967, 0.940, 0.953, 0.949 )
-SpikeFake = ( 0.0512, 0.0270, 0.0103, 0.00518, 0.00579 )
-CosmicEff = ( 0.785, 0.785, 0.785, 0.785, 0.785 )
-CosmicFake = ( 0.014, 0.014, 0.014, 0.014, 0.014 )
+#HaloEff  = ( 0.93, 0.98, 0.99, 1.00, 0.98 )
+#HaloFake = ( 0.0245, 0.0252, 0.0248, 0.0307, 0.05 )
+#SpikeEff = ( 0.971, 0.967, 0.940, 0.953, 0.949 )
+#SpikeFake = ( 0.0512, 0.0270, 0.0103, 0.00518, 0.00579 )
+#CosmicEff = ( 0.785, 0.785, 0.785, 0.785, 0.785 )
+#CosmicFake = ( 0.014, 0.014, 0.014, 0.014, 0.014 )
 
-#SpikeFake = ( 0.0219, 0.02256, 0.01493, 0.00162, 0.00290 )

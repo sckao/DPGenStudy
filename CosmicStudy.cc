@@ -68,6 +68,7 @@ void CosmicStudy::Create( TFile* hFile ) {
      cosmic_photIso_Time = new TH2D("cosmic_photIso_Time", " Photon IsoDeposit vs time",           100, 0, 10., 120, -15, 15 );
      cosmic_nXtl      = new TH1D( "cosmic_nXtl", " N crystals vs #eta", 50, 0, 50 ) ;
      cosmic_tChi2 = new TH1D( "cosmic_tChi2", " chi2 of time ", 100, 0, 10  ) ;
+     cosmic_seedE_photE = new TH2D("cosmic_seedE_photE", " seed E vs photon E",  100, 0, 500., 100, 0, 500. );
 
 }
 
@@ -107,6 +108,7 @@ void CosmicStudy::Open( TFile* hFile) {
      cosmic_sMaj_sMin    = (TH2D*) theFile->Get("cosmic_sMaj_sMin");
      cosmic_Time    = (TH1D*) theFile->Get("cosmic_Time");
      cosmic_nXtl    = (TH1D*) theFile->Get("cosmic_nXtl");
+     cosmic_seedE_photE = (TH2D*) theFile->Get("cosmic_seedE_photE");
 
      cout<<" link all histograms  "<<endl ;
 }
@@ -127,6 +129,7 @@ void CosmicStudy::Write() {
      cosmic_sMaj_Time->Write() ;
      cosmic_photIso_Time->Write() ;
      cosmic_sMaj_sMin->Write();
+     cosmic_seedE_photE->Write();
      cosmic_Time->Write() ;
      cosmic_nXtl->Write() ;
      cosmic_tChi2->Write() ;
@@ -154,6 +157,7 @@ void CosmicStudy::Run(  vector<objID>& selectPho, vector<objID>& selectJets, Rtu
 		    cosmic_sMaj_Time->Fill( rt.sMajPho[k], rt.seedTime[k] , weight ) ;
 		    cosmic_Time->Fill( rt.seedTime[k] , weight ) ;
 		    cosmic_tChi2->Fill( rt.timeChi2[k] ,  weight );
+		    cosmic_seedE_photE->Fill( rt.seedE[k] , gP4_.E(),  weight );
                     if ( fabs( rt.seedTime[k]) > 1.5 ) {
 		       cosmic_sMaj_sMin->Fill( rt.sMajPho[k], rt.sMinPho[k] , weight ) ;
 		       cosmic_photIso_Time->Fill( phIso, rt.seedTime[k] , weight ) ;
@@ -205,6 +209,7 @@ void CosmicStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( cosmic_Pt_Time,   "cosmic_Pt_Time",  "P_{T}", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( cosmic_MET_Time,  "cosmic_MET_Time", "MET", "EcalTime (ns)",  "", 8 ) ;
    h_draw->Draw2D( cosmic_photIso_Time,"cosmic_photIso_Time",   " Photon Iso", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( cosmic_seedE_photE, "cosmic_seedE_photE",   " seedE (GeV)", " Photon E (GeV)", "logZ" , 8 ) ;
    h_draw->Draw(   cosmic_nXtl,      "cosmic_nXtl",    "N crystals",       "", "logY", 0.95, 1 ) ;
    h_draw->Draw(   cosmic_Time,      "cosmic_Time", " Ecal time ", "", "logY", 0.95, 1 ) ;
 

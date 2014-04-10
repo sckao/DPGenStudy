@@ -5,13 +5,13 @@
 
 //#define MAXPHO 10
 //#define MAXVTX 10
+#define MAXPHO 12
+#define MAXVTX 10
 #define MAXJET 15
 #define MAXMU 5
 #define MAXELE 5
 #define MAXGEN 20
 
-#define MAXPHO 12
-#define MAXVTX 30
 
 struct Rtuple {
 
@@ -21,7 +21,7 @@ struct Rtuple {
    float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
    float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
-   float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO], seedSwissX[MAXPHO] ;
+   float cscdPhi[MAXPHO] , dtdPhi[MAXPHO], dtdEta[MAXPHO], cscRho[MAXPHO], cscTime[MAXPHO], seedSwissX[MAXPHO], seedE[MAXPHO] ;
    int   nXtals[MAXPHO] ;
 
    //float vtxX[MAXVTX],    vtxY[MAXVTX] ; 
@@ -29,6 +29,7 @@ struct Rtuple {
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
    float jetNDau[MAXJET], jetCM[MAXJET], jetCEF[MAXJET], jetCHF[MAXJET], jetNHF[MAXJET], jetNEF[MAXJET];
    float jecUnc[MAXJET],  jerUnc[MAXJET] ;
+   float jetTime[MAXJET], jetTimeErr[MAXJET] ;
 
    float muPx[MAXMU], muPy[MAXMU], muPz[MAXMU], muE[MAXMU] ;
    //float muEcalIso[MAXOBJ], muHcalIso[MAXOBJ], muTrkIso[MAXOBJ] ;

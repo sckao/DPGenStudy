@@ -80,6 +80,7 @@ public:
    TH2D* halo_eta_rho ;
    TH2D* halo_eta_sMaj ;
    TH2D* halo_ecalT_rho ;
+   TH2D* halo_seedE_photE ;
    TH1D* halo_nXtl ;
    TH1D* halo_swissX ;
    TH1D* halo_tChi2 ;

@@ -40,19 +40,16 @@ public:
 
    bool HLTFilter();
    bool L1Filter();
-   bool PhotonFilter();
+   bool PhotonFilter() ;
    bool JetMETFilter( bool usePFClean = false );
-   bool VertexFilter();
-   bool ElectronFilter();
-   bool MuonFilter();
-   TLorentzVector CorrectMET() ;
+   bool VertexFilter() ;
+   bool ElectronFilter() ;
+   bool MuonFilter() ;
+   bool CorrectMET() ;
 
    bool GetEventStat( string flagName ) ;
 
    bool SignalSelection( bool isTightPhoton = false ) ; 
-   bool MCSignalSelection( bool isTightPhoton = false ) ; 
-   bool ControlSelection() ; 
-   bool QCDControlSample() ; 
    uint32_t  EventIdentification() ;
 
    bool HaloTag( double cscdPhi, double sMaj, double sMin, double eta ) ;
@@ -64,7 +61,6 @@ public:
    void ResetCuts( string cutName = "All" ) ; // set cuts to default values from datacard 
    void ResetCounter() ;
 
-   double GetMET() { return select_met ; } 
    void GetCollection( string collName, vector<objID>& coll ) ;
    void ResetCollection( string cutName = "All" ) ; // clean the storage containers 
    void PrintCutFlow() ;
@@ -86,9 +82,9 @@ public:
    bool passPho ;
    bool passJet ;
    bool passMET ;
-   bool passJetMET ;
    TLorentzVector newMET ;
    TLorentzVector noPhotMET ;
+   TLorentzVector theMET ;
 
 private:
 
@@ -98,7 +94,6 @@ private:
    vector<objID> jetV ;
    vector<objID> eleV ;
    vector<objID> muV ;
-   double select_met ;
 
    vector<double> photonCuts ;
    vector<double> photonIso ;
@@ -112,7 +107,7 @@ private:
    unsigned int eventId ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO] ;
-   float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO], seedSwissX[MAXPHO] ;
+   float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO], seedSwissX[MAXPHO], seedE[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
    float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
    float cscdPhi[MAXPHO] , cscRho[MAXPHO], cscTime[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
@@ -122,7 +117,7 @@ private:
    float vtxZ[MAXVTX], vtxChi2[MAXVTX], vtxNdof[MAXVTX];
    float jetPx[MAXJET],   jetPy[MAXJET], jetPz[MAXJET],  jetE[MAXJET] ;
    float jetNDau[MAXJET], jetCM[MAXJET], jetCEF[MAXJET], jetCHF[MAXJET], jetNHF[MAXJET], jetNEF[MAXJET];
-   float jecUnc[MAXJET],  jerUnc[MAXJET] ;
+   float jecUnc[MAXJET],  jerUnc[MAXJET], jetTime[MAXJET], jetTimeErr[MAXJET] ;
 
    float muPx[MAXMU], muPy[MAXMU], muPz[MAXMU], muE[MAXMU] ;
    //float muEcalIso[MAXOBJ], muHcalIso[MAXOBJ], muTrkIso[MAXOBJ] ;
@@ -149,6 +144,14 @@ private:
    Double_t* spikeEff ;
    Double_t* haloMis ;
    Double_t* spikeMis ;
+
+   // MET Correction
+   double met1x, met1y, met1E ;
+   double met2x, met2y, met2E ;
+
+   // Systematic
+   double metCorrX ;
+   double metCorrY ;
 
    //ClassDef(DPSelection, 1);
 };

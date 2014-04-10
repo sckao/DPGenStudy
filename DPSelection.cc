@@ -42,11 +42,14 @@ DPSelection::DPSelection( string datacardfile ){
   passVtx     = false ;
   passJet     = false ;  
   passMET     = false ;  
-  passJetMET  = false ;  
   newMET    = TLorentzVector(0., 0., 0., 0.) ;
   noPhotMET = TLorentzVector(0., 0., 0., 0.) ;
+  theMET    = TLorentzVector(0., 0., 0., 0.) ;
 
-  select_met = -1 ; 
+  metCorrX = 0 ;
+  metCorrY = 0 ;
+  met1x =0 ; met1y = 0 ; met1E = 0 ;
+  met2x =0 ; met2y = 0 ; met2E = 0 ;
 }
 
 DPSelection::~DPSelection(){
@@ -89,6 +92,8 @@ void DPSelection::Init( TTree* tr ) {
    tr->SetBranchAddress("jetNEF",      jetNEF );
    tr->SetBranchAddress("jecUnc",      jecUnc );
    tr->SetBranchAddress("jerUnc",      jerUnc );
+   tr->SetBranchAddress("jetTime",     jetTime );
+   tr->SetBranchAddress("jetTimeErr",  jetTimeErr );
 
    tr->SetBranchAddress("phoPx",       phoPx );
    tr->SetBranchAddress("phoPy",       phoPy );
@@ -108,6 +113,7 @@ void DPSelection::Init( TTree* tr ) {
    tr->SetBranchAddress("sMajPho",     sMajPho );
    tr->SetBranchAddress("seedTime",    seedTime );
    tr->SetBranchAddress("seedSwissX",  seedSwissX );
+   tr->SetBranchAddress("seedE",       seedE );
    tr->SetBranchAddress("aveTime",     aveTime );
    tr->SetBranchAddress("cscdPhi",     cscdPhi );
    tr->SetBranchAddress("cscRho",      cscRho );
@@ -162,6 +168,7 @@ void DPSelection::Init( Rtuple& rt ) {
      SetArray( photIso    , rt.photIso , MAXPHO ); 
      SetArray( cHadIso    , rt.cHadIso , MAXPHO );  
      SetArray( nHadIso    , rt.nHadIso , MAXPHO ); 
+     SetArray( seedE      , rt.seedE  , MAXPHO );
      SetArray( cscdPhi    , rt.cscdPhi, MAXPHO ) ;
      SetArray( cscRho     , rt.cscRho,  MAXPHO ) ;
      SetArray( cscTime    , rt.cscTime, MAXPHO ) ;
@@ -186,6 +193,8 @@ void DPSelection::Init( Rtuple& rt ) {
      SetArray( jetNEF  , rt.jetNEF , MAXJET ) ; 
      SetArray( jecUnc  , rt.jecUnc , MAXJET ) ;
      SetArray( jerUnc  , rt.jerUnc , MAXJET ) ;
+     SetArray( jetTime , rt.jetTime , MAXJET ) ; 
+     SetArray( jetTimeErr , rt.jetTimeErr , MAXJET ) ; 
 
      SetArray( muPx    , rt.muPx , MAXMU ) ;
      SetArray( muPy    , rt.muPy , MAXMU ) ; 
@@ -250,61 +259,60 @@ bool DPSelection::PhotonFilter() {
        // 0. photon cuts
        phoV.clear() ;
        double maxPt = 0 ;
-       double newEx(0), newEy(0), newE(0) ;
-       double met1x(0), met1y(0), met1E(0) ;
        for ( int j=0 ; j< nPhotons; j++ ) {
            nG[0]++ ;
            TLorentzVector phoP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
+	   bool badseed  = badCrystal( phoP4.Eta() , phoP4.Phi() ) ;
+
            double egScale = 1. ;
            if ( systType == 5 ) egScale = ( fabs(phoP4.Eta()) < 1.479 ) ? 1.006 : 1.015 ;
            if ( systType == 6 ) egScale = ( fabs(phoP4.Eta()) < 1.479 ) ? 0.994 : 0.985 ;
-           phoP4 = phoP4 * egScale ;
-
            // MET correction
-	   bool badseed  = badCrystal( phoP4.Eta() , phoP4.Phi() ) ;
-	   if ( badseed ) continue ;
+           metCorrX += phoP4.Px() ;
+           metCorrY += phoP4.Py() ;
+           phoP4 = phoP4 * egScale ;
+           metCorrX -= phoP4.Px() ;
+           metCorrY -= phoP4.Py() ;
 
-	   bool isHalo   = HaloTag( cscdPhi[j], sMajPho[j], sMinPho[j], phoP4.Eta() ) ;
-	   bool isSpike  = SpikeTag( nXtals[j], sMajPho[j], sMinPho[j], seedSwissX[j], phoP4.Eta() ) ;
-	   bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
-	   bool ghostTag = ( isHalo || isSpike || isCosmic ) ? true : false ;
+	   if ( badseed ) continue ; // reject bad crystals using orignal eta/phi
+
+	   //bool isHalo   = HaloTag( cscdPhi[j], sMajPho[j], sMinPho[j], phoP4.Eta() ) ;
+	   //bool isSpike  = SpikeTag( nXtals[j], sMajPho[j], sMinPho[j], seedSwissX[j], phoP4.Eta() ) ;
+	   //bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
+	   //bool ghostTag = ( isHalo || isSpike || isCosmic ) ? true : false ;
 
            // For MET2 calculation
 	   if ( fabs( seedTime[j]) > 3.0 && fabs( phoP4.Eta() ) < 1.47 ) {
-		   newEx -= phoP4.Px()  ;
-		   newEy -= phoP4.Py()  ;
+	         met2x -= phoP4.Px()  ;
+		 met2y -= phoP4.Py()  ;
 	   }
 	   if ( fabs( seedTime[j]) > 10.0 && fabs( phoP4.Eta() ) > 1.47 ) {
-		   newEx -= phoP4.Px()  ;
-		   newEy -= phoP4.Py()  ;
+		 met2x -= phoP4.Px()  ;
+		 met2y -= phoP4.Py()  ;
 	   }
            // For MET1 calculation
            //printf("   met1 corr -- x:%.2f , y:%.2f \n", met1x,  met1y ) ;
 	   if ( fabs( seedTime[j]) < 3.0 && fabs( phoP4.Eta() ) < 1.47 ) {
-		   met1x += phoP4.Px()  ;
-		   met1y += phoP4.Py()  ;
+		 met1x += phoP4.Px()  ;
+		 met1y += phoP4.Py()  ;
 	   }
 	   if ( fabs( seedTime[j]) < 10.0 && fabs( phoP4.Eta() ) > 1.47 ) {
-		   met1x += phoP4.Px()  ;
-		   met1y += phoP4.Py()  ;
+		 met1x += phoP4.Px()  ;
+		 met1y += phoP4.Py()  ;
 	   }
 
            if (        phoP4.Pt() < photonCuts[0] )          continue ;
-           if ( fabs(phoP4.Eta()) > photonCuts[1] )          continue ;
            nG[1]++ ;
+           if ( fabs(phoP4.Eta()) > photonCuts[1] )          continue ;
+           nG[2]++ ;
 
            if ( phoHovE[j] > photonCuts[2] ) continue ;
-           nG[2]++ ;
-           if ( sMinPho[j] < photonCuts[5] || sMinPho[j] > photonCuts[6] ) continue ;
            nG[3]++ ;
-           if ( dR_TrkPho[j] < photonCuts[7] ) continue; 
+           if ( sMinPho[j] < photonCuts[5] || sMinPho[j] > photonCuts[6] ) continue ;
            nG[4]++ ;
-
-           // Possible bad crystals 
-           //if ( phoP4.Eta() > -0.75 && phoP4.Eta() < -0.6 && phoP4.Phi() > -1. && phoP4.Phi() < -0.8 ) continue ;
-           //if ( phoP4.Eta() > 0.80 && phoP4.Eta() < 0.95 && phoP4.Phi() > -1.95 && phoP4.Phi() < -1.8 ) continue ;
-
+           if ( dR_TrkPho[j] < photonCuts[7] ) continue; 
            nG[5]++ ;
+
            // PF Isolation
            if ( usePFIso == 1 ) {
 	      if ( cHadIso[j] >= photonPFIso[0] ) continue ;  // chargedHadron
@@ -338,16 +346,6 @@ bool DPSelection::PhotonFilter() {
        }
        if ( maxPt >= photonCuts[8] ) nG[8]++ ;
 
-       // set newMET value 
-       newEx = metPx + newEx  ;
-       newEy = metPy + newEy  ;
-       newE  = sqrt( newEx*newEx + newEy*newEy ) ;
-       newMET.SetPxPyPzE( newEx, newEy, 0., newE ) ;
-
-       met1x = metPx + met1x  ;
-       met1y = metPy + met1y  ;
-       met1E  = sqrt( met1x*met1x + met1y*met1y ) ;
-       noPhotMET.SetPxPyPzE( met1x, met1y, 0., met1E ) ;
 
        // identify which photon cut kill the events
        for ( int i=0; i < 9; i++ ) { 
@@ -391,12 +389,17 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
      jetV.clear() ;
      for ( int j=0 ; j< nJets; j++ ) {
          TLorentzVector jp4( jetPx[j], jetPy[j], jetPz[j], jetE[j] ) ;
-         double jer_up = ( jp4.Pt() + jerUnc[j] ) / jp4.Pt() ;
-         double jer_dw = ( jp4.Pt() - jerUnc[j] ) / jp4.Pt() ;
-         if ( systType == 1 ) jp4 = jp4 * jer_up ;
-         if ( systType == 2 ) jp4 = jp4 * jer_dw ;
-         if ( systType == 3 ) jp4 = jp4 * ( 1. + jecUnc[j] ) ;
-         if ( systType == 4 ) jp4 = jp4 * ( 1. - jecUnc[j] ) ;
+         double jCorr = 1. ;
+         if ( systType == 1 ) jCorr = ( jp4.Pt() + jerUnc[j] ) / jp4.Pt() ;
+         if ( systType == 2 ) jCorr = ( jp4.Pt() - jerUnc[j] ) / jp4.Pt() ;
+         if ( systType == 3 ) jCorr = ( 1. + jecUnc[j] ) ;
+         if ( systType == 4 ) jCorr = ( 1. - jecUnc[j] ) ;
+
+	 metCorrX += jp4.Px() ;
+	 metCorrY += jp4.Py() ;
+	 jp4 = jp4*jCorr;
+	 metCorrX -= jp4.Px() ;
+	 metCorrY -= jp4.Py() ;
 
 	 if ( jp4.Pt()        < jetCuts[0] ) continue ;
 	 if ( fabs(jp4.Eta()) > jetCuts[1] ) continue ;
@@ -427,35 +430,38 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
      int nu_Jets = (int)jetV.size() ;
      if ( nu_Jets < (int)jetCuts[2] || nu_Jets > (int)jetCuts[3] )  pass = false ;
 
-     // 2. met selection
-     double met_X(0) , met_Y(0) , met_E(0) ;
-     if ( systType == 0 ) { 
-          met_X = metPx ;
-          met_Y = metPy ;
-     } 
-     if ( systType == 1 || systType == 2 ) { 
-          double ud = ( systType == 1 ) ? 1 : -1 ;
-          met_X =  metPx - ( ud * met_dx1 ) ;
-	  met_Y =  metPy - ( ud * met_dy1 ) ;
-     }             
-     if ( systType == 3 || systType == 4 ) { 
-          double ud = ( systType == 3 ) ? 1 : -1 ;
-          met_X =  metPx - ( ud * met_dx2 ) ;
-	  met_Y =  metPy - ( ud * met_dy2 ) ;
-     }             
-     if ( systType == 5 || systType == 6 ) { 
-          double ud = ( systType == 5 ) ? 1 : -1 ;
-          met_X =  metPx - ( ud * met_dx3 ) ;
-	  met_Y =  metPy - ( ud * met_dy3 ) ;
-     }             
-     met_E  =  sqrt( (met_X*met_X) + (met_Y*met_Y) ) ;
-     TLorentzVector metp4 = TLorentzVector( met_X, met_Y, 0., met_E ) ;
-     select_met = metp4.Et() ;
 
-     if ( jetCuts[4] >= 0 &&  metp4.Et() < jetCuts[4] )         pass = false ;
-     if ( jetCuts[4]  < 0 &&  metp4.Et() > fabs( jetCuts[4] ) ) pass = false ;
      if ( jetV.size() > 1 ) sort( jetV.begin(), jetV.end(), PtDecreasing ) ;
  
+     return pass ;
+}
+
+// Correct MET by taking late photon into account and systematic varies 
+bool DPSelection::CorrectMET() { 
+
+     bool pass = true ;
+
+     //  set MET after sytematic variations
+     metPx += metCorrX ;
+     metPy += metCorrY ;
+     double met_E  =  sqrt( (metPx*metPx) + (metPy*metPy) ) ;
+     theMET.SetPxPyPzE( metPx, metPy, 0., met_E ) ;
+
+     //  set MET2 - MET include late photons
+     met2x = metPx + met2x  ;
+     met2y = metPy + met2y  ;
+     met2E  = sqrt( met2x*met2x + met2y*met2y ) ;
+     newMET.SetPxPyPzE( met2x, met2y, 0., met2E ) ;
+
+     //  set MET1 - MET without any photon
+     met1x = metPx + met1x  ;
+     met1y = metPy + met1y  ;
+     met1E  = sqrt( met1x*met1x + met1y*met1y ) ;
+     noPhotMET.SetPxPyPzE( met1x, met1y, 0., met1E ) ;
+
+     if ( jetCuts[4] >= 0 &&  theMET.Et() < jetCuts[4] )         pass = false ;
+     if ( jetCuts[4]  < 0 &&  theMET.Et() > fabs( jetCuts[4] ) ) pass = false ;
+
      return pass ;
 }
 
@@ -485,43 +491,6 @@ bool DPSelection::ElectronFilter() {
      return pass = false ;
 }
 
-// Correct MET by taking late photon into account 
-TLorentzVector DPSelection::CorrectMET() { 
-
-     double newEx(0), newEy(0), newE(0) ;
-     for ( int j=0 ; j< nPhotons; j++ ) {
-         TLorentzVector gP4( phoPx[j], phoPy[j], phoPz[j], phoE[j] ) ;
-         bool badseed  = badCrystal( gP4.Eta() , gP4.Phi() ) ;
-         if ( badseed ) continue ;
-
-         bool isHalo   = HaloTag( cscdPhi[j], sMajPho[j], sMinPho[j], gP4.Eta() ) ;
-         bool isSpike  = SpikeTag( nXtals[j], sMajPho[j], sMinPho[j], seedSwissX[j], gP4.Eta() ) ;
-         bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
-         bool ghostTag = ( isHalo || isSpike || isCosmic ) ? true : false ;
-
-         if (  ghostTag && fabs( seedTime[j]) < 3.0 && fabs( gP4.Eta() ) < 1.47 ) {
-            newEx += gP4.Px()  ;
-            newEy += gP4.Py()  ;
-         }
-         if ( !ghostTag && fabs( seedTime[j]) > 3.0 && fabs( gP4.Eta() ) < 1.47 ) {
-            newEx -= gP4.Px()  ;
-            newEy -= gP4.Py()  ;
-         }
-         if (  ghostTag && fabs( seedTime[j]) < 10.0 && fabs( gP4.Eta() ) > 1.47 ) {
-            newEx += gP4.Px()  ;
-            newEy += gP4.Py()  ;
-         }
-         if ( !ghostTag && fabs( seedTime[j]) > 10.0 && fabs( gP4.Eta() ) > 1.47 ) {
-            newEx -= gP4.Px()  ;
-            newEy -= gP4.Py()  ;
-         }
-     }
-     newEx = metPx + newEx  ;
-     newEy = metPy + newEy  ;
-     newE  = sqrt( newEx*newEx + newEy*newEy ) ;
-     TLorentzVector newMET_( newEx, newEy, 0., newE ) ;
-     return newMET_ ;
-}
 
 bool DPSelection::MuonFilter() { 
 
@@ -550,8 +519,8 @@ bool DPSelection::MuonFilter() {
 // Catagorize events
 // 1: Pass Datacard selection ; trigger, vertex, photon, jetMET 
 // 2: Control sample, pass trigger+vertex and photon selection without leading photon pt requirement
-// 3: Control sample + non-zero jet
-// 4: Control sample + pass MET cut
+// 4: Control sample + non-zero jet
+// 8: Control sample + pass MET cut
 // 0: Fail all above cases
 uint32_t DPSelection::EventIdentification() {
 
@@ -578,14 +547,18 @@ uint32_t DPSelection::EventIdentification() {
        if ( passTrigger && passVtx && passPho ) counter[3]++ ;
 
        // JetMET information
-       passJetMET = JetMETFilter();
-       if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
+       passJet = JetMETFilter();
+       passMET = CorrectMET() ;
 
-
-       if  ( passVtx  && passPho && passJetMET )                      eventType |= (1 <<0)  ;
-       if  ( passVtx  && phoV.size() > 0       )                      eventType |= (1 <<1) ;
-       if  ( passVtx  && phoV.size() > 0 && jetV.size() > 0 )         eventType |= (1 <<2) ;
-       if  ( passVtx  && phoV.size() > 0 && select_met > jetCuts[4] ) eventType |= (1 <<3) ;
+       // Define event types
+       if  ( passVtx  && passPho && passJet && passMET )               eventType |= (1 <<0) ;  // 0001
+       if  ( passVtx  && phoV.size() > 0       )                       eventType |= (1 <<1) ;  // 0010
+       if  ( passVtx  && phoV.size() > 0 && jetV.size() > 0 )          eventType |= (1 <<2) ;  // 0100
+       if  ( passVtx  && phoV.size() > 0 && theMET.Et() > jetCuts[4] ) eventType |= (1 <<3) ;  // 1000
+       if ( passTrigger && passVtx && passPho && passJet && passMET ) {
+                                                                       eventType |= (1 <<4) ;  //10000
+                                                                       counter[4]++ ;
+       }
 
        ResetCuts() ;  // reset cuts from Datacard
        return eventType ;      
@@ -624,48 +597,19 @@ bool DPSelection::SignalSelection( bool isTightPhoton ) {
        }
        if ( passTrigger && passVtx && passPho ) counter[3]++ ;
 
-       passJetMET = JetMETFilter();
+       passJet = JetMETFilter();
+       passMET = CorrectMET();
        if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
 
        ResetCuts() ;  // reset cuts from Datacard
 
        //bool isSignal = ( passHLT && passVtx  && passPho && passJet && !passGJets ) ? true : false ;
-       bool isSignal = ( passTrigger && passVtx  && passPho && passJetMET ) ? true : false ;
+       bool isSignal = ( passTrigger && passVtx  && passPho && passJet && passMET ) ? true : false ;
       
        return isSignal ;
 
 }
 
-bool DPSelection::ControlSelection() {
-
-       counter[0]++ ;
-
-       passL1  =  L1Filter() ;
-       passHLT  = HLTFilter();
-       passTrigger = ( UseL1 == 1 ) ? passL1 : passHLT ;
-       if ( isData == 0 ) passTrigger = true ;
-       passVtx  = VertexFilter();
-
-       passPho = PhotonFilter(); 
-
-       if ( passTrigger && passVtx ) {
-          int photonStop = GetPhotonCutFlow() ;
-          for ( int i=0; i< photonStop ; i++) { 
-              gCounter[i]++ ;
-          }
-       }
-
-       // run it in order to get jet collection but not use for selection
-       JetMETFilter(); 
-
-       //bool haveMuon = MuonFilter() ;
-
-       ResetCuts() ;  // reset cuts from Datacard
-
-       bool isSignal = ( passTrigger && passVtx  && passPho ) ? true : false ;
-      
-       return isSignal ;
-}
 
 bool DPSelection::GetEventStat( string flagName ) {
 
@@ -676,96 +620,17 @@ bool DPSelection::GetEventStat( string flagName ) {
      else if ( flagName == "Photon" )   return passPho ;
      else if ( flagName == "Jet" )      return passJet ;
      else if ( flagName == "MET" )      return passMET ;
-     else if ( flagName == "JetMET" )   return passJetMET ;
      else    return false ;
 }
 
-bool DPSelection::MCSignalSelection( bool isTightPhoton ) {
-
-       counter[0]++ ;
-
-       passL1  =  L1Filter() ;
-       passTrigger = ( UseL1 == 1 ) ? passL1 : true ;
-       if ( passTrigger ) counter[1]++ ;
-
-       passVtx  = VertexFilter();
-       if ( passTrigger && passVtx ) counter[2]++ ;
-
-       // reset cuts to tight photon selection
-       if ( isTightPhoton ) {
-          ResetCuts( "PhotonCuts", 0, 50. ) ;  // pt
-	  ResetCuts( "PhotonCuts", 1, 1.4 ) ;   // eta
-	  ResetCuts( "PhotonIso",  0, 0.1 ) ;   // Trk Iso
-	  ResetCuts( "PhotonIso",  1, 2.4 ) ;   // Ecal Et 
-	  ResetCuts( "PhotonIso",  2, 0.05 ) ;  // Ecal Ratio
-	  ResetCuts( "PhotonIso",  3, 2.4 ) ;   // Hcal Et
-	  ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
-	  //ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
-       }
-       passPho = PhotonFilter();  // true for selecting Isolation 
-       if ( passTrigger && passVtx ) {
-          int photonStop = GetPhotonCutFlow() ;
-          for ( int i=0; i< photonStop ; i++) { 
-              gCounter[i]++ ;
-          }
-       }
-       if ( passTrigger && passVtx && passPho ) counter[3]++ ;
-
-       passJet = JetMETFilter();
-       if ( passTrigger && passVtx && passPho && passJet ) counter[4]++ ;
-
-       ResetCuts() ;  // reset cuts from Datacard
-
-       //bool isSignal = ( passTrigger && passVtx  && passPho && passJet ) ? true : false ;
-       bool isSignal = ( passTrigger && passVtx  && passPho ) ? true : false ;
-      
-       return isSignal ;
-
-}
 
 void DPSelection::PrintCutFlow() {
 
      printf(" Input: %d,  trig: %d,  vtx: %d,  photon: %d,  jetMET: %d \n"
            , counter[0], counter[1], counter[2], counter[3], counter[4]) ;
-     printf(" Photon Input: %d,   PtEta: %d,    H/E: %d,     sMin: %d,  dR_trk: %d, badXtals: %d,    Iso: %d, sigmaIeta: %d, maxPt: %d \n"
+     printf(" Photon Input: %d,   Pt: %d ,  Eta: %d,    H/E: %d,     sMin: %d,  dR_trk: %d,    Iso: %d, sigmaIeta: %d, maxPt: %d \n"
                  , gCounter[0], gCounter[1], gCounter[2], gCounter[3], gCounter[4], gCounter[5], gCounter[6],   gCounter[7], gCounter[8] );
 
-}
-
-bool DPSelection::QCDControlSample() {
-
-       passHLT  = HLTFilter();
-       passVtx  = VertexFilter();
-       // reset cuts to tight photon selection
-       ResetCuts( "PhotonCuts", 0, 100. ) ;  // pt
-       ResetCuts( "PhotonCuts", 1, 1.4 ) ;   // eta
-       ResetCuts( "PhotonCuts", 7, -2. ) ;   // seed time
-       ResetCuts( "PhotonIso",  0, 0.1 ) ;   // Trk Iso
-       ResetCuts( "PhotonIso",  1, 2.4 ) ;   // Ecal Et 
-       ResetCuts( "PhotonIso",  2, 0.05 ) ;  // Ecal Ratio
-       ResetCuts( "PhotonIso",  3, 2.4 ) ;   // Hcal Et
-       ResetCuts( "PhotonIso",  4, 0.05 ) ;  // Hcal Ratio
-       bool passTight = PhotonFilter();
- 
-       ResetCuts( "PhotonCuts", 0, 100. ) ; // pt
-       ResetCuts( "PhotonCuts", 1, 1.4 ) ;  // eta
-       ResetCuts( "PhotonIso",  0, 0.2 ) ;  // Trk Iso
-       ResetCuts( "PhotonIso",  1, 4.5 ) ;  // Ecal Et 
-       ResetCuts( "PhotonIso",  2, 0.1 ) ;  // Ecal Ratio
-       ResetCuts( "PhotonIso",  3, 4.0 ) ;  // Hcal Et
-       ResetCuts( "PhotonIso",  4, 0.1 ) ;  // Hcal Ratio
-       passPho = PhotonFilter();
-
-       ResetCuts( "JetCuts",  2, 3 ) ;  // Min Num of Jets
-       passJet = JetMETFilter();
-
-       //bool passGJets = GammaJetsBackground() ;
-
-       ResetCuts() ;  // reset cuts from Datacard
-
-       bool isQCD = ( passHLT && passVtx  && passPho && passJet && !passTight ) ? true : false ;
-
-       return isQCD ;
 }
 
 void DPSelection::ResetCuts( string cutName, vector<int>& cutId, vector<double>& newValue ) {
@@ -808,11 +673,15 @@ void DPSelection::ResetCuts( string cutName ) {
 
 void DPSelection::ResetCollection( string cutName ) {
 
+    metCorrX = 0 ;
+    metCorrY = 0 ;
+    met1x =0 ; met1y = 0 ; met1E = 0 ;
+    met2x =0 ; met2y = 0 ; met2E = 0 ;
+
     if ( cutName == "Photon"   || cutName == "All" ) phoV.clear() ;
     if ( cutName == "Electron" || cutName == "All" ) eleV.clear() ;
     if ( cutName == "Jet"      || cutName == "All" ) jetV.clear() ;
     if ( cutName == "Muon"     || cutName == "All" ) muV.clear() ;
-    if ( cutName == "MET"      || cutName == "All" ) select_met = -1 ;
 
 }
 
@@ -855,7 +724,8 @@ bool DPSelection::HaloTag( double cscdPhi, double sMaj, double sMin, double eta 
 
 bool DPSelection::SpikeTag( int nXtl, double sMaj, double sMin, double swissX, double eta ) {
 
-    bool spikeTag = ( nXtl < 7 || swissX > 0.9 ) ? true : false ;
+    //bool spikeTag = ( nXtl < 7 || swissX > 0.9 ) ? true : false ;
+    bool spikeTag = ( swissX > 0.9 ) ? true : false ;
     if ( sMaj < 0.6 && sMin < 0.17 && fabs(eta) < 1.47 ) spikeTag = true;
 
     return spikeTag ;

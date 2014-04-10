@@ -68,6 +68,7 @@ public:
    TH1D* spike_sigIeta ;
    TH1D* spike_Time ;
    TH2D* spike_sMaj_sigIeta ;
+   TH2D* spike_seedE_photE ;
    TH2D* spike_sMin_sigIeta ;
    TH1D* notSpike_nXtl ;
 

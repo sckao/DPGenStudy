@@ -73,8 +73,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
    
    tr->SetBranchAddress("nOutTimeHits", &nHaloHits ) ;
    tr->SetBranchAddress("nHaloTrack",   &nHaloTracks ) ;
-   tr->SetBranchAddress("haloPhi",      &haloPhi ) ;
-   tr->SetBranchAddress("haloRho",      &haloRho ) ;
+   //tr->SetBranchAddress("haloPhi",      &haloPhi ) ;
+   //tr->SetBranchAddress("haloRho",      &haloRho ) ;
 
    tr->SetBranchAddress("metPx",       &metPx );
    tr->SetBranchAddress("metPy",       &metPy );
@@ -109,7 +109,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
    tr->SetBranchAddress("photIso",     photIso );
    tr->SetBranchAddress("phoHoverE",   phoHoverE );
 
-   tr->SetBranchAddress("maxSwissX",   maxSwissX );
    tr->SetBranchAddress("seedSwissX",  seedSwissX );
    tr->SetBranchAddress("nXtals",      nXtals );
    tr->SetBranchAddress("nBC",         nBC );
@@ -154,8 +153,12 @@ void TestGen::ReadTree( string dataName, double weight ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
-       bool pass = select->SignalSelection();
-       //bool pass = select->ControlSelection();
+
+       // Type = 2 : Control sample , at least one photon pt > 45 GeV
+       uint32_t evtType = select->EventIdentification();
+       bool pass = ( (evtType >> 1) & 1  ) ;
+
+
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
@@ -209,11 +212,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	      recoPho.push_back( make_pair( k , gP4_) );
 	      recoTs.push_back( seedTime[k] );
 
-	      if ( fabs( gP4_.Eta()) <= 1.479 ) h.h_maxSwissEB->Fill( maxSwissX[k] , weight );
-	      if ( fabs( gP4_.Eta())  > 1.479 ) h.h_maxSwissEE->Fill( maxSwissX[k] , weight );
 	      h.h_sMin->Fill( sMinPho[k] , weight ) ;
 
-	      //if ( maxSwissX[k] > 0.95 ) continue ;
 	      h.h_seedSwiss->Fill( seedSwissX[k] , weight );
 	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
 	      if ( nXtals[k] < 3 ) continue ;
@@ -261,8 +261,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
 
               // Using CMSSW CSC Halo Tagging
-              if ( nHaloTracks > 0  && haloRho > 0 ) {
-                 h.h_RhoPhi_Halo->Fill( haloPhi, haloRho , weight ) ;
+              if ( nHaloTracks > 0  ) {
+                 //h.h_RhoPhi_Halo->Fill( haloPhi, haloRho , weight ) ;
                  h.h_nHaloTracks->Fill( nHaloTracks , weight ) ;
                  h.h_nHaloHits->Fill( nHaloHits , weight ) ;
                  //double dphi = fabs( haloPhi - gP4_.Phi() ) ;

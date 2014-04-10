@@ -52,6 +52,7 @@ public:
    TH2D* cosmic_sMaj_Time ;
    TH2D* cosmic_photIso_Time ;
    TH2D* cosmic_sMaj_sMin ;
+   TH2D* cosmic_seedE_photE ;
    TH1D* cosmic_Time ;
    TH1D* cosmic_nXtl ;
 

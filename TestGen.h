@@ -89,7 +89,7 @@ private:
    float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO];
    float photIso[MAXPHO] , cHadIso[MAXPHO], nHadIso[MAXPHO], phoHoverE[MAXPHO] ;
-   float fSpike[MAXPHO], maxSwissX[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
+   float fSpike[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
    //float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
@@ -99,7 +99,7 @@ private:
    float metPx, metPy, metE ;
    int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
    int   nHaloHits , nHaloTracks ;
-   float haloPhi , haloRho ;
+   //float haloPhi , haloRho ;
 
    vector<objID> selectJets ;
    vector<objID> selectPho ;

@@ -408,7 +408,10 @@ void Trigger::EventList( string dataFileName ) {
        tr->GetEntry( i );
        tr1->GetEntry( i );
 
-       bool pass = select->SignalSelection();
+       // Type = 2 : Control sample , at least one photon pt > 45 GeV
+       uint32_t evtType = select->EventIdentification();
+       bool pass = ( (evtType >> 1) & 1  ) ;
+
        if ( !pass ) continue ;
        fprintf(logfile," %8d %16d \n", runId, eventId );
 

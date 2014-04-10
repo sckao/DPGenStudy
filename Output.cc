@@ -140,8 +140,12 @@ void Output::RunData( string dataName ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
-       //bool pass = select->SignalSelection();
-       bool pass = select->ControlSelection();
+
+       uint32_t evtType = select->EventIdentification();
+       // Type = 2 : Control sample , at least one photon pt > 45 GeV
+       bool wanted = ( (evtType >> 1) & 1  ) ;
+       if ( !wanted ) continue ;
+
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
@@ -151,7 +155,6 @@ void Output::RunData( string dataName ) {
        noPhotMET = select->noPhotMET ;
 
        nEvt++; 
-       if ( !pass ) continue ;
        //cout<<" EVT# : "<< nEvt <<endl ;
 
        // Signal Region - Photon Pt > 80 
@@ -336,14 +339,15 @@ void Output::RunMC( string mcName, double weight ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
-       bool pass = select->ControlSelection();
+       uint32_t evtType = select->EventIdentification();
+       // Type = 2 : Control sample , at least one photon pt > 45 GeV
+       bool wanted = ( (evtType >> 1) & 1  ) ;
+       if ( !wanted ) continue ;
+
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
        select->GetCollection("Photon", selectPho ) ;
-       //double select_met = select->GetMET() ;
-
-       if ( !pass ) continue ;
 
        nEvt++; 
        //cout<<" EVT# : "<< nEvt <<endl ;

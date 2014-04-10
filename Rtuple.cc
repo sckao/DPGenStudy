@@ -37,6 +37,8 @@ void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
    tr->SetBranchAddress("jetNEF",      &vr.jetNEF );
    tr->SetBranchAddress("jecUnc",      &vr.jecUnc );
    tr->SetBranchAddress("jerUnc",      &vr.jerUnc );
+   tr->SetBranchAddress("jetTime",     &vr.jetTime );
+   tr->SetBranchAddress("jetTimeErr",  &vr.jetTimeErr );
 
    tr->SetBranchAddress("phoPx",       &vr.phoPx );
    tr->SetBranchAddress("phoPy",       &vr.phoPy );
@@ -64,6 +66,7 @@ void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
    tr->SetBranchAddress("nXtals",      &vr.nXtals );
    tr->SetBranchAddress("timeChi2",    &vr.timeChi2 );
    tr->SetBranchAddress("seedSwissX",  &vr.seedSwissX );
+   tr->SetBranchAddress("seedE",       &vr.seedE );
 
    tr->SetBranchAddress("elePx",        &vr.elePx );
    tr->SetBranchAddress("elePy",        &vr.elePy );

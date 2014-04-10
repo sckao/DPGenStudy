@@ -126,6 +126,7 @@ void HaloStudy::Create( TFile* hFile ) {
   halo_eta_rho        = new TH2D( "halo_eta_rho", " #eta vs rho", 51, -2.5, 2.5, 100, 100, 300. ) ;
   halo_eta_sMaj       = new TH2D( "halo_eta_sMaj", " #eta vs sMajor", 51, -2.5, 2.5, 100, 0, 2 ) ;
   halo_ecalT_rho      = new TH2D( "halo_ecalT_rho", " Ecal time vs rho", 160, -20, 20, 100, 100, 500. ) ;
+  halo_seedE_photE    = new TH2D( "halo_seedE_photE", " seedE vs photon E", 100, 0, 500., 100, 0, 500. ) ;
   halo_nXtl     = new TH1D( "halo_nXtl", " N of crystals ", 50, 0, 50 ) ;
   halo_swissX   = new TH1D( "halo_swissX", " Swiss-X ", 110, 0, 1.1 ) ;
   halo_tChi2   = new TH1D( "halo_tChi2", " chi2 of time ", 100, 0, 10  ) ;
@@ -235,6 +236,7 @@ void HaloStudy::Open( TFile* hFile ) {
      halo_ecalT_rho       = (TH2D*) theFile->Get("halo_ecalT_rho");
      halo_nXtl            = (TH1D*) theFile->Get("halo_nXtl");
      halo_swissX          = (TH1D*) theFile->Get("halo_swissX");
+     halo_seedE_photE     = (TH2D*) theFile->Get("halo_seedE_photE");
 
      noHalo_Time = (TH1D*) theFile->Get("noHalo_Time");
      noHalo_sMaj_Time = (TH2D*) theFile->Get("noHalo_sMaj_Time");
@@ -323,6 +325,7 @@ void HaloStudy::Write( ) {
   halo_nXtl->Write() ;
   halo_swissX->Write() ;
   halo_tChi2->Write() ;
+  halo_seedE_photE->Write() ;
 
   noHalo_Time->Write() ;
   noHalo_sMaj_Time->Write() ;
@@ -431,6 +434,7 @@ void HaloStudy::Run( vector<objID>& selectPho, vector<objID>& selectJets, Rtuple
 		 halo_photIso_Time->Fill( phIso, rt.seedTime[k] , weight ) ;
 		 halo_nHadIso_Time->Fill( nHIso, rt.seedTime[k] , weight ) ;
 		 halo_ecalT_rho->Fill( rt.seedTime[k], rt.cscRho[k], weight  ) ;
+		 halo_seedE_photE->Fill( rt.seedE[k], gP4_.E(), weight  ) ;
 		 halo_tChi2->Fill( rt.timeChi2[k] ,  weight );
 		 // Only check the out-of-time region
 	         if ( fabs( rt.seedTime[k]) > 1.5 ) {
@@ -561,6 +565,7 @@ void HaloStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( halo_eta_rho,     "halo_eta_rho",    "#eta ", "#rho", "logZ", 8 ) ;
    h_draw->Draw2D( halo_eta_sMaj,    "halo_eta_sMaj",    "#eta ", "s_{Major}", "logZ", 8 ) ;
    h_draw->Draw2D( halo_ecalT_rho,   "halo_ecalT_rho",    "Ecal time ", "#rho", "logZ", 8 ) ;
+   h_draw->Draw2D( halo_seedE_photE, "halo_seedE_photE",  "seed E (GeV)", "photon E (GeV)", "logZ", 8 ) ;
    h_draw->Draw(   halo_swissX,      "halo_swissX",       " Swiss-X ", "", "logY", 0.95, 1 ) ;
 
    h_draw->Draw2D( noHalo_sMaj_Time, "noHalo_sMaj_Time",  "sMaj", " EcalTime (ns) ",  "logZ"  ) ;

@@ -95,6 +95,7 @@ void SpikeStudy::Create( TFile* hFile ) {
   spike_T_dPhi_gMET_0J = new TH2D("spike_T_dPhi_gMET_0J", "time vs dPhi( photon, MET)", 120, -15, 15, 64, 0, 3.2 ) ;
   spike_T_dPhi_gMET_1J = new TH2D("spike_T_dPhi_gMET_1J", "time vs dPhi( photon, MET)", 120, -15, 15, 64, 0, 3.2 ) ;
   spike_T_dPhi_gMET_2J = new TH2D("spike_T_dPhi_gMET_2J", "time vs dPhi( photon, MET)", 120, -15, 15, 64, 0, 3.2 ) ;
+  spike_seedE_photE    = new TH2D("spike_seedE_photE",    "seedE vs photonE ", 100, 0, 500, 100, 0, 500. ) ;
 
   notSpike_nXtl   = new TH1D("notSpike_nXtl", "N of crystals for non-spike photon ", 50,  0, 50 );
 
@@ -162,6 +163,7 @@ void SpikeStudy::Open( TFile* hFile ) {
      spike_T_dPhi_gMET_1J  = (TH2D*) theFile->Get("spike_T_dPhi_gMET_1J") ;
      spike_T_dPhi_gMET_2J  = (TH2D*) theFile->Get("spike_T_dPhi_gMET_2J") ;
      spike_T_dPhi_gMET_0J  = (TH2D*) theFile->Get("spike_T_dPhi_gMET_0J") ;
+     spike_seedE_photE     = (TH2D*) theFile->Get("spike_seedE_photE");
 
      notSpike_nXtl = (TH1D*) theFile->Get("notSpike_nXtl");
 
@@ -212,6 +214,7 @@ void SpikeStudy::Write() {
   spike_T_dPhi_gMET_1J->Write() ;
   spike_T_dPhi_gMET_2J->Write() ;
   spike_T_dPhi_gMET_0J->Write() ;
+  spike_seedE_photE->Write() ;
   spike_tChi2->Write() ;
 
   cout<<" Output historams written ! "<< endl ;
@@ -298,6 +301,7 @@ void SpikeStudy::Run( vector<objID>& selectPho, vector<objID>& selectJets, Rtupl
 	       spike_photIso_Time->Fill( phIso, rt.seedTime[k] , weight ) ;
 	       spike_nHadIso_Time->Fill( nHIso, rt.seedTime[k] , weight ) ;
 	       spike_tChi2->Fill( rt.timeChi2[k] ,  weight );
+               spike_seedE_photE->Fill( rt.seedE[k] , gP4_.E() , weight ) ;
 	       if ( fabs( rt.seedTime[k]) > 1.5 ) {
 	          spike_Pt_Time->Fill( gP4_.Pt(), rt.seedTime[k] , weight );
 		  spike_MET_Time->Fill( met.E(), rt.seedTime[k] , weight );
@@ -391,6 +395,7 @@ void SpikeStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( spike_T_dPhi_gMET_1J, "spike_T_dPhi_gMET_1J", "EcalTime (ns)", "dPhi( photon, MET)", "logZ", 8 ) ;
    h_draw->Draw2D( spike_T_dPhi_gMET_2J, "spike_T_dPhi_gMET_2J", "EcalTime (ns)", "dPhi( photon, MET)", "logZ", 8 ) ;
    h_draw->Draw2D( spike_T_dPhi_gMET_0J, "spike_T_dPhi_gMET_0J", "EcalTime (ns)", "dPhi( photon, MET)", "logZ", 8 ) ;
+   h_draw->Draw2D( spike_seedE_photE,  "spike_seedE_photE",   "seedE (GeV)", "photon E (GeV)",  "logZ"  ) ;
 
    gPad->SetGridx() ;
    gStyle->SetOptStat("");
@@ -477,7 +482,8 @@ bool SpikeStudy::SpikeTag( Rtuple& rt, int k ) {
 
      TLorentzVector gP4_ = TLorentzVector( rt.phoPx[k], rt.phoPy[k], rt.phoPz[k], rt.phoE[k] ) ;
 
-     bool spikeTag = ( rt.nXtals[k] < 7 || rt.seedSwissX[k] > 0.9 ) ? true : false  ;
+     //bool spikeTag = ( rt.nXtals[k] < 7 || rt.seedSwissX[k] > 0.9 ) ? true : false  ;
+     bool spikeTag = ( rt.seedSwissX[k] > 0.9 ) ? true : false  ;
      if ( rt.sMajPho[k] < 0.6 && rt.sMinPho[k] < 0.17 && fabs( gP4_.Eta() ) < 1.47 ) spikeTag = true;
      return spikeTag ;
 }

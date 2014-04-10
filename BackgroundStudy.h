@@ -47,14 +47,12 @@ public:
    void DrawHistograms( hDraw* h_draw = NULL ) ;
    void DrawAllHistograms() ;
    // ABCD Method
-   void ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) ;
+   vector<double> ABCD_Collision( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) ;
+   vector<double> ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) ;
+   void ABCD_ABCD() ;
    double GetEstimation( TH3D* hCount, bool getQCD = true ) ;
    vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) ;
    vector<double> GetComponent( int eta_i, int B12,    int h_B12,    int s_B12,    int c_B12 ) ;
-
-   // Very naive ABCD Method
-   //double ABCD( TH1D* h_sg, TH1D* h_cs, double lowT = -3, double upT = 2 ) ;
-   double GetQCDComponent( TH1D* h_qcd, TH1D* h_sg, double lowX = -2, double upX = 2 ) ;
 
    TLorentzVector JetVectorSum( vector<objID>& jetV ) ;
    static Double_t HaloFunction( Double_t* eta, Double_t* par ) ;
@@ -71,7 +69,6 @@ public:
    TH1D* h_EE_Time0 ;
    TH1D* h_EE_Time1 ;
    TH1D* h_EE_Time2 ;
-
    TH1D* h_EE_haloTime ;
 
    TH2D* h_Eta_Phi ;
@@ -106,14 +103,15 @@ public:
    TH2D* h_cHadIso_Time ;
    TH2D* h_nHadIso_Time ;
    TH2D* h_photIso_Time ;
+   TH2D* h_seedE_Time ;
    TH2D* h_met_met1;
    TH2D* h_met_met2;
-   TH2D* h_eta_time_met1;
-   TH2D* h_eta_time_met2;
    TH1D* h_nPhoton ;
-   TH1D* h_nPhoton_met1 ;
-   TH1D* h_nPhoton_met2 ;
 
+   TH2D* h_jet_phot_Time ;
+   TH1D* h_jetTime ;
+   TH1D* h_jetTimeErr ;
+  
    TH1D* h_tChi2 ;
    TH1D* halo_tChi2 ;
    TH1D* spike_tChi2 ;
@@ -121,8 +119,8 @@ public:
    TH1D* cosmic_tChi2 ;
    TH1D* cs_tChi2 ;
 
+   TH2D* h_nVtx_tChi2 ;
    TH1D* h_nVtx ;
-   TH1D* l_nVtx ;
    TH1D* h_pfMET ;
    TH1D* h_hltMET ;
 
@@ -173,6 +171,7 @@ public:
    TH2D* cs_nHadIso_Time ;
    TH2D* cs_photIso_Time ;
    TH2D* cs_dtdPhidEta ;
+   TH2D* cs_seedE_photE ;
 
    TH2D* sideband_photIso_cscdPhi ;
    TH2D* sideband_sMin_Time ;
@@ -191,14 +190,10 @@ public:
 
    TH2D* abcd_Pt_Time ;
    TH2D* abcd_MET_Time ;
-   TH2D* abcd_MET1_Time ;
    TH2D* abcd_MET2_Time ;
+   TH2D* abcd_MET1_Time_sMET2 ;
+   TH2D* abcd_MET1_Time_bMET2 ;
    TH2D* abcd_NJet_Time ;
-   TH2D* ab_Pt_MET ;
-   TH2D* cd_Pt_MET ;
-   TH1D* ab_dPhi_gMET ;
-   TH1D* cd_dPhi_gMET ;
-  
 
    TH1D* nJets_center ;
    TH1D* nJets_halo ;
@@ -215,6 +210,13 @@ public:
    TH3D* hBg_C ;
    TH3D* hBg_B ;
    TH3D* hBg_A ;
+
+   TH3D* hCol_F ;
+   TH3D* hCol_E ;
+   TH3D* hCol_D ;
+   TH3D* hCol_C ;
+   TH3D* hCol_B ;
+   TH3D* hCol_A ;
 
    TH2D* sel_T_dPhi_gMET_1J ;
    TH2D* sel_T_dPhi_gMET_2J ;
@@ -258,6 +260,7 @@ private:
    int ProcessEvents ;
    int SkipEvents ;
    int isData ;
+   int systType ;
 
    vector<objID> selectJets ;
    vector<objID> selectPho ;
@@ -274,6 +277,7 @@ private:
    TTree* tr ;
    Rtuple rt ;
 
+   
 
    //ClassDef(BackgroundStudy, 1);
 };
