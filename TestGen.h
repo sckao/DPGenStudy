@@ -98,8 +98,9 @@ private:
 
    float metPx, metPy, metE ;
    int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
-   int   nHaloHits , nHaloTracks ;
-   //float haloPhi , haloRho ;
+
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
 
    vector<objID> selectJets ;
    vector<objID> selectPho ;
@@ -121,6 +122,7 @@ private:
    string hfName ;
    // Histograms set
    hSet   h ;
+
 
    //ClassDef(TestGen, 1);
 };

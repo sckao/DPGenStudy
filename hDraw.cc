@@ -403,7 +403,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
        double ba_ = hAll->GetBinContent(i) ;
        double x_  = hAll->GetBinCenter(i) ;
        printf("     (%d)_%.2f =  %.2f/%.2f \n", i, x_, bc_, ba_ ) ;
-    
+       if ( bc_ ==0 && ba_ ==0 ) continue ;
        // rebin the histogram in order to have consistence statistic for each bin
        if ( ba < minBinContent || ba < bc || rbin < rbin_ ) {
           ba += ba_ ;
@@ -427,6 +427,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
 	     ba   = 0 ;
 	     x    = 0 ;
 	     rbin = 0 ;
+	     rbin_ = 0 ;
           }
        }
    }

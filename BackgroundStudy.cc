@@ -739,9 +739,9 @@ void BackgroundStudy::WriteDrawHistograms() {
 // The overview of the data, without applying any cuts
 void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJets, double weight ) {
 
-       TLorentzVector met( rt.metPx, rt.metPy, 0, rt.metE )  ;
+       TLorentzVector met = select->theMET ;
 
-       double pfMET_  = ( rt.metE > 99.5  ) ? 99.5 : rt.metE ;
+       double pfMET_  = ( met.E() > 99.5  ) ? 99.5 : met.E() ;
        double hltMET_ = ( rt.t_met > 99.5 ) ? 99.5 : rt.t_met ;
        h_pfMET->Fill( pfMET_, weight ) ;
        h_hltMET->Fill( hltMET_, weight ) ;
@@ -751,6 +751,8 @@ void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJe
        for ( int k=0 ; k < rt.nPhotons ; k++ ) {
 
 	   TLorentzVector gP4_ = TLorentzVector( rt.phoPx[k], rt.phoPy[k], rt.phoPz[k], rt.phoE[k] ) ;
+           bool badseed   = badCrystal( gP4_.Eta() , gP4_.Phi() ) ;
+
            double egScale = 1. ;
            if ( systType == 5 ) egScale = ( fabs(gP4_.Eta()) < 1.479 ) ? 1.006 : 1.015 ;
            if ( systType == 6 ) egScale = ( fabs(gP4_.Eta()) < 1.479 ) ? 0.994 : 0.985 ;
@@ -758,7 +760,6 @@ void BackgroundStudy::RawInfo( vector<objID>& selectPho, vector<objID>& selectJe
 
            if ( fabs(gP4_.Eta() ) < 1.47 ) h_Eta_Phi->Fill( gP4_.Eta() , gP4_.Phi() , weight );
 
-           bool badseed   = badCrystal( gP4_.Eta() , gP4_.Phi() ) ;
            if ( badseed ) continue ;
 
 	   bool haloTag   = haloS->HaloTag( rt , k) ;
@@ -1619,7 +1620,7 @@ void BackgroundStudy::ABCD_ABCD() {
                                                      , errBCovA.first, errBCovA.second, colD[1], colD[2] ) ;
 
    printf("\n ================ Final Result =================== \n") ;
-   printf(" Observe :%.2f -> Predict : %.2f + %.3f - %.3f \n", abcdef[3], predict, errFinal.first , errFinal.second ) ;
+   printf(" Observe :%.2f -> Predict : %.4f + %.4f - %.4f \n", abcdef[3], predict, errFinal.first , errFinal.second ) ;
 }
 
 // Return the sum of spike and halo component or QCD component of background

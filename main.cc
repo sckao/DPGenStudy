@@ -51,10 +51,11 @@ int main( int argc, const char* argv[] ) {
   }
   if ( module == 1 ) {
      Trigger   *trg   = new Trigger( datacardfile ) ;
-     //trg->ReadTree( dataFileNames);
-     trg->EventList( dataFileNames ) ;
-     trg->CutFlow( dataFileNames ) ;
+     trg->ReadTree( dataFileNames);
+     trg->Plot() ;
      delete trg ;
+     //trg->EventList( dataFileNames ) ;
+     //trg->CutFlow( dataFileNames ) ;
   }
   if ( module == 2 ) {
      Histogram *histo = new Histogram( datacardfile ) ;
@@ -87,10 +88,14 @@ int main( int argc, const char* argv[] ) {
      delete syst ;
   }
   if ( module == 6 ) {
-     Background * bg = new Background( datacardfile ) ;
-     bg->RunEstimation( dataFileNames ) ;
+     //Background * bg = new Background( datacardfile ) ;
+     //bg->RunEstimation( dataFileNames ) ;
      //bg->SpikeShape() ;
-     delete bg ;
+     //delete bg ;
+     Trigger   *trg   = new Trigger( datacardfile ) ;
+     trg->HistoOpen( );
+     trg->Plot() ;
+     delete trg ;
   }
   if ( module == 7 ||  module == 8 || module == 9 || module == 10 ) {
      

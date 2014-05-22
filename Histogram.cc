@@ -96,10 +96,6 @@ void Histogram::Init( hSet& hS ) {
    hS.h_cscdPhi_Time  = new TH2D( "h_cscdPhi_Time", " d#Phi vs Ecal time", 64, 0, 3.2, 160, -20, 20 ) ;
    hS.h_sigIeta_Time  = new TH2D( "h_sigIeta_Time", " sigma_iEta vs Ecal time", 80, 0, 0.08, 120, -15, 15 ) ;
 
-   //hS.h_RhoPhi_Halo = new TH2D( "h_RhoPhi_Halo", " phi vs rho for halo tracks", 63, -3.15, 3.15, 50, 0, 500 ) ;
-   hS.h_nHaloHits   = new TH1D( "h_nHaloHits",   " N of out of time CSC rechits", 50, 0, 50 ) ;
-   hS.h_nHaloTracks = new TH1D( "h_nHaloTracks",   " N of CSC Halo Tracks", 10, 0, 10 ) ;
-
    hS.pureTime     = new TH1D("pureTime", "Photon Time after ghost cleaning", 160,  -14.5, 25.5);
    hS.ghostTime    = new TH1D("ghostTime", "Ghost Photon Time ", 160,  -14.5, 25.5);
 
@@ -221,10 +217,6 @@ void Histogram::Open() {
      h.h_cscdPhi_Time  = (TH2D*) hFile->Get("h_cscdPhi_Time")  ;
      h.h_sigIeta_Time  = (TH2D*) hFile->Get("h_sigIeta_Time")  ;
 
-     //h.h_RhoPhi_Halo = (TH2D*) hFile->Get("h_RhoPhi_Halo")  ;
-     h.h_nHaloHits   = (TH1D*) hFile->Get("h_nHaloHits")  ;
-     h.h_nHaloTracks = (TH1D*) hFile->Get("h_nHaloTracks")  ;
-
      h.pureTime      = (TH1D*) hFile->Get("pureTime")     ;
      h.ghostTime     = (TH1D*) hFile->Get("ghostTime")     ;
 
@@ -332,10 +324,6 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_sMin_Time->Write() ;
      h.h_cscdPhi_Time->Write() ;
      h.h_sigIeta_Time->Write() ;
-
-     //h.h_RhoPhi_Halo->Write() ;
-     h.h_nHaloHits->Write() ;
-     h.h_nHaloTracks->Write() ;
 
      h.pureTime->Write() ;
      h.ghostTime->Write() ;
@@ -576,10 +564,6 @@ void Histogram::DrawHistograms() {
    h_draw->Draw2D( h.h_photIso_sMaj, "h_photIso_sMaj",   " Photon Iso", "sMajor", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_photIso_nXtl, "h_photIso_nXtl",   " Photon Iso", "nXtl", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_photIso_nBC,  "h_photIso_nBC",    " Photon Iso", "nBC ", "logZ" , 8 ) ;
-
-   //h_draw->Draw2D( h.h_RhoPhi_Halo,   "h_RhoPhi_Halo", "#phi", " #rho",  ""  ) ;
-   h_draw->Draw(   h.h_nHaloHits,     "h_nHaloHits",    " N of Halo csc rechits ", "",  "logY", 0.95, 1 ) ;
-   h_draw->Draw(   h.h_nHaloTracks,   "h_nHaloTracks",  " N of Halo csc tracks  ", "",  "logY", 0.95, 1 ) ;
 
    h_draw->Draw(       h.obsTime,    "", "Ecal Time (ns)", "", "logY", 0.95, 1 ) ;
    h_draw->DrawAppend( h.pureTime,   "", 0.75, 2, 1  ) ;

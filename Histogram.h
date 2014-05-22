@@ -112,10 +112,6 @@ struct hSet {
     TH2D* h_cscdPhi_Time ;
     TH2D* h_sigIeta_Time ;
 
-    //TH2D* h_RhoPhi_Halo ;
-    TH1D* h_nHaloHits ;
-    TH1D* h_nHaloTracks ;
-
     TH1D* pureTime ;
     TH1D* ghostTime ;
 

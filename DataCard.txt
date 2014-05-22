@@ -16,6 +16,7 @@ PlotType = png
 #HFileName = hStats_RunCD_1J
 # bgRunBCD_MET2_GT60_s : new spike tag without nXtal cut
 HFileName = bgRunBCD_MET2_GT60
+#HFileName = hSyst_3
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC

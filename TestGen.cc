@@ -71,11 +71,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
    tr->SetBranchAddress("nVertices",   &nVertices);
    tr->SetBranchAddress("totalNVtx",   &totalNVtx);
    
-   tr->SetBranchAddress("nOutTimeHits", &nHaloHits ) ;
-   tr->SetBranchAddress("nHaloTrack",   &nHaloTracks ) ;
-   //tr->SetBranchAddress("haloPhi",      &haloPhi ) ;
-   //tr->SetBranchAddress("haloRho",      &haloRho ) ;
-
    tr->SetBranchAddress("metPx",       &metPx );
    tr->SetBranchAddress("metPy",       &metPy );
    tr->SetBranchAddress("met",         &metE );
@@ -158,7 +153,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
        uint32_t evtType = select->EventIdentification();
        bool pass = ( (evtType >> 1) & 1  ) ;
 
-
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
@@ -166,15 +160,19 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
        recoPho.clear() ; // used for matching
        recoTs.clear() ;  // used for matching
+
        // MET information
+       newMET    = select->newMET ;
+       noPhotMET = select->noPhotMET ;
        TLorentzVector met( metPx, metPy, 0, metE)  ;
+
        h.h_met->Fill( met.Pt() , weight );
        if ( selectPho.size() > 0 ) h.h_g1Pt->Fill( selectPho[0].second.Pt() , weight );
 
        // multiplicity
        h.h_nVtx->Fill(  totalNVtx , weight ) ;
        h.h_nJets->Fill( selectJets.size() , weight ) ;
-       h.h_nPhotons->Fill( selectPho.size() , weight ) ;
+       h.h_nPhotons->Fill( nPhotons , weight ) ;
        h.h_nMuons->Fill( nMuons , weight ) ;
        h.h_nElectrons->Fill( nElectrons , weight ) ;
 
@@ -259,16 +257,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
               h.h_cscdPhi_Time->Fill( cscdPhi[k], seedTime[k] , weight  ) ;
               h.h_Pt_Time->Fill( gP4_.Pt() , seedTime[k] , weight );
 
-
-              // Using CMSSW CSC Halo Tagging
-              if ( nHaloTracks > 0  ) {
-                 //h.h_RhoPhi_Halo->Fill( haloPhi, haloRho , weight ) ;
-                 h.h_nHaloTracks->Fill( nHaloTracks , weight ) ;
-                 h.h_nHaloHits->Fill( nHaloHits , weight ) ;
-                 //double dphi = fabs( haloPhi - gP4_.Phi() ) ;
-                 //dphi = ( dphi > 3.1416 ) ? 6.2832 - dphi : dphi ;
-                 //double drho = fabs( haloRho - gP4_.Rho() ) ;
-              }
 
               // Check the efficiency 
 	      if ( ghostTag ) h.ghostTime->Fill( seedTime[k], weight );
