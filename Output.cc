@@ -30,9 +30,9 @@ Output::Output( string datacardfile ) {
   theFile->cd() ;
 
   // Define time scope
-  int n_t_bin  = 50 ;
-  double t_low = 3. ;
-  double t_up  = 15.5 ;
+  n_t_bin  = 28 ;
+  t_low = 3. ;
+  t_up  = 10. ;
 
   h_dataTimeAll= new TH1D("h_dataTimeAll",   "Photon Seed Time from data - Full Range",   80, -4.5, 15.5);
   h_sgTimeAll  = new TH1D("h_sgTimeAll",   "Photon Seed Time from signal MC - Full Range",   80, -4.5, 15.5);
@@ -53,7 +53,8 @@ Output::Output( string datacardfile ) {
   h_sgNJets    = new TH1D("h_sgNJets", "N of Jets from Signal MC", 10,  0, 10 );
 
   // ABCD use
-  // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike, 3: cosmic
+  // x is eta region , each is 0.28 
+  // y is different sample, 0:total, 1:halo, 2: spike, 3: cosmic
   // z is jet mulitplicity
   hBg_F  = new TH3D( "hBg_F", "Background in F region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
   hBg_E  = new TH3D( "hBg_E", "Background in E region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
@@ -62,6 +63,12 @@ Output::Output( string datacardfile ) {
   hBg_B  = new TH3D( "hBg_B", "Background in B region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
   hBg_A  = new TH3D( "hBg_A", "Background in A region ",  5,  0., 5, 4, 0, 4, 3, 0, 3 ) ;
 
+  hCol_F  = new TH3D( "hCol_F",  "Background in |t| < 2ns region",   5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hCol_E  = new TH3D( "hCol_E",  "Background in |t| < 2ns region",   5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hCol_D  = new TH3D( "hCol_D",  "Background in D (signal) region",  5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hCol_C  = new TH3D( "hCol_C",  "Background in C ",                 5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hCol_B  = new TH3D( "hCol_B",  "Background in B ",                 5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
+  hCol_A  = new TH3D( "hCol_A",  "Background in A ",                 5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
 
   theFile->cd() ;
 }
@@ -76,6 +83,19 @@ Output::~Output(){
   cout<<" done ! "<<endl ;
 }
 
+void Output::Produce() {
+
+     string dataFileNames ;
+     Input->GetParameters( "TheData", &dataFileNames );
+     vector<string> mcFileNames ;
+     Input->GetParameters( "TheMC",   &mcFileNames );
+
+     RunData( dataFileNames ) ;
+     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
+         RunMC( mcFileNames[i], normV[i] ) ;
+     }
+
+}
 // Produce Data and Background histogram for statistical test
 void Output::RunData( string dataName ) { 
 
@@ -129,7 +149,6 @@ void Output::RunData( string dataName ) {
    int nEvt = 0 ;
    int beginEvent = SkipEvents + 1 ;
    cout<<" Event start from : "<< beginEvent << endl ;
-   // Weighting the QCD 
 
    for ( int i= beginEvent ; i< totalN ; i++ ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
@@ -162,51 +181,27 @@ void Output::RunData( string dataName ) {
            int k = selectPho[j].first ;
            TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
 
-           if ( timeChi2[k] > 4 ) continue ;
            // Background Tagging
            bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , gP4_.Eta() ) ;
 	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], gP4_.Eta() ) ;
            bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
-           bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+           bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
 
            int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
            int nj = ( selectJets.size() > 2 ) ? 2 : (int)selectJets.size() ;
 
-           bool passABCDSelection = ( newMET.E() > 60. && timeChi2[k] < 4 && selectPho[0].second.Pt() > 80. ) ;
-           // Region E , |t| < 2 ns  
-           if ( fabs( seedTime[k]) < 2. && passABCDSelection ) {
+           // Seperation of collision and halo backgrounds
+           bool passABCDSelection = ( newMET.E() > jetCuts[4] && timeChi2[k] < 4 && selectPho[0].second.Pt() > photonCuts[8] ) ;
+           bool passCollSelection = ( newMET.E() < jetCuts[4] && timeChi2[k] < 4 && selectPho[0].second.Pt() > photonCuts[8] ) ;
+
+           // *************************
+           // * Halo-type Backgorunds *
+           // *************************
+
+           // Region E,F  |t| < 2 ns  
+           if ( fabs( seedTime[k]) < 2. && passCollSelection ) {
               if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj );
               if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj );
-           }
-
-           // C and D region
-           if ( seedTime[k] >  3. && seedTime[k] < 10. && passABCDSelection ) {
-
-              if ( !ghostTag ) h_MET->Fill( metE ) ;
-              // Region C
-              if ( noPhotMET.E() < jetCuts[4] ) {
-
-                 hBg_C->Fill( ih, 0.5, nj );
-                 if ( haloTag && !cosmicTag && !spikeTag )  hBg_C->Fill( ih, 1.5, nj );
-                 if ( spikeTag && !cosmicTag )              hBg_C->Fill( ih, 2.5, nj );
-                 if ( cosmicTag )                           hBg_C->Fill( ih, 3.5, nj );
-	         h_bgTime->Fill( seedTime[k] ) ; 
- 	         if ( timeChi2[k] < 4 )  h_bgTimeA->Fill( aveTime[k] ) ;
-              }
-
-              // Region D
-              if ( noPhotMET.E() > jetCuts[4] ) {
-                 hBg_D->Fill( ih, 0.5, nj );
-                 if ( haloTag && !cosmicTag && !spikeTag )  hBg_D->Fill( ih, 1.5, nj );
-                 if ( spikeTag && !cosmicTag )              hBg_D->Fill( ih, 2.5, nj );
-                 if ( cosmicTag )                           hBg_D->Fill( ih, 3.5, nj );
-
-                 // Signal template - D region
-   	         h_dataTimeAll->Fill( seedTime[k] ) ;
-   	         h_dataTime->Fill( seedTime[k] ) ;
-	         if ( timeChi2[k] < 4 )  h_dataTimeA->Fill( aveTime[k] ) ;
-              }
-
            }
 
            // Background template
@@ -214,7 +209,6 @@ void Output::RunData( string dataName ) {
            if ( seedTime[k] < -3. && seedTime[k] > -10. && passABCDSelection ) {
 
               if ( !ghostTag )  h_bgMET->Fill( metE ) ;
-              
               // Region A 
               if (  noPhotMET.E() < jetCuts[4] ) {
                  hBg_A->Fill( ih, 0.5, nj );
@@ -230,32 +224,109 @@ void Output::RunData( string dataName ) {
                  if ( cosmicTag )                            hBg_B->Fill( ih, 3.5, nj );
               }
            }
+           // C and D region
+           if ( seedTime[k] >  3. && seedTime[k] < 10. && passABCDSelection ) {
+
+              if ( !ghostTag ) h_MET->Fill( metE ) ;
+              // Region C
+              if ( noPhotMET.E() < jetCuts[4] ) {
+
+                 hBg_C->Fill( ih, 0.5, nj );
+                 if ( haloTag && !cosmicTag && !spikeTag )  hBg_C->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )              hBg_C->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                           hBg_C->Fill( ih, 3.5, nj );
+	         h_bgTime->Fill( seedTime[k] ) ; 
+ 	         h_bgTimeA->Fill( aveTime[k] ) ;
+              }
+
+              // Region D
+              if ( noPhotMET.E() > jetCuts[4] ) {
+                 hBg_D->Fill( ih, 0.5, nj );
+                 if ( haloTag && !cosmicTag && !spikeTag )  hBg_D->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )              hBg_D->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                           hBg_D->Fill( ih, 3.5, nj );
+
+                 // Signal template - D region
+   	         h_dataTimeAll->Fill( seedTime[k] ) ;
+   	         h_dataTime->Fill( seedTime[k] ) ;
+	         h_dataTimeA->Fill( aveTime[k] ) ;
+              }
+           }
+
+           // ******************************
+           // * Collision-type Backgorunds *
+           // ******************************
+
+           // Region E/F , |t| < 2 ns  
+           if ( fabs(seedTime[k]) < 2. && passCollSelection ) {
+              if ( noPhotMET.E() > jetCuts[4] ) hCol_F->Fill( ih, 0.5, nj );
+              if ( noPhotMET.E() < jetCuts[4] ) hCol_E->Fill( ih, 0.5, nj );
+           }
+           if ( seedTime[k] < -3. && seedTime[k] > -10. && passCollSelection ) {
+              // Region B
+              if ( noPhotMET.E() > jetCuts[4] ) {
+
+                 hCol_B->Fill( ih, 0.5, nj );
+                 if ( haloTag  && !cosmicTag && !spikeTag )  hCol_B->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )               hCol_B->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                            hCol_B->Fill( ih, 3.5, nj );
+              }
+              // Region A
+              if ( noPhotMET.E() < jetCuts[4] ) {
+
+                    hCol_A->Fill( ih, 0.5, nj );
+                    if ( haloTag && !cosmicTag && !spikeTag )  hCol_A->Fill( ih, 1.5, nj );
+                    if ( spikeTag && !cosmicTag )              hCol_A->Fill( ih, 2.5, nj );
+                    if ( cosmicTag )                           hCol_A->Fill( ih, 3.5, nj );
+              }
+           }
+           // ******************
+           //   Region C and D
+           // ******************
+           if ( seedTime[k] > 3.0 && seedTime[k] < 10.0 && passCollSelection ) {
+              // Region D
+              if ( noPhotMET.E() > jetCuts[4] ) {
+
+                 hCol_D->Fill( ih, 0.5, nj );
+                 if ( haloTag && !cosmicTag && !spikeTag )  hCol_D->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )              hCol_D->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                           hCol_D->Fill( ih, 3.5, nj );
+              }
+              // Region C
+              if ( noPhotMET.E() < jetCuts[4] ) {
+
+                 hCol_C->Fill( ih, 0.5, nj );
+                 if ( haloTag && !cosmicTag && !spikeTag )  hCol_C->Fill( ih, 1.5, nj );
+                 if ( spikeTag && !cosmicTag )              hCol_C->Fill( ih, 2.5, nj );
+                 if ( cosmicTag )                           hCol_C->Fill( ih, 3.5, nj );
+              }
+           }
+
+
        }
 
        h_NJets->Fill( (int) selectJets.size() ) ;
 
    } // end of event looping
 
-   // Build background template
-   double bgScale = select->ABCD( hBg_A, hBg_B, hBg_C, hBg_D ) ;
+   // Background estimation
+   TH3D* ACols[] = { hCol_A, hCol_B, hCol_C, hCol_D, hCol_E, hCol_F } ;
+   vector<TH3D*> hColls( ACols, ACols+6 ) ;
+   TH3D* AMIBs[] = { hBg_A, hBg_B, hBg_C, hBg_D, hBg_E, hBg_F } ;
+   vector<TH3D*> hMIBs( AMIBs, AMIBs+6 ) ;
+
+   vector<double> predictBG = select->ABCD_ABCD( hColls, hMIBs ) ;
+
+   double bgScale = (  h_bgTime->Integral() > 0. ) ? predictBG[0] / h_bgTime->Integral() : 1. ;
    h_bgTime->Scale( bgScale ) ; 
    h_bgTimeA->Scale( bgScale ) ; 
-   /* 
-   double iSg = h_dataTime->Integral(1, 16) ;
-   double iBg = h_bgTime->Integral() ;
-   h_bgTime->Scale( iSg/iBg ) ;
-   for ( int i= 17; i<=70 ; i++) {
-       double t_i = -2. + (i-1.)*0.25 + 0.125 ;
-       h_bgTime->Fill( t_i , (predictBG/54.) ) ; 
-   }
-   */
 
-   rh_dataTime    = RebinHistogram( h_dataTime,   "rh_dataTime",  -2, 2. ) ;
-   rh_dataTimeA   = RebinHistogram( h_dataTimeA,  "rh_dataTimeA", -2, 2. ) ;
-   rh_dataTimeAll = RebinHistogram( h_dataTimeAll,   "rh_dataTimeAll",  -2, 2. ) ;
+   rh_dataTime    = RebinHistogram( h_dataTime,    "rh_dataTime",    -1.*t_low , t_low ) ;
+   rh_dataTimeA   = RebinHistogram( h_dataTimeA,   "rh_dataTimeA",   -1.*t_low , t_low ) ;
+   rh_dataTimeAll = RebinHistogram( h_dataTimeAll, "rh_dataTimeAll", -1.*t_low , t_low ) ;
 
-   rh_bgTime      = RebinHistogram( h_bgTime,     "rh_bgTime",  -2, 2. ) ;
-   rh_bgTimeA     = RebinHistogram( h_bgTimeA,    "rh_bgTimeA", -2, 2. ) ;
+   rh_bgTime      = RebinHistogram( h_bgTime,     "rh_bgTime",  -1.*t_low , t_low ) ;
+   rh_bgTimeA     = RebinHistogram( h_bgTimeA,    "rh_bgTimeA", -1.*t_low , t_low ) ;
 
    WriteDataHisto() ;
    cout<<" ======== CutFlow for Data ======== "<<endl ;
@@ -352,7 +423,6 @@ void Output::RunMC( string mcName, double weight ) {
        nEvt++; 
        //cout<<" EVT# : "<< nEvt <<endl ;
 
-       //if ( selectJets.size() > 2 ) { 
        for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
            int k = selectPho[j].first ;
            // Background Tagging
@@ -363,7 +433,10 @@ void Output::RunMC( string mcName, double weight ) {
            if ( ghostTag && j ==0 ) break ;
            if ( ghostTag ) continue ;
 
-           if (  metE > jetCuts[4] && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+           bool passABCDSelection = ( newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4] 
+                                     && selectPho[0].second.Pt() > photonCuts[8] ) ;
+             
+           if ( passABCDSelection && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
 	      // timing correction : central shift = 0.1211 ,  sigma = 0.4
               float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
               float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
@@ -373,11 +446,9 @@ void Output::RunMC( string mcName, double weight ) {
 	      //float tCorr = seedTime[k] - 0.1211 ;
 	      h_sgTimeAll->Fill( tCorr, weight ) ;
 	      h_sgTime->Fill( tCorr, weight ) ;
+              h_sgTimeA->Fill( aveTime[k], weight ) ;
 	      h_sgMET->Fill( metE, weight ) ;
-              if ( timeChi2[k] < 5 ) {
-                 h_sgTimeA->Fill( aveTime[k], weight ) ;
-              } 
-          }
+           }
        }
        h_sgNJets->Fill( (int) selectJets.size(), weight ) ;
 
@@ -390,9 +461,10 @@ void Output::RunMC( string mcName, double weight ) {
    sprintf( rhName4, "rh_sgNJets_%s", mcTag.c_str() ) ;
    sprintf( rhName5, "rh_sgTimeAll_%s", mcTag.c_str() ) ;
 
-   rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, -2., 2. ) ;
-   rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, -2., 2. ) ;
-   rh_sgTimeAll = RebinHistogram( h_sgTimeAll,  rhName5, -2., 2. ) ;
+   // rebin two tails
+   rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, -1.*t_low , t_low ) ;
+   rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, -1.*t_low , t_low ) ;
+   rh_sgTimeAll = RebinHistogram( h_sgTimeAll,  rhName5, -1.*t_low , t_low ) ;
 
    WriteMcHisto() ;
    cout<<" ======== CutFlow for Signal MC ======== "<<endl ;
@@ -400,19 +472,6 @@ void Output::RunMC( string mcName, double weight ) {
 
 }
 
-void Output::Produce() {
-
-     string dataFileNames ;
-     Input->GetParameters( "TheData", &dataFileNames );
-     vector<string> mcFileNames ;
-     Input->GetParameters( "TheMC",   &mcFileNames );
-
-     RunData( dataFileNames ) ;
-     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
-         RunMC( mcFileNames[i], normV[i] ) ;
-     }
-
-}
 
 // Shift peak of h1 to the position of the peak of h2
 void Output::ShiftPeak( TH1D* h1 , TH1D* h2 ) {
@@ -592,92 +651,6 @@ TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName, double minBC ) {
      return h2 ;
 }
 
-// x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike
-/*
-double Output::ABCD( TH2D* hA, TH2D* hB, TH2D* hC, TH2D* hD ) {
-
-   cout<<" ===  A  === "<<endl ;
-   double rA = GetEstimation( hA ) ;
-   cout<<" ===  B  === "<<endl ;
-   double rB = GetEstimation( hB ) ;
-   cout<<" ===  C  === "<<endl ;
-   double rC = GetEstimation( hC ) ;
-   cout<<" ===  D  === "<<endl ;
-   double rD = GetEstimation( hD ) ;
-
-   double predict = ( rA > 0. ) ? rC * ( rB / rA ) : 0. ;
-
-   if ( rA < 0.0001 ) cout<<" Residual Background ABCD Fail ! " <<endl ;
-   printf(" B/A = %f  ==> D/C = %f \n", rB/rA , rD/rC ) ;
-   printf(" Observe :%f -> predict : %f \n", rD, predict ) ;
-
-   return predict ;
-}
-
-//  1:total, 2:halo, 3: spike
-double Output::GetEstimation( TH2D* hCount, bool getQCD ) {
-
-   double totalB = 0 ;
-   double Bg_exp = 0 ;
-   double residual = 0 ;
-   for ( int i=0; i< 5; i++ ) {
-
-       double nB = hCount->GetBinContent(i+1, 1) ;
-       double nH = hCount->GetBinContent(i+1, 2) ;
-       double nS = hCount->GetBinContent(i+1, 3) ;
-
-       vector<double> bgV = GetComponent( i, nB, nH, nS ) ;
-       totalB += bgV[0] ;
-       totalB += bgV[1] ;
-       Bg_exp += nB ;
-       residual+= bgV[2] ;
-       printf(" eta(%d) : spike:%f , halo:%f , QCD:%f  from %f \n ", i, bgV[0], bgV[1], bgV[2],  nB ) ;
-
-   }
-
-   printf(" Background :  QCD:%f , Ghost:%f -> %f \n ", residual, totalB, Bg_exp ) ;
-
-   if ( getQCD ) return residual ;
-   else          return Bg_exp ;
-
-}
-
-vector<double> Output::GetComponent( int eta_i, double B12, double h_B12, double s_B12 ) {
-
-       // Tagging efficiency 
-       double hEff[5] = { 0.90, 0.86, 0.88, 0.90, 0.90 } ; // halo
-       double sEff[5] = { 0.95, 0.90, 0.82, 0.73, 0.62 } ; // spike
-
-       double h = hEff[ eta_i ] ;  // halo
-       double s = sEff[ eta_i ] ;  // spike
-
-       // Mis-tag rate
-       double mA[5] = { 0.022, 0.022, 0.016, 0.002, 0.003 } ;
-       double nA[5] = { 0.049, 0.027, 0.008, 0.003, 0.001 } ;
-
-       double m = mA[ eta_i ] ;   // halo
-       double n = nA[ eta_i ] ;   // spike
-
-       // spike content
-       double S12 = ( s_B12 - (n*B12) ) / ( s - n ) ;
-       S12 = ( S12 < 0. ) ? 0 : S12 ;
-       // halo content 
-       double H12 = ( h_B12 - (m*B12) ) / ( h - m ) ;
-       H12 = ( H12 < 0. ) ? 0 : H12 ;
-       // QCD content 
-       double Q12 = (double)(B12) - S12 - H12 ;
-       Q12 = ( Q12 < 0. ) ? 0 : Q12 ;
-
-       //printf("(%d) B12 %d = (S12: %.2f ) + ( H12: %.2f ) + ( Q12: %.2f )\n ", eta_i, B12, S12, H12, Q12 ) ;
-
-       vector<double> C12 ;
-       C12.push_back( S12 ) ;
-       C12.push_back( H12 ) ;
-       C12.push_back( Q12 ) ;
-       return C12 ;
-}
-*/
-
 void Output::WriteDataHisto() { 
 
      h_dataTime->Write() ; 
@@ -705,6 +678,13 @@ void Output::WriteDataHisto() {
      hBg_D->Write() ;
      hBg_E->Write() ;
      hBg_F->Write() ;
+
+     hCol_A->Write() ;
+     hCol_B->Write() ;
+     hCol_C->Write() ;
+     hCol_D->Write() ;
+     hCol_E->Write() ;
+     hCol_F->Write() ;
 }
 
 void Output::WriteMcHisto() { 

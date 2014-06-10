@@ -31,6 +31,12 @@ TestGen::TestGen( string datacardfile ) {
 
   // initial histograms  
   Hist->Init( h ) ;
+
+  nX0    = 0 ;
+  n2X0_g = 0 ;
+  n1X0_g = 0 ;
+  n0X0_g = 0 ;
+
 }
 
 TestGen::~TestGen(){
@@ -40,6 +46,8 @@ TestGen::~TestGen(){
   cout<<" Output historams written ! "<<endl ;
   theFile->Close() ;
   cout<<" File closed ! "<<endl ;
+
+  if ( isData == 0 ) printf(" nX0 = %d  di-Photon = %d single-photon = %d zero-Photon = %d \n", nX0, n2X0_g, n1X0_g, n0X0_g ) ;
 
   delete select ;
   delete Input ;
@@ -638,3 +646,25 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
     return vMatch ;
 }
 
+int TestGen::NeutralinoBR() {
+
+    int nX0_(0) , nX0_g_(0) ;
+    for (int j=0; j< nGen; j++ ) {
+        if ( pdgId[j] == 1000022 ) {
+           nX0_++ ;
+        }
+        if ( pdgId[j] == 22 && momId[j] > -1 ) {
+           if ( pdgId[ momId[j] ] == 1000022 ) {
+              nX0_g_++ ;
+           }
+        }
+    }
+
+    if ( nX0_ > 0 )     nX0++ ;
+    if ( nX0_g_ == 2 )  n2X0_g++ ;
+    if ( nX0_g_ == 1 )  n1X0_g++ ;
+    if ( nX0_g_ == 0 )  n0X0_g++ ;
+
+    if ( nX0_ < 1 ) return -1 ;
+    else            return nX0_g_ ;
+}

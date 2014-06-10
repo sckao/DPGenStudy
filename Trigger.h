@@ -54,6 +54,7 @@ public:
    void EventList( string dataName ) ;
    void CutFlow( string dataName ) ;
 
+   int  GenInfo() ;
    void HistoWrite() ;
    void HistoOpen();
 
@@ -76,9 +77,8 @@ private:
    int isData ;
    Rtuple rt ;
 
-   //float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
-   //float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
-   //int   pdgId[MAXGEN], momId[MAXGEN] ;
+   int nX0, n2X0_g, n1X0_g, n0X0_g  ;
+
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO], dR_TrkPho[MAXPHO], pt_TrkPho[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO] ;
@@ -94,6 +94,9 @@ private:
    int   nGen, nPhotons, nJets, nMuons, nElectrons, nVertices, triggered, L1a, totalNVtx ;
    int   runId ;
 
+   //float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
+   float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN], genT[MAXGEN] ;
+   int pdgId[MAXGEN], momId[MAXGEN] ;
    //Histograms
    TH1D* h_gPt      ;
    TH1D* h_trg_gPt  ;

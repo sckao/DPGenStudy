@@ -64,6 +64,7 @@ public:
 
    //vector<int> GlobalDRMatch( vector<objID> vr, vector<objID> vg, vector<double>& v_dr ) ;
    vector<iMatch> GlobalDRMatch( vector<objID> vr, vector<objID> vg ) ;
+   int NeutralinoBR() ;
 
 private:
 
@@ -79,6 +80,7 @@ private:
    int isData ;
    double TCut ;
    double FitCtau ;
+   int nX0, n2X0_g, n1X0_g, n0X0_g  ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;

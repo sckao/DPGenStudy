@@ -8,11 +8,16 @@ Trigger::Trigger( string datacardfile ){
 
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
-  //Input->GetParameters("RootFiles",     &rfolder ) ; 
   Input->GetParameters("HFileName",     &hfName ) ;
   Input->GetParameters("IsData",        &isData ) ; 
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 
+  
+  //Input->GetParameters("RootFiles",     &rfolder ) ; 
 
+  nX0    = 0 ;
+  n2X0_g = 0 ;
+  n1X0_g = 0 ;
+  n0X0_g = 0 ;
 }
 
 Trigger::~Trigger() {
@@ -21,6 +26,7 @@ Trigger::~Trigger() {
   theFile->Close() ;
   cout<<" File closed ! "<<endl ;
 
+  if ( isData == 0 ) printf(" nX0 = %d  di-Photon = %d single-photon = %d zero-Photon = %d \n", nX0, n2X0_g, n1X0_g, n0X0_g ) ;
   delete select ;
   delete Input  ;
   delete h_draw ;
@@ -40,7 +46,6 @@ void Trigger::ReadTree( string dataName ) {
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 
-   tr->SetBranchAddress("nGen",        &nGen);
    tr->SetBranchAddress("nPhotons",    &nPhotons);
    tr->SetBranchAddress("nJets",       &nJets);
    tr->SetBranchAddress("nMuons",      &nMuons);
@@ -51,9 +56,9 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("totalNVtx",   &totalNVtx);
    tr->SetBranchAddress("runId",       &runId);
 
-   tr->SetBranchAddress("met0Px",       &metPx );
-   tr->SetBranchAddress("met0Py",       &metPy );
-   tr->SetBranchAddress("met0",         &metE );
+   tr->SetBranchAddress("met0Px",      &metPx );
+   tr->SetBranchAddress("met0Py",      &metPy );
+   tr->SetBranchAddress("met0",        &metE );
 
    tr->SetBranchAddress("t_metPx",     &t_metPx );
    tr->SetBranchAddress("t_metPy",     &t_metPy );
@@ -104,6 +109,17 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("phoPz",       phoPz );
    tr->SetBranchAddress("phoE",        phoE );
 
+   tr->SetBranchAddress("nGen",        &nGen);
+   tr->SetBranchAddress("genPx",       genPx );
+   tr->SetBranchAddress("genPy",       genPy );
+   tr->SetBranchAddress("genPz",       genPz );
+   tr->SetBranchAddress("genE",        genE );
+   tr->SetBranchAddress("genM",        genM );
+   tr->SetBranchAddress("genT",        genT );  // tau*gamma*beta
+   tr->SetBranchAddress("pdgId",       pdgId );
+   tr->SetBranchAddress("momId",       momId );
+
+
    select->Init( tr1 ) ;
    //setRtupleAddresses( tr, rt );
 
@@ -138,6 +154,7 @@ void Trigger::ReadTree( string dataName ) {
    // Time Resolution
 
    for ( int i=0; i< totalN ; i++ ) {
+
        if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
        tr->GetEntry( i );
        tr1->GetEntry( i );
@@ -151,7 +168,10 @@ void Trigger::ReadTree( string dataName ) {
           //cout<<" t_pt : "<< t_gP4.Pt() <<endl ;
           h_trg_gPt->Fill( t_gP4.Pt() ) ;
        }
-
+       // Gen Information 
+       int nX = ( isData == 0 ) ? GenInfo() : -1 ;
+       if ( isData == 0 && nX != 1 ) continue ; // only use for Signal MC  
+      
        // MET information
        TLorentzVector t_met = TLorentzVector( t_metPx, t_metPy, 0., t_metE ) ;
        TLorentzVector met( metPx, metPy, 0, metE)  ;
@@ -183,39 +203,52 @@ void Trigger::ReadTree( string dataName ) {
 
        double match_dR ;
        int itr = TrigRecoMatch( t_gP4, selectPho, match_dR, 999.9 ) ;
-
+       // Only use 1 photon events to evaluate photon trigger efficiency
        if ( nPhotons == 1 && selectPho.size() == 1 ) {
+       //if ( selectPho.size() == 2 ) {
 
           if ( selectPho[0].second.Pt() > 90 ) dR_Pho90->Fill( match_dR ) ;
           if ( selectPho[0].second.Pt() < 50 ) dR_Pho50->Fill( match_dR ) ;
 
-       if ( itr < 0 && match_dR < 0.5 ) cout<<" bad event "<< match_dR << endl ;
-       //if ( t_gP4.Pt() > 64.) {
-       if ( match_dR < 0.5  ) {
-            //if ( itr < 0 ) itr = 0 ;
-            h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
-            h_gPt_trg->Fill( selectPho[0].second.Pt() )  ;
-            //if ( selectPho[itr].second.Pt() < 50 ) {
-            //   printf("(%d) trg pt: %.1f , reco: pt: %.1f , dR : %.2f , nPho: %d  sel: %d \n"
-            //          , itr, t_gP4.Pt(), selectPho[itr].second.Pt(), t_phodR, nPhotons, selectPho.size() ) ;
-            //}
-       } else {
-            h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
+          if ( itr < 0 && match_dR < 0.5 ) cout<<" bad event "<< match_dR << endl ;
+          if ( match_dR < 0.5  ) {
+             //if ( itr < 0 ) itr = 0 ;
+             h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
+	     h_gPt_trg->Fill( selectPho[0].second.Pt() )  ;
+	     //if ( selectPho[itr].second.Pt() < 50 ) {
+	     //   printf("(%d) trg pt: %.1f , reco: pt: %.1f , dR : %.2f , nPho: %d  sel: %d \n"
+	     //          , itr, t_gP4.Pt(), selectPho[itr].second.Pt(), t_phodR, nPhotons, selectPho.size() ) ;
+	     //}
+          } else {
+             h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
+          }
        }
-       }
+
        // Get event with better MET quality by requiring >= 1 jet events
        // Require events going through HLT_PFMET module 
        // Event without passing HLT_PFMET module does NOT mean it fails the HLT_PFMET
        if ( selectJets.size() > 0 && t_metE > 0.01 ) {
           h_met_sel->Fill( metE ) ;
           if (t_metE > 24.99 ) h_met_trg->Fill( metE ) ;
-
-          if ( itr < 0 ) {
+          if ( metE > 130. && t_metE < 25. )  {
+             int kk = selectPho[0].first ;
+             printf(" gPt : %.2f , eta: %.2f , T: %.2f t_metE= %.2f , nJ= %d \n", 
+                    selectPho[0].second.Pt(), selectPho[0].second.Eta(), seedTime[kk], t_metE, selectJets.size() ) ;
+             for ( int k=0 ; k < selectJets.size() ; k++ ) 
+                 printf("  jPt : %.2f , eta: %.2f \n", selectJets[k].second.Pt(), selectJets[k].second.Eta() ) ;
+          }
+            
+          // This is a biased bad measurement -> In single photon dataset, events with PFMET trigger information
+          // are more likely to be triggered by DisplacedPhotonTrigger 
+          if ( nPhotons == 1 && selectPho.size() == 1 ) {
              hEff_Sel->Fill( selectPho[0].second.Pt(), metE ) ;
-             if (t_metE > 24.99 ) hEff_Trg->Fill( selectPho[0].second.Pt(), metE ) ;
-          } else {
-             hEff_Sel->Fill( selectPho[itr].second.Pt(), metE ) ;
-             if (t_metE > 24.99 ) hEff_Trg->Fill( selectPho[itr].second.Pt(), metE ) ;
+             if (triggered == 3 && match_dR < 0.5 ) hEff_Trg->Fill( selectPho[0].second.Pt(), metE ) ;
+
+	     //if (  selectPho[0].second.Pt() < 65. && metE > 60.) { 
+	     //     printf(" triggered = %d (%d - %d ) , gPt = %.2f , trgPt = %.2f dR: %.2f \n", 
+      	     // 	     triggered , nPhotons, selectPho.size(), selectPho[itr].second.Pt(), t_gP4.Pt(), match_dR ) ;
+	     //}
+
           }
        }
 
@@ -227,6 +260,16 @@ void Trigger::ReadTree( string dataName ) {
       
 
    } // end of event looping
+
+   // 2D Efficiency 
+   for ( int i=1 ; i <=42; i++ ) {
+       for ( int j=1 ; j <=40; j++ ) {
+           double bA =  hEff_Sel->GetBinContent(i,j) ;
+           double bC =  hEff_Trg->GetBinContent(i,j) ;
+           double ef = ( bA > 0. ) ? bC/bA : 0. ;
+           hEff_2D->SetBinContent(i,j, ef ) ;
+       }
+   }
    // Write the histograms into TFile
    HistoWrite( ) ;
 }
@@ -283,7 +326,9 @@ void Trigger::Plot() {
 
    h_draw->Draw( hTime_sel, "hTime_sel", " Ecal Time (ns)", "", "", 0.95, 1 ) ;
 
+
    // 2D Efficiency 
+   
    for ( int i=1 ; i <=42; i++ ) {
        for ( int j=1 ; j <=40; j++ ) {
            double bA =  hEff_Sel->GetBinContent(i,j) ;
@@ -292,12 +337,15 @@ void Trigger::Plot() {
            hEff_2D->SetBinContent(i,j, ef ) ;
        }
    }
-
+   hEff_2D->Write() ;
+    
    TCanvas* c_0  = new TCanvas("c_0","", 800, 600 );
    c_0->SetFillColor(10);
    c_0->SetFillColor(10);
    c_0->SetLeftMargin(0.16);
    c_0->SetBottomMargin(0.12);
+   gStyle->SetOptStat(kFALSE);
+   gStyle->SetNumberContours( 10 );
 
    hEff_2D->GetXaxis()->SetTitle( "Photon Pt (GeV)" );
    hEff_2D->GetYaxis()->SetTitle( "MET (GeV)" );
@@ -305,7 +353,7 @@ void Trigger::Plot() {
    hEff_2D->GetYaxis()->SetTitleOffset(1.5);
 
    c_0->cd() ;
-   hEff_2D->Draw("LEGO2") ;
+   hEff_2D->Draw("COLZ") ;
    c_0->Update();
 
    TString plotname_0 = hfolder + "Eff2D."+plotType ;
@@ -382,11 +430,37 @@ void Trigger::EventList( string dataFileName ) {
    fclose( logfile ) ;
 }
 
+// Return number of neutralino which decays to photon 
+// For non-Signal MC, it returns -1 
+int Trigger::GenInfo() { 
+
+    int nX0_(0) , nX0_g_(0) ;
+    for (int j=0; j< nGen; j++ ) {
+	if ( pdgId[j] == 1000022 ) {
+	   nX0_++ ;
+	}
+	if ( pdgId[j] == 22 && momId[j] > -1 ) {
+	   if ( pdgId[ momId[j] ] == 1000022 ) {
+	      nX0_g_++ ;
+           }
+	}
+    }
+    
+    if ( nX0_ > 0 )     nX0++ ;
+    if ( nX0_g_ == 2 )  n2X0_g++ ;
+    if ( nX0_g_ == 1 )  n1X0_g++ ;
+    if ( nX0_g_ == 0 )  n0X0_g++ ;
+
+    if ( nX0_ < 1 ) return -1 ;
+    else            return nX0_g_ ;
+}
+
 void Trigger::HistoOpen() {
 
    
    TString Path_fName = hfolder + hfName + ".root" ;
-   theFile = new TFile( Path_fName, "READ" );
+   theFile = new TFile( Path_fName, "UPDATE" );
+   //theFile = new TFile( Path_fName, "READ" );
    //createFile = true ;
    cout<<" file opened ! "<<endl ;
    

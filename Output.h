@@ -69,6 +69,10 @@ private:
    TLorentzVector newMET ;
    TLorentzVector noPhotMET ;
 
+   int    n_t_bin ;
+   double t_low  ;
+   double t_up   ;
+
    TH1D* h_dataTime  ;
    TH1D* h_dataTimeA  ;
    TH1D* h_dataTimeAll  ;
@@ -89,6 +93,13 @@ private:
    TH3D* hBg_D ;
    TH3D* hBg_E ;
    TH3D* hBg_F ;
+
+   TH3D* hCol_A ;
+   TH3D* hCol_B ;
+   TH3D* hCol_C ;
+   TH3D* hCol_D ;
+   TH3D* hCol_E ;
+   TH3D* hCol_F ;
 
    TH1D* rh_dataTime  ;
    TH1D* rh_dataTimeA  ;

@@ -1,4 +1,5 @@
 #include "BackgroundStudy.h"
+#include "MathTools.h"
 #include <TTree.h>
 #include <algorithm>
 #include <TCanvas.h>
@@ -395,8 +396,9 @@ void BackgroundStudy::Create() {
   nSpk_Eta = new TH1D( "nSpk_Eta",  " N of Spike in |#eta|", 5, 0., 1.4 ) ;
   nCS_Eta  = new TH1D( "nCS_Eta",  " N of CS in |#eta|", 5, 0., 1.4 ) ;
  
-  // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike, 3: cosmic
-  // z is jet multiplicity 
+  // x is eta region ,      each is 0.28  
+  // y is different sample, 0:total, 1:halo, 2: spike, 3: cosmic
+  // z is jet multiplicity  0, 1, >=2 
   hBg_F  = new TH3D( "hBg_F",  "Background in |t| < 2ns region",   5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
   hBg_E  = new TH3D( "hBg_E",  "Background in |t| < 2ns region",   5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
   hBg_D  = new TH3D( "hBg_D",  "Background in D (signal) region",  5, 0, 5,  4, 0, 4,  3, 0, 3 ) ;
@@ -1505,7 +1507,13 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    }
 
    //ABCD( hBg_A, hBg_B, hBg_C, hBg_D, hBg_E, hBg_F ) ;
-   ABCD_ABCD() ;
+   TH3D* ACols[] = { hCol_A, hCol_B, hCol_C, hCol_D, hCol_E, hCol_F } ; 
+   vector<TH3D*> hColls( ACols, ACols+6 ) ;
+
+   TH3D* AMIBs[] = { hBg_A, hBg_B, hBg_C, hBg_D, hBg_E, hBg_F } ; 
+   vector<TH3D*> hMIBs( AMIBs, AMIBs+6 ) ;
+ 
+   select->ABCD_ABCD( hColls, hMIBs ) ;
    if ( createDrawer ) delete h_draw ;
 }
 
@@ -1513,6 +1521,7 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
 // Estimate collision background in B or D region (MET2 > 60 && MET1 > 60 GeV )
 //  t  > 3 -->  hF_C : MET2 < 60  , hF_D : MET2 > 60  	
 // |t| < 2 -->  hF_A : MET2 < 60  , hF_B : MET2 > 60  	
+/*
 vector<double> BackgroundStudy::ABCD_Collision( TH3D* hF_A, TH3D* hF_B, TH3D* hF_C, TH3D* hF_D ) {
 
    printf("\n  =========== ABCD Method for Collision ============= \n") ;
@@ -1525,7 +1534,7 @@ vector<double> BackgroundStudy::ABCD_Collision( TH3D* hF_A, TH3D* hF_B, TH3D* hF
    cout<<" ===  D  === "<<endl ;
    double rD = GetEstimation( hF_D ) ;
 
-   pair<double,double> errAB = h_draw_->ErrAovB( rA, rB ) ;
+   pair<double,double> errAB = MathTools::ErrAovB( rA, rB ) ;
    double predict = ( rA > 0. ) ? rC * ( rB / rA ) : 0. ; 
 
    double sBA_u = errAB.first ;
@@ -1575,9 +1584,9 @@ vector<double> BackgroundStudy::ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH
    cout<<" ===  D  === "<<endl ;
    double rD = GetEstimation( hD ) ;
 
-   pair<double,double> errAB = h_draw_->ErrAovB( rB, rA ) ;
-   pair<double,double> errCD = h_draw_->ErrAovB( rD, rC ) ;
-   pair<double,double> errFD = h_draw_->ErrAovB( rD, rF ) ;
+   pair<double,double> errAB = MathTools::ErrAovB( rB, rA ) ;
+   pair<double,double> errCD = MathTools::ErrAovB( rD, rC ) ;
+   pair<double,double> errFD = MathTools::ErrAovB( rD, rF ) ;
    double predict = ( rA > 0. ) ? rC * ( rB / rA ) : 0. ; 
 
    if ( rA < 0.0001 ) { cout<<" Residual Background ABCD Fail ! " <<endl ;
@@ -1612,11 +1621,11 @@ void BackgroundStudy::ABCD_ABCD() {
 
      double predict =  (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] ;
 
-     pair<double,double> errB     = h_draw_->ErrApnB( abcdef[1] , colB[0] , -1, -1, colB[1], colB[2] ) ;
-     pair<double,double> errCovA  = h_draw_->ErrAovB( abcdef[2], abcdef[0]) ;
-     pair<double,double> errBCovA = h_draw_->ErrAxB( (abcdef[1] - colB[0]), (abcdef[2]/abcdef[0])
+     pair<double,double> errB     = MathTools::ErrApnB( abcdef[1] , colB[0] , -1, -1, colB[1], colB[2] ) ;
+     pair<double,double> errCovA  = MathTools::ErrAovB( abcdef[2], abcdef[0]) ;
+     pair<double,double> errBCovA = MathTools::ErrAxB( (abcdef[1] - colB[0]), (abcdef[2]/abcdef[0])
                                                      , errB.first, errB.second, errCovA.first, errCovA.second ) ;
-     pair<double,double> errFinal = h_draw_->ErrApnB( (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]), colD[0]
+     pair<double,double> errFinal = MathTools::ErrApnB( (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]), colD[0]
                                                      , errBCovA.first, errBCovA.second, colD[1], colD[2] ) ;
 
    printf("\n ================ Final Result =================== \n") ;
@@ -1728,6 +1737,7 @@ vector<double> BackgroundStudy::GetComponent( int eta_i, double B0 , double h_B,
        BG12.push_back( Q_ ) ;
        return BG12 ;
 }
+*/
 
 
 TLorentzVector BackgroundStudy::JetVectorSum( vector<objID>& jetV ) {

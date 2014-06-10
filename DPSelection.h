@@ -12,6 +12,7 @@
 
 #include "AnaInput.h"
 #include "Rtuple.h"
+
 /*
 #define MAXPHO 10
 #define MAXVTX 10
@@ -66,11 +67,14 @@ public:
    void PrintCutFlow() ;
    inline int GetPhotonCutFlow() { return photonCutFlow ; }
 
-   double ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) ;
+   // return background prediction , upward error, downward error
+   vector<double> ABCD_ABCD( vector<TH3D*>& hColls , vector<TH3D*>& hMIBs ) ; 
+   vector<double> ABCD_Collision( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) ;
+   vector<double> ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) ;
+
    double GetEstimation( TH3D* hCount, bool getQCD = true ) ;
-   void UpdateEfficiency( double halo_Eff[], double halo_FR[], double spike_Eff[], double spike_FR[] );
-   vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12, bool updateEff = false ) ;
-   vector<double> GetComponent( int eta_i,    int B12,    int h_B12,    int s_B12,    int c_B12, bool updateEff = false ) ;
+   vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) ;
+   vector<double> GetComponent( int eta_i, int B12,    int h_B12,    int s_B12,    int c_B12 ) ;
 
    
 
@@ -106,7 +110,7 @@ private:
 
    unsigned int eventId ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
-   float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO] ;
+   float seedTime[MAXPHO], aveTime[MAXPHO], timeChi2[MAXPHO], dR_TrkPho[MAXPHO] ;
    float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO], seedSwissX[MAXPHO], seedE[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO] ;
    float photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
@@ -139,11 +143,15 @@ private:
    int gCounter[9] ;
    int photonCutFlow ;
 
-   // Efficiency for background taggers
-   Double_t* haloEff ;
-   Double_t* spikeEff ;
-   Double_t* haloMis ;
-   Double_t* spikeMis ;
+   // Efficiency and mis-tag rate for background taggers
+   vector<double> haloEff ;
+   vector<double> spikeEff ;
+   vector<double> cosEff ;
+   vector<double> haloMis ;
+   vector<double> spikeMis ;
+   vector<double> cosMis ;
+   int useInFlight ;
+
 
    // MET Correction
    double met1x, met1y, met1E ;

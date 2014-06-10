@@ -65,6 +65,7 @@ public:
    void GetParameters( string paraName, vector<string>* thePara, string cfgFile = "" );
    void GetParameters( string paraName, vector<int>* thePara, string cfgFile = "" );
 
+
 private:
 
    string datacardfile ;

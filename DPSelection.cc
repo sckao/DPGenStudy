@@ -1,14 +1,14 @@
 #include "DPSelection.h"
+#include "MathTools.h"
 
 static bool PtDecreasing( objID s1, objID s2) { return ( s1.second.Pt() > s2.second.Pt() ); }
-
 
 DPSelection::DPSelection( string datacardfile ){
 
   // SC's getParameters method
   // If you don't like to use the Datacard.txt , markout this section and use CMSSW method
   Input = new AnaInput( datacardfile );
-  
+
   Input->GetParameters( "VertexCuts",   &vtxCuts );
   Input->GetParameters( "PhotonCuts",   &photonCuts );
   Input->GetParameters( "UsePFIso",     &usePFIso ) ;
@@ -112,6 +112,7 @@ void DPSelection::Init( TTree* tr ) {
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("sMajPho",     sMajPho );
    tr->SetBranchAddress("seedTime",    seedTime );
+   tr->SetBranchAddress("timeChi2",    timeChi2 );
    tr->SetBranchAddress("seedSwissX",  seedSwissX );
    tr->SetBranchAddress("seedE",       seedE );
    tr->SetBranchAddress("aveTime",     aveTime );
@@ -154,6 +155,7 @@ void DPSelection::Init( Rtuple& rt ) {
      SetArray( phoE ,  rt.phoE, MAXPHO ) ;
 
      SetArray( seedTime , rt.seedTime , MAXPHO );
+     SetArray( timeChi2 , rt.timeChi2 , MAXPHO );
      SetArray( seedSwissX , rt.seedSwissX , MAXPHO );
      SetArray( aveTime  , rt.aveTime , MAXPHO ) ; 
      SetArray( dR_TrkPho , rt.dR_TrkPho , MAXPHO ); 
@@ -336,6 +338,7 @@ bool DPSelection::PhotonFilter() {
            //    if ( phoP4.DeltaR( jetV[k].second ) < dR_gj )  dR_gj  = phoP4.DeltaR( jetV[k].second ) ;
            //}
            //if ( dR_gj < photonCuts[3] ) continue ;
+           if ( timeChi2[j] > 4. ) continue; 
            nG[6]++ ;
            if ( sigmaIeta[j] > photonCuts[9] ) continue ;
            nG[7]++ ; 
@@ -738,11 +741,94 @@ bool DPSelection::CosmicTag( double dtdEta , double dtdPhi ) {
 
 }
 
+// return background prediction, upward and downward uncertainty
+vector<double> DPSelection::ABCD_ABCD( vector<TH3D*>& hColls, vector<TH3D*>& hMIBs ) {
+
+     printf("\n ####### MET2 < 60 ########## \n") ;
+     //vector<double> abcdef_= ABCD( hCol_A,    hCol_B,    hCol_C,    hCol_D,    hCol_E,    hCol_F ) ;
+     vector<double> abcdef_  = ABCD( hColls[0], hColls[1], hColls[2], hColls[3], hColls[4], hColls[5] ) ;
+     printf("\n ####### MET2 > 60 ########## \n") ;
+     //vector<double> abcdef= ABCD( hBg_A,    hBg_B,    hBg_C,    hBg_D,    hBg_E,    hBg_F ) ;
+     vector<double> abcdef  = ABCD( hMIBs[0], hMIBs[1], hMIBs[2], hMIBs[3], hMIBs[4], hMIBs[5] ) ;
+     printf("\n ####### Q_D ########## \n") ;
+     vector<double> colD    = ABCD_Collision( hColls[5], hMIBs[5], hColls[3], hMIBs[3] ) ;
+     printf("\n ####### Q_B ########## \n") ;
+     vector<double> colB    = ABCD_Collision( hColls[5], hMIBs[5], hColls[1], hMIBs[1] ) ;
+
+     double predict =  (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] ;
+
+     pair<double,double> errB     = MathTools::ErrApnB( abcdef[1] , colB[0] , -1, -1, colB[1], colB[2] ) ;
+     pair<double,double> errCovA  = MathTools::ErrAovB( abcdef[2], abcdef[0]) ;
+     pair<double,double> errBCovA = MathTools::ErrAxB( (abcdef[1] - colB[0]), (abcdef[2]/abcdef[0])
+                                                     , errB.first, errB.second, errCovA.first, errCovA.second ) ;
+     pair<double,double> errFinal = MathTools::ErrApnB( (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]), colD[0]
+                                                     , errBCovA.first, errBCovA.second, colD[1], colD[2] ) ;
+
+   printf("\n ================ Final Result =================== \n") ;
+   printf(" Observe :%.2f -> Predict : %.4f + %.4f - %.4f \n", abcdef[3], predict, errFinal.first , errFinal.second ) ;
+
+   vector<double> result ;
+   result.push_back( predict ) ;
+   result.push_back( errFinal.first ) ;
+   result.push_back( errFinal.second ) ;
+   return result ;
+}
+
+
+vector<double> DPSelection::ABCD_Collision( TH3D* hF_A, TH3D* hF_B, TH3D* hF_C, TH3D* hF_D ) {
+
+   printf("\n  =========== ABCD Method for Collision ============= \n") ;
+   cout<<" ===  A  === "<<endl ;
+   double rA = GetEstimation( hF_A ) ;
+   cout<<" ===  B  === "<<endl ;
+   double rB = GetEstimation( hF_B ) ;
+   cout<<" ===  C  === "<<endl ;
+   double rC = GetEstimation( hF_C ) ;
+   cout<<" ===  D  === "<<endl ;
+   double rD = GetEstimation( hF_D ) ;
+
+   pair<double,double> errAB = MathTools::ErrAovB( rA, rB ) ;
+   double predict = ( rA > 0. ) ? rC * ( rB / rA ) : 0. ;
+
+   double sBA_u = errAB.first ;
+   double sBA_d = errAB.second ;
+
+   double s2u = (sBA_u*sBA_u)*(rC*rC) + (rC*rB*rB)/(rA*rA) ;
+   double s2d = (sBA_d*sBA_d)*(rC*rC) + (rC*rB*rB)/(rA*rA) ;
+
+   printf(" Predicted Collision background : %.2f + %.2f - %.2f ", predict , sqrt(s2u) , sqrt(s2d) ) ;
+   printf(" Observed = %.2f \n", rD ) ;
+
+   vector<double> vals ;
+   vals.push_back( predict );
+   vals.push_back( sqrt(s2u) );
+   vals.push_back( sqrt(s2d) );
+   return vals ;
+}
+
+
 // x is eta region , each is 0.28 , y is different sample, 0:total, 1:halo, 2: spike 3: cosmic
-// return B/A which is for scaling C 
-double DPSelection::ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) {
+vector<double> DPSelection::ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) {
+
+   // Tagging efficiency 
+   Input->GetParameters("UseInFlight",   &useInFlight ) ;
+   if ( useInFlight == 0 || haloEff.size() < 5 || spikeEff.size() < 5 || haloMis.size() < 5 || spikeMis.size() < 5 ) {
+      printf(" Get Efficiency and fake rate from Datacard !! \n") ;
+      Input->GetParameters("HaloEff",    &haloEff ) ;
+      Input->GetParameters("SpikeEff",   &spikeEff ) ;
+      Input->GetParameters("CosmicEff",  &cosEff ) ;
+      // Mis-tag rate
+      Input->GetParameters("HaloFake",   &haloMis ) ;
+      Input->GetParameters("SpikeFake",  &spikeMis ) ;
+      Input->GetParameters("CosmicFake", &cosMis ) ;
+   }
 
    //  GetEstimation returns QCD components
+   cout<<" ===  E  === "<<endl ;
+   double rE = GetEstimation( hE ) ;
+   cout<<" ===  F  === "<<endl ;
+   double rF = GetEstimation( hF ) ;
+   //printf("=== D/F (%.2f/%.2f) = %.2f  + %.4f - %.4f \n", rF, rE, rF/rE, errEF.first, errEF.second ) ;
    cout<<" ===  A  === "<<endl ;
    double rA = GetEstimation( hA ) ;
    cout<<" ===  B  === "<<endl ;
@@ -752,17 +838,28 @@ double DPSelection::ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) {
    cout<<" ===  D  === "<<endl ;
    double rD = GetEstimation( hD ) ;
 
+   pair<double,double> errAB = MathTools::ErrAovB( rB, rA ) ;
+   pair<double,double> errCD = MathTools::ErrAovB( rD, rC ) ;
+   pair<double,double> errFD = MathTools::ErrAovB( rD, rF ) ;
    double predict = ( rA > 0. ) ? rC * ( rB / rA ) : 0. ;
 
-   if ( rA < 0.0001 ) cout<<" Residual Background ABCD Fail ! " <<endl ;
-   else               printf(" B/A (%.2f/%.2f) = %.2f  ==> D/C (%.2f/%.2f) = %.2f \n", rB, rA, rB/rA , rD, rC, rD/rC ) ;
+   if ( rA < 0.0001 ) { cout<<" Residual Background ABCD Fail ! " <<endl ;
+   } else {
+          printf(" B/A (%.2f/%.2f) = %.2f  + %.2f - %.2f \n", rB, rA, rB/rA, errAB.first , errAB.second ) ;
+          printf(" D/C (%.2f/%.2f) = %.2f  + %.2f - %.2f \n", rD, rC, rD/rC, errCD.first , errCD.second ) ;
+          printf(" D/F (%.2f/%.2f) = %.8f  + %.8f - %.8f \n", rD, rF, rD/rF, errFD.first , errFD.second ) ;
+   }
 
-   printf(" Observe :%f -> Predict : %f \n", rD, predict ) ;
+   printf(" Observe :%.2f -> Predict : %.2f \n", rD, predict ) ;
 
-   double bgScale = ( rA != 0. ) ? rB/rA : 0. ;
-
-   return bgScale ;
-
+   vector<double> vals ;
+   vals.push_back( rA ) ;
+   vals.push_back( rB ) ;
+   vals.push_back( rC ) ;
+   vals.push_back( rD ) ;
+   vals.push_back( rE ) ;
+   vals.push_back( rF ) ;
+   return vals ;
 }
 
 
@@ -775,17 +872,18 @@ double DPSelection::GetEstimation( TH3D* hCount, bool getQCD ) {
    double Bg_exp = 0 ;
    double residual = 0 ;
    printf("| eta |   spike    |    halo    |   cosmic   |  QCD  |  Total  |\n" ) ;
+   float sum[9] = {0.} ;
+   // 5 eta bins
    for ( int i=0; i< 5; i++ ) {
 
-       // 3 jet multiplicity
        double nB = 0 ;
        double nH = 0 ;
        double nS = 0 ;
        double nC = 0 ;
+       // 3 jet multiplicity
        for ( int j=1; j<4; j++ ) {
 
            if ( j-1 < jetCuts[2] || j-1 > jetCuts[3] ) continue ;
-
            nB += hCount->GetBinContent( i+1, 1, j ) ; // total number in control region 
            nH += hCount->GetBinContent( i+1, 2, j ) ; // number of halo tagged in control region
            nS += hCount->GetBinContent( i+1, 3, j ) ; // number of spike tagged in control region
@@ -801,8 +899,19 @@ double DPSelection::GetEstimation( TH3D* hCount, bool getQCD ) {
        //printf(" eta(%d) : spike:%f , halo:%f , cosmic:%f , QCD:%f  from %f \n ", i, bgV[0], bgV[1], bgV[2], bgV[3], nB ) ;
        //printf(" eta  |  spike  |   halo   |  cosmic  |  QCD  |  from  |\n " ) ;
        printf("|  %d  | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f | %4.f |\n", i, bgV[0], nS, bgV[1], nH, bgV[2], nC, bgV[3], nB ) ;
-
+       sum[0] += bgV[0] ;
+       sum[1] +=     nS ;
+       sum[2] += bgV[1] ;
+       sum[3] +=     nH ;
+       sum[4] += bgV[2] ;
+       sum[5] +=     nC ;
+       sum[6] += bgV[3] ;
+       sum[7] += nB-nS-nH-nC ;
+       sum[8] +=     nB ;
    }
+
+   printf("| sum | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) | %4.2f (%4.f) |  %4.f |\n",
+                        sum[0],sum[1], sum[2],sum[3], sum[4],sum[5], sum[6],sum[7], sum[8]  ) ;
 
    printf(" Background :  QCD:%f , Ghost:%f -> %f \n ", residual, ghostB, Bg_exp ) ;
 
@@ -815,83 +924,43 @@ double DPSelection::GetEstimation( TH3D* hCount, bool getQCD ) {
 // Return [0]:spike , [1]:halo , [2]:QCD
 // Input : number of event in background control region at t > 2 ns region 
 // B12 : total background , h_B12 : halo-tagged events , s_B12 : spike tagged events
-vector<double> DPSelection::GetComponent( int eta_i, int B12, int h_B12, int s_B12, int c_B12, bool updateEff ) {
+vector<double> DPSelection::GetComponent( int eta_i, int B12, int h_B12, int s_B12, int c_B12 ) {
 
-  vector<double> result = GetComponent( eta_i, (double)B12, (double)h_B12, (double)s_B12 , (double)c_B12, updateEff ) ;
+  vector<double> result = GetComponent( eta_i, (double)B12, (double)h_B12, (double)s_B12 , (double)c_B12 ) ;
   return result ;
 
 }
 
-// Update the efficiency and fake rate for halo and spike tagger
-void DPSelection::UpdateEfficiency( double halo_Eff[], double halo_FR[], double spike_Eff[], double spike_FR[] ) {
-
-     for (int i =0; i< 5; i++ ) {
-         haloEff[i] = halo_Eff[i] ;
-         haloMis[i] = halo_FR[i] ;
-         spikeEff[i] = spike_Eff[i] ;
-         spikeMis[i] = spike_FR[i] ;
-     }
-}
-
 // Get halo/spike/QCD component using tagging efficiency and mis-tagging rate 
-vector<double> DPSelection::GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12, bool updateEff ) {
+vector<double> DPSelection::GetComponent( int eta_i, double B0 , double h_B, double s_B, double c_B ) {
 
-       // Tagging efficiency 
-       double hEff[5] = { 0.98, 0.98, 0.99, 1.00, 1.00 } ; // halo
-       double sEff[5] = { 0.93, 0.87, 0.78, 0.61, 0.67 } ; // spike
-       //double cEff[5] = { 1.0,  1.0,  1.0,  1.0,  1.0 } ; // cosmic
+       double h = haloEff[ eta_i ] ;  // halo
+       double s = spikeEff[ eta_i ] ;  // spike
+       double c = cosEff[ eta_i ] ;  // comsic
 
-       // Mis-tag rate
-       double nA[5] = { 0.0162, 0.0076, 0.0041, 0.0036, 0.0037 } ;
-       double mA[5] = { 0.0254, 0.0260, 0.0254, 0.0313, 0.0511 } ;
-       //double oA[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 } ;
-
-       // get the update efficiency for halo/spike/comsic
-       if ( updateEff ) {
-          for ( int i=0; i < 5; i++) {
-              if ( haloEff == NULL || spikeEff == NULL )  break ;
-	      if ( haloEff[i] < 0. || spikeEff[i] < 0. )  continue ;
-	      hEff[i] = haloEff[i] ;
-	      sEff[i] = spikeEff[i] ;
-              //cout<<" Updated Efficiency "<< endl ;
-          }
-          for ( int i=0; i < 5; i++) {
-              if ( haloMis == NULL || spikeMis == NULL )  break ;
-	      if ( haloMis[i] < 0. || spikeMis[i] < 0. )  continue ;
-	      mA[i] = haloMis[i] ;
-	      nA[i] = spikeMis[i] ;
-	  }
-
-       }
-
-       double h = hEff[ eta_i ] ;  // halo
-       double s = sEff[ eta_i ] ;  // spike
-       //double c = cEff[ eta_i ] ;  // comsic
-
-       double m = mA[ eta_i ] ;   // halo
-       double n = nA[ eta_i ] ;   // spike
-       //double o = oA[ eta_i ] ;   // cosmic
+       double m = haloMis[ eta_i ] ;   // halo
+       double n = spikeMis[ eta_i ] ;   // spike
+       double o = cosMis[ eta_i ] ;   // cosmic
 
        // cosmic content 
-       double C12 = c_B12 ;
-       double B12_noC = B12 - C12 ;
+       double C_ = (c_B - o*B0 ) / ( c - o ) ;
+       C_ = ( C_ < 0. ) ? 0 : C_ ;
        // spike content
-       double S12 = ( s_B12 - (n*B12_noC) ) / ( s - n ) ;
-       S12 = ( S12 < 0. ) ? 0 : S12 ;
+       double S_ = (s_B - n*B0 ) / ( s - n ) ;
+       S_ = ( S_ < 0. ) ? 0 : S_ ;
        // halo content 
-       double H12 = ( h_B12 - (m*B12_noC) ) / ( h - m ) ;
-       H12 = ( H12 < 0. ) ? 0 : H12 ;
+       double H_ = (h_B - m*B0 ) / ( h - m ) ;
+       H_ = ( H_ < 0. ) ? 0 : H_ ;
        // QCD content 
-       double Q12 = (double)(B12) - S12 - H12 - C12;
-       Q12 = ( Q12 < 0. ) ? 0 : Q12 ;
+       double Q_ = (double)(B0) - S_ - H_ - C_;
+       Q_ = ( Q_ < 0. ) ? 0 : Q_ ;
 
        //printf("(%d) B12 %d = (S12: %.2f ) + ( H12: %.2f ) + ( Q12: %.2f )\n ", eta_i, B12, S12, H12, Q12 ) ;
-
        vector<double> BG12 ;
-       BG12.push_back( S12 ) ;
-       BG12.push_back( H12 ) ;
-       BG12.push_back( C12 ) ;
-       BG12.push_back( Q12 ) ;
+       BG12.push_back( S_ ) ;
+       BG12.push_back( H_ ) ;
+       BG12.push_back( C_ ) ;
+       BG12.push_back( Q_ ) ;
        return BG12 ;
 }
 
@@ -902,4 +971,5 @@ void DPSelection::SetArray( int a[], int b[], int size ) {
 void DPSelection::SetArray( float a[], float b[], int size ) {
    for ( int i=0; i< size; i++ )   a[i] = b[i] ;
 }
+
 

@@ -1,4 +1,5 @@
 #include "Systematic.h"
+#include "MathTools.h"
 
 Systematic::Systematic( string datacardfile ) {
 
@@ -290,7 +291,7 @@ void Systematic::ComparePlot( TH1D* hData, TH1D* hMC, string plotName ) {
      leg1->AddEntry( hData,  legStr0,  "L");
      leg1->AddEntry( hMC,    legStr1,  "L");
 
-     TF1* ffn2 = new TF1("ffn2", &hDraw::fitGS, -1.5, 1.5, 3 );
+     TF1* ffn2 = new TF1("ffn2", &MathTools::fitGS, -1.5, 1.5, 3 );
      ffn2->SetParameter( 0, hMC->GetBinContent( hMC->GetMaximumBin() ) );
      ffn2->SetParameter( 1,  0.  );
      ffn2->SetParameter( 2,  0.5 );
@@ -310,7 +311,7 @@ void Systematic::ComparePlot( TH1D* hData, TH1D* hMC, string plotName ) {
      hMC->Fit( "ffn2", "R", "sames" );
      c_a->Update();
 
-     TF1* ffn1 = new TF1("ffn1", &hDraw::fitGS, -1.5, 1.5, 3 );
+     TF1* ffn1 = new TF1("ffn1", &MathTools::fitGS, -1.5, 1.5, 3 );
      ffn1->SetParameter( 0,  hData->GetBinContent(hData->GetMaximumBin()) );
      ffn1->SetParameter( 1,  0.  );
      ffn1->SetParameter( 2,  0.5 );

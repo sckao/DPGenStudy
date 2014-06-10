@@ -1,5 +1,6 @@
 #include "hDraw.h"
-//#include "MathFunctions.h"
+#include "MathTools.h"
+
 hDraw::hDraw( string datacardfile ){
 
   Input  = new AnaInput( datacardfile );
@@ -339,14 +340,14 @@ void hDraw::SetFitParameter( string fitFunc_, double fitMin_, double fitMax_ , i
    gStyle->SetOptFit(111);
 
    if ( strncasecmp( "Gaus", fitFunc_.c_str(), fitFunc_.size() ) == 0  )  {
-      func1 = new TF1("func1", &hDraw::fitGS, fitMin, fitMax, nFitPara );  
+      func1 = new TF1("func1", &MathTools::fitGS, fitMin, fitMax, nFitPara );  
       func1->SetParameter( 0, initVals[0] );
       func1->SetParameter( 1, initVals[1] );
       func1->SetParameter( 2, initVals[2] );
       func1->SetLineColor( color );
    }
    if ( strncasecmp( "Exp", fitFunc_.c_str(), fitFunc_.size() ) == 0  )  {
-      func1 = new TF1("func1", &hDraw::fExp , fitMin, fitMax, nFitPara );
+      func1 = new TF1("func1", &MathTools::fExp , fitMin, fitMax, nFitPara );
       func1->SetParameter( 0, initVals[0] );
       func1->SetParameter( 1, initVals[1] );
       func1->SetLineColor( color );
@@ -369,7 +370,7 @@ void hDraw::SetFitParameter( string fitFunc_, TH1D* h1, double fitMin_, double f
       if ( fitMin_ == fitMax_ ) fitMin = mean - (2.*rms) ;
       if ( fitMin_ == fitMax_ ) fitMax = mean + (2.*rms) ;
 
-      func1 = new TF1("func1", &hDraw::fitGS, fitMin, fitMax, nFitPara );  
+      func1 = new TF1("func1", &MathTools::fitGS, fitMin, fitMax, nFitPara );  
       func1->SetParameter( 0, maxv );
       func1->SetParameter( 1, mean );
       func1->SetParameter( 2, rms  );
@@ -402,7 +403,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
        double bc_ = hCut->GetBinContent(i) ;
        double ba_ = hAll->GetBinContent(i) ;
        double x_  = hAll->GetBinCenter(i) ;
-       printf("     (%d)_%.2f =  %.2f/%.2f \n", i, x_, bc_, ba_ ) ;
+       //printf("     (%d)_%.2f =  %.2f/%.2f \n", i, x_, bc_, ba_ ) ;
        if ( bc_ ==0 && ba_ ==0 ) continue ;
        // rebin the histogram in order to have consistence statistic for each bin
        if ( ba < minBinContent || ba < bc || rbin < rbin_ ) {
@@ -416,13 +417,13 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
 	     xV.push_back( x / rbin )  ;
 	     xW.push_back( rbin * bW / 2.) ;
 	     // sc's method to calculate error
-	     pair<double,double> errs = EffError( ba, bc ) ;
+	     pair<double,double> errs = MathTools::EffError( ba, bc ) ;
 	     errH.push_back( errs.first ) ;
 	     errL.push_back( errs.second ) ;
 	     rbin_ = rbin ;
 	     //cout<<" x: "<< x/rbin <<" rb: "<< rbin <<" bW:"<< (rbin*bW) / 2. << "  bc: "<< bc <<"  ba: "<< ba ;
 	     //cout<<" eff:"<< bc/ba <<" + "<< errs.first <<" - "<< errs.second << endl ;
-             printf(" x[%d]:%.2f , %.2f  \n", (int)xV.size(), x/rbin, (rbin*bW/2.) ) ;
+             //printf(" x[%d]:%.2f , %.2f  \n", (int)xV.size(), x/rbin, (rbin*bW/2.) ) ;
 	     bc   = 0 ;
 	     ba   = 0 ;
 	     x    = 0 ;
@@ -536,6 +537,7 @@ void hDraw::EffPlot( TH1D* hCut, TH1D* hAll, string xlable, double minBinContent
 }
 
 // return asymmetry errors <upward,downward>
+/*
 pair<double, double> hDraw::EffError( double N_all, double N_pass ) {
 
     if ( N_all < 0.0001 ) {
@@ -716,11 +718,12 @@ Double_t hDraw::fitGS(Double_t *x, Double_t *par) {
      Double_t fitV = par[0]*gs_Value ;
      return fitV;
 }
+*/
 
 void hDraw::EffProbPlot( double N_all, string graphName ){
 
   cout<<" N_All = "<< N_all <<endl ;
-  TF1* fn1 = new TF1("fn1", hDraw::BinomialErr, 0., 1., 3);
+  TF1* fn1 = new TF1("fn1", MathTools::BinomialErr, 0., 1., 3);
 
   fn1->SetParameter( 0, 1. ) ;
 

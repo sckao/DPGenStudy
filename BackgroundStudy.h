@@ -47,12 +47,14 @@ public:
    void DrawHistograms( hDraw* h_draw = NULL ) ;
    void DrawAllHistograms() ;
    // ABCD Method
+   /*
    vector<double> ABCD_Collision( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD ) ;
    vector<double> ABCD( TH3D* hA, TH3D* hB, TH3D* hC, TH3D* hD, TH3D* hE, TH3D* hF ) ;
    void ABCD_ABCD() ;
    double GetEstimation( TH3D* hCount, bool getQCD = true ) ;
    vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) ;
    vector<double> GetComponent( int eta_i, int B12,    int h_B12,    int s_B12,    int c_B12 ) ;
+   */
 
    TLorentzVector JetVectorSum( vector<objID>& jetV ) ;
    static Double_t HaloFunction( Double_t* eta, Double_t* par ) ;
