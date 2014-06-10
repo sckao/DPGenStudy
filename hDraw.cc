@@ -3,7 +3,8 @@
 
 hDraw::hDraw( string datacardfile ){
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
 
   Input->GetParameters("PlotType",      &plotType ) ;
   Input->GetParameters("Path",          &hfolder ) ;
@@ -43,7 +44,7 @@ hDraw::~hDraw(){
   delete c1 ;
   delete c2 ;
   delete c3 ;
-  if ( Input != NULL ) delete Input ;
+  //if ( Input != NULL ) delete Input ;
   cout<<" Draw ! "<<endl ;
 
 }

@@ -13,7 +13,8 @@
 
 BackgroundStudy::BackgroundStudy( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
 
   qcdS    = new QCDStudy( datacardfile ) ;
@@ -44,7 +45,7 @@ BackgroundStudy::~BackgroundStudy(){
   cout<<" File closed ! "<<endl ;
 
   delete select ;
-  delete Input ;
+  //delete Input ;
   delete qcdS ;
   delete haloS ;
   delete spikeS ;

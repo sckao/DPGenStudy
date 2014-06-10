@@ -12,7 +12,8 @@
 
 CosmicStudy::CosmicStudy( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
 
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("IsData",        &isData ) ; 
@@ -32,7 +33,7 @@ CosmicStudy::~CosmicStudy(){
      cout<<" File closed ! "<<endl ;
   }
 
-  delete Input ;
+  //delete Input ;
   cout<<" done ! "<<endl ;
 
 }

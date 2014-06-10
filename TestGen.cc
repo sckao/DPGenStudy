@@ -4,7 +4,8 @@ static bool PtDecreasing( objID s1, objID s2) { return ( s1.second.Pt() > s2.sec
 
 TestGen::TestGen( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
   Hist   = new Histogram( datacardfile ) ;
 
@@ -50,7 +51,7 @@ TestGen::~TestGen(){
   if ( isData == 0 ) printf(" nX0 = %d  di-Photon = %d single-photon = %d zero-Photon = %d \n", nX0, n2X0_g, n1X0_g, n0X0_g ) ;
 
   delete select ;
-  delete Input ;
+  //delete Input ;
   delete Hist ;
   cout<<" done ! "<<endl ;
 }

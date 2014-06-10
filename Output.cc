@@ -9,7 +9,9 @@
 
 Output::Output( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
+
   select = new DPSelection( datacardfile ) ;
   normV = Input->NormalizeComponents( datacardfile );
 
@@ -79,7 +81,7 @@ Output::~Output(){
   cout<<" File closed ! "<<endl ;
 
   delete select ;
-  delete Input ;
+  //delete Input ;
   cout<<" done ! "<<endl ;
 }
 

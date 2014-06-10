@@ -1,8 +1,11 @@
 #include "AnaInput.h"
 
-AnaInput::AnaInput( string datacardInput ) {
+AnaInput* AnaInput::m_Instance = NULL ;
 
-  datacardfile = datacardInput ;
+//AnaInput::AnaInput( string datacardInput ) {
+AnaInput::AnaInput() {
+
+  datacardfile = "DataCard.txt" ;
 
 }
 
@@ -10,6 +13,21 @@ AnaInput::~AnaInput(){
 
    cout<<" close input "<<endl ;
 
+}
+
+AnaInput* AnaInput::Instance() {
+
+    if (! m_Instance ) {
+       m_Instance = new AnaInput( ) ;
+    } 
+       
+    return m_Instance ;
+
+}
+
+void AnaInput::SetDatacard( string datacardInput ) {
+ 
+     datacardfile = datacardInput ;
 }
 
 //vector<TTree*> forestData ;

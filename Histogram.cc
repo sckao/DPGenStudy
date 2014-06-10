@@ -2,7 +2,9 @@
 
 Histogram::Histogram( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
+
   h_draw = new hDraw( datacardfile ) ; 
 
   Input->GetParameters("PlotType",      &plotType ) ; 

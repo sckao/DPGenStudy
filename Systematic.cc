@@ -3,7 +3,9 @@
 
 Systematic::Systematic( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
+
   select = new DPSelection( datacardfile ) ;
   h_draw = new hDraw( datacardfile ) ;
 
@@ -43,7 +45,7 @@ Systematic::~Systematic(){
   cout<<" File closed ! "<<endl ;
 
   delete select ;
-  delete Input ;
+  //delete Input ;
   delete h_draw ;
   cout<<" done ! "<<endl ;
 

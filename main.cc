@@ -29,8 +29,10 @@ using namespace std;
 int main( int argc, const char* argv[] ) { 
 
   string datacardfile = ( argc > 1 ) ? argv[1] : "DataCard.txt";
-  AnaInput  *Input = new AnaInput( datacardfile );
-
+  //AnaInput  *Input = new AnaInput( datacardfile );
+  AnaInput  *Input = AnaInput::Instance() ;
+  Input->SetDatacard( datacardfile ) ;
+  
   // method to read root files
   string dataFileNames ;
   Input->GetParameters( "TheData", &dataFileNames );
@@ -127,6 +129,7 @@ int main( int argc, const char* argv[] ) {
      delete bgS ;
   }
 
+  delete Input ;
   cout<<" Finished !!!"<<endl ;
 
   return 0;

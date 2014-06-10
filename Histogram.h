@@ -148,7 +148,7 @@ class Histogram {
 
     ~Histogram() {
         
-        delete Input ;
+        //delete Input ;
         delete h_draw ;
         //hFile->Close() ;
         cout<<" exit histogram "<<endl ;

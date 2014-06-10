@@ -12,7 +12,8 @@
 
 QCDStudy::QCDStudy( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
 
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("IsData",        &isData ) ; 
@@ -34,7 +35,7 @@ QCDStudy::~QCDStudy(){
      cout<<" File closed ! "<<endl ;
   }
 
-  delete Input ;
+  //delete Input ;
   cout<<" done ! "<<endl ;
 
 }

@@ -7,7 +7,8 @@ DPSelection::DPSelection( string datacardfile ){
 
   // SC's getParameters method
   // If you don't like to use the Datacard.txt , markout this section and use CMSSW method
-  Input = new AnaInput( datacardfile );
+  //Input = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
 
   Input->GetParameters( "VertexCuts",   &vtxCuts );
   Input->GetParameters( "PhotonCuts",   &photonCuts );
@@ -54,7 +55,7 @@ DPSelection::DPSelection( string datacardfile ){
 
 DPSelection::~DPSelection(){
 
-  delete Input;
+  //delete Input;
   cout<<" done with selection ! "<<endl ;
 
 }

@@ -12,7 +12,8 @@
 
 HaloStudy::HaloStudy( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
 
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 
   Input->GetParameters("PlotType",      &plotType ) ; 
@@ -33,7 +34,7 @@ HaloStudy::~HaloStudy(){
      cout<<" File closed ! "<<endl ;
   }
 
-  delete Input ;
+  //delete Input ;
   cout<<" done ! "<<endl ;
 
 }

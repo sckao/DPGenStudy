@@ -2,7 +2,9 @@
 
 Background::Background( string datacardfile ) {
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
+
   h_draw = new hDraw( datacardfile ) ; 
   select = new DPSelection( datacardfile ) ;
 
@@ -18,7 +20,7 @@ Background::Background( string datacardfile ) {
 Background::~Background() {
 
         delete select ;
-        delete Input ;
+        //delete Input ;
         delete h_draw ;
         //hFile->Close() ;
         cout<<" exit histogram "<<endl ;

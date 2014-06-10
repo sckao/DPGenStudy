@@ -2,7 +2,8 @@
 
 Trigger::Trigger( string datacardfile ){
 
-  Input  = new AnaInput( datacardfile );
+  //Input  = new AnaInput( datacardfile );
+  Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
   h_draw = new hDraw( datacardfile ) ;
 
@@ -28,7 +29,7 @@ Trigger::~Trigger() {
 
   if ( isData == 0 ) printf(" nX0 = %d  di-Photon = %d single-photon = %d zero-Photon = %d \n", nX0, n2X0_g, n1X0_g, n0X0_g ) ;
   delete select ;
-  delete Input  ;
+  //delete Input  ;
   delete h_draw ;
   cout<<" done ! "<<endl ;
 

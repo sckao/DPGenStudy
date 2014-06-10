@@ -45,9 +45,10 @@ class AnaInput : public TObject {
 
 public:
 
-   AnaInput( string datacardInput = "DataCard.txt" );     
    ~AnaInput();     
-
+   static AnaInput* Instance() ;
+  
+   void SetDatacard( string datacardInput ) ;
    void LinkForests( TString treeName ) ;
 
    void GetForest( string DataSet, TString treeName );
@@ -68,10 +69,15 @@ public:
 
 private:
 
+   //AnaInput( string datacardInput = "DataCard.txt" );     
+   AnaInput();     
+
    string datacardfile ;
 
    vector<TTree*> forestData ;
    vector<TTree*> forestMC ;
+
+   static AnaInput* m_Instance;
 
 
    //ClassDef(AnaInput, 1);
