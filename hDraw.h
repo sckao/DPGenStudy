@@ -29,7 +29,7 @@ class hDraw {
 
   public:
 
-  hDraw( string datacardfile = "DataCard.txt" ) ;
+  hDraw( ) ;
   hDraw( string hfolder, string plotType ) ;
   ~hDraw() ;
 

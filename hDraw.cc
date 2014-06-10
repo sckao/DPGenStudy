@@ -1,7 +1,7 @@
 #include "hDraw.h"
 #include "MathTools.h"
 
-hDraw::hDraw( string datacardfile ){
+hDraw::hDraw(){
 
   //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;

@@ -5,7 +5,7 @@ Trigger::Trigger( string datacardfile ){
   //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
-  h_draw = new hDraw( datacardfile ) ;
+  h_draw = new hDraw() ;
 
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 

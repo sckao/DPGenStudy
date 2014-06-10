@@ -7,7 +7,7 @@ TestGen::TestGen( string datacardfile ) {
   //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
-  Hist   = new Histogram( datacardfile ) ;
+  Hist   = new Histogram( ) ;
 
   SkipEvents = 0 ;
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 

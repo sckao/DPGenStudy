@@ -47,7 +47,7 @@ int main( int argc, const char* argv[] ) {
      tgen->ReadTree( dataFileNames);
      delete tgen ;
 
-     Histogram *histo = new Histogram( datacardfile ) ;
+     Histogram *histo = new Histogram() ;
      histo->DrawHistograms();
      delete histo ;
   }
@@ -60,7 +60,7 @@ int main( int argc, const char* argv[] ) {
      //trg->CutFlow( dataFileNames ) ;
   }
   if ( module == 2 ) {
-     Histogram *histo = new Histogram( datacardfile ) ;
+     Histogram *histo = new Histogram() ;
      histo->DrawHistograms();
      delete histo ;
   }
@@ -73,7 +73,7 @@ int main( int argc, const char* argv[] ) {
      }
      delete tgen ;
 
-     Histogram *histo = new Histogram( datacardfile ) ;
+     Histogram *histo = new Histogram( ) ;
      histo->DrawHistograms();
      delete histo ;
   }

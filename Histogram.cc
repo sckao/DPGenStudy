@@ -1,11 +1,11 @@
 #include "TestGen.h"
 
-Histogram::Histogram( string datacardfile ) {
+Histogram::Histogram() {
 
   //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;
 
-  h_draw = new hDraw( datacardfile ) ; 
+  h_draw = new hDraw() ; 
 
   Input->GetParameters("PlotType",      &plotType ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 

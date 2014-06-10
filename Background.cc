@@ -5,7 +5,7 @@ Background::Background( string datacardfile ) {
   //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;
 
-  h_draw = new hDraw( datacardfile ) ; 
+  h_draw = new hDraw() ; 
   select = new DPSelection( datacardfile ) ;
 
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ;

@@ -7,7 +7,7 @@ Systematic::Systematic( string datacardfile ) {
   Input = AnaInput::Instance() ;
 
   select = new DPSelection( datacardfile ) ;
-  h_draw = new hDraw( datacardfile ) ;
+  h_draw = new hDraw() ;
 
   //normV = Input->NormalizeComponents( datacardfile );
 

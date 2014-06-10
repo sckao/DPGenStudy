@@ -144,7 +144,7 @@ class Histogram {
     public:
 
     //friend class TestGen ;
-    Histogram( string datacardfile ) ;
+    Histogram() ;
 
     ~Histogram() {
         
