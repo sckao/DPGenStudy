@@ -13,16 +13,17 @@ Path = TCuts_RunBCD_new/
 PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
-#HFileName = hStats_RunCD_1J
+#HFileName = hStats_BCD_v6
 # bgRunBCD_MET2_GT60_s : new spike tag without nXtal cut
-HFileName = bgRunBCD_MET2_GT60
+HFileName = bgRunBCD_1J
 #HFileName = hSyst_3
 
 ######################################
-# Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Drawer 3: TestGen for MC
-#        4: Stats Output 5: Systematic, 6: background , 7: Halo Study 8: MC Halo Study 9: Halo Drawer
+# Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Draw 3: TestGen for MC
+#        4: Stats Output 5: Systematic, 6: Trigger Histogram Draw 7: Halo Study 8: MC Halo Study 9: Halo Drawer
+#       11: MC Stats Output  
 ######################################
-Module = 9
+Module = 7
 
 # MC = 0 , Data = 1
 IsData = 1
@@ -72,7 +73,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        0,       1,   60,  0.3)
+JetCuts = (   35., 2.4,        1,       99,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
@@ -86,7 +87,7 @@ FitCtau =-1
 TCut = 3
 
 # RunCD = 15121 /pb , RunB = 5042 /pb
-Lumi = 15000
+Lumi = 19100
 #NEvents  = ( 50112 )
 #XSection = ( 0.0145 )
 #Eff      = (   1.0 )
