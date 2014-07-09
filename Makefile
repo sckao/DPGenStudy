@@ -1,14 +1,16 @@
-CC=g++ -g -fPIC -Wall -O -ansi -D_GNU_SOURCE -O2 -m64
+CC=g++ -g -fPIC -Wall -O -ansi -D_GNU_SOURCE -O3 -m64
 ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags`
 LIB=`${ROOTSYS}/bin/root-config --libs`
 GLIB=`${ROOTSYS}/bin/root-config --glibs`
 
-OBJECTS=AnaInput.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o
-#OBJECTS=AnaInput.o hDraw.o Histogram.o DPSelection.o TestGen.o Background.o BackgroundStudy.o Trigger.o Output.o Systematic.o
+OBJECTS=AnaInput.o MathTools.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o
 
 all:test.exe
 
 AnaInput.o : AnaInput.cc AnaInput.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+MathTools.o : MathTools.cc MathTools.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 hDraw.o : hDraw.cc hDraw.h
