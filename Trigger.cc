@@ -11,6 +11,7 @@ Trigger::Trigger( string datacardfile ){
   Input->GetParameters("Path",          &hfolder ) ; 
   Input->GetParameters("HFileName",     &hfName ) ;
   Input->GetParameters("IsData",        &isData ) ; 
+  Input->GetParameters("JetCuts",       &jetCuts ) ;
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 
   
   //Input->GetParameters("RootFiles",     &rfolder ) ; 
@@ -86,6 +87,7 @@ void Trigger::ReadTree( string dataName ) {
    tr->SetBranchAddress("cscdPhi",     cscdPhi );
    tr->SetBranchAddress("dtdPhi",      dtdPhi );
    tr->SetBranchAddress("dtdEta",      dtdEta );
+   tr->SetBranchAddress("seedSwissX",  seedSwissX );
 
    tr->SetBranchAddress("sMinPho",     sMinPho );
    tr->SetBranchAddress("sMajPho",     sMajPho );
@@ -104,18 +106,12 @@ void Trigger::ReadTree( string dataName ) {
    //tr->SetBranchAddress("vtxX",       vtxX );
    //tr->SetBranchAddress("vtxY",       vtxY );
    tr->SetBranchAddress("vtxZ",       vtxZ );
-   
-   tr->SetBranchAddress("phoPx",       phoPx );
-   tr->SetBranchAddress("phoPy",       phoPy );
-   tr->SetBranchAddress("phoPz",       phoPz );
-   tr->SetBranchAddress("phoE",        phoE );
 
    tr->SetBranchAddress("nGen",        &nGen);
    tr->SetBranchAddress("genPx",       genPx );
    tr->SetBranchAddress("genPy",       genPy );
    tr->SetBranchAddress("genPz",       genPz );
    tr->SetBranchAddress("genE",        genE );
-   tr->SetBranchAddress("genM",        genM );
    tr->SetBranchAddress("genT",        genT );  // tau*gamma*beta
    tr->SetBranchAddress("pdgId",       pdgId );
    tr->SetBranchAddress("momId",       momId );
@@ -129,11 +125,12 @@ void Trigger::ReadTree( string dataName ) {
 
    //Raw Information
    h_gPt      = new TH1D("h_gPt",     "Leading Photon Pt   ", 42,  40, 250);
+   h_Eta      = new TH1D("h_Eta",  "#eta distribution ", 51,  -2.5, 2.5);
    h_trg_gPt  = new TH1D("h_trg_gPt", "hltPhoton65 Trigger Object Pt", 41,  45, 250);
    dR_TrgReco_Pho = new TH1D("dR_TrgReco_Pho", " dR( trg, Reco ) Photon", 50, 0., 1. );
    dR_TrgReco_Met = new TH1D("dR_TrgReco_Met", " dR( trg, Reco ) PFMET", 50, 0., 1. );
 
-   // Efficiency 
+   // Trigger Efficiency 
    h_gPt_sel  = new TH1D("h_gPt_sel", "Selected Photon Pt  ", 42,  40, 250);
    h_gPt_trg  = new TH1D("h_gPt_trg", "Selected Photon Pt & trigger hltPhoton65Filter", 42,  40, 250);
 
@@ -142,18 +139,23 @@ void Trigger::ReadTree( string dataName ) {
    h_trg_met  = new TH1D("h_trg_met", "hltPFMET25 Trigger Object    ", 40,  0, 200);
    h_met_trg  = new TH1D("h_met_trg", "PFMET distribution passed hltPFMET25 ", 40,  0, 200);
 
-   hEff_Sel   = new TH2D("hEff_Sel", " Selected  ", 42,  40, 250, 40,  0, 200 ) ;
-   hEff_Trg   = new TH2D("hEff_Trg", " Triggered ", 42,  40, 250, 40,  0, 200 ) ;
-   hEff_2D    = new TH2D("hEff_2D",  "2D Efficiency", 42,  40, 250, 40,  0, 200 ) ;
+   hEff_Sel   = new TH2D("hEff_Sel", " Selected  ",   21,  40, 250, 20,  0, 200 ) ;
+   hEff_Trg   = new TH2D("hEff_Trg", " Triggered ",   21,  40, 250, 20,  0, 200 ) ;
+   hEff_2D    = new TH2D("hEff_2D",  "2D Efficiency", 21,  40, 250, 20,  0, 200 ) ;
+   hEff_PtEta = new TH2D("hEff_PtEta",  "Pt vs Eta Efficiency for reco", 42,  40, 250, 51, -2.5, 2.5 ) ;
 
-   hTime_sel  = new TH1D("hTime_sel", " Ecal Time", 100,  -5 , 5 );
+   // Offline Efficiency 
+   h_Eta_s    = new TH1D("h_Eta_s",    "#eta distribution pass selection", 51,  -2.5, 2.5);
+   h_gPt_s    = new TH1D("h_gPt_s",    "Leading Photon Pt pass selection", 42,  40, 250);
+   h_Pt_Eta   = new TH2D("h_Pt_Eta",   " Pt vs. #eta ", 42, 40., 250 , 51, -2.55, 2.55  ) ;
+   h_Pt_Eta_s = new TH2D("h_Pt_Eta_s", " Pt vs. #eta ", 42, 40., 250 , 51, -2.55, 2.55  ) ;
+   hTime_sel  = new TH1D("hTime_sel",  " Ecal Time", 200,  -5, 20 );
+   h_time     = new TH1D("h_time",     " Ecaltime ", 100,  -5, 20 );
+   h_latePt   = new TH1D("h_latePt",   " Pt for photons with t > 3 ns ", 60,  40, 340 );
 
-   // 
-   dR_Pho90 = new TH1D("dR_Pho90", " dR( trg, Reco ) Photon ( pt > 90 ) ", 50, 0., 5. );
-   dR_Pho50 = new TH1D("dR_Pho50", " dR( trg, Reco ) Photon ( pt < 55 ) ", 50, 0., 5. );
-
+   dR_Pho90 = new TH1D("dR_Pho90", "dR( trg, Reco ) Photon ( pt > 90 )", 50, 0., 5. );
+   dR_Pho50 = new TH1D("dR_Pho50", "dR( trg, Reco ) Photon ( pt < 55 )", 50, 0., 5. );
    // Time Resolution
-
    for ( int i=0; i< totalN ; i++ ) {
 
        if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
@@ -161,18 +163,30 @@ void Trigger::ReadTree( string dataName ) {
        tr1->GetEntry( i );
        if ( i % 100000 == 0 && i > 99999 ) printf(" ----- processed %8d Events \n", i ) ;
 
-       // Raw Information
-       TLorentzVector t_gP4 = TLorentzVector( t_phoPx, t_phoPy, t_phoPz, t_phoE ) ;
-       if ( nPhotons > 0 ) {
-          TLorentzVector gP4_ = TLorentzVector( phoPx[0], phoPy[0], phoPz[0], phoE[0] ) ;
-          h_gPt->Fill( gP4_.Pt() ) ;
-          //cout<<" t_pt : "<< t_gP4.Pt() <<endl ;
-          h_trg_gPt->Fill( t_gP4.Pt() ) ;
-       }
        // Gen Information 
        int nX = ( isData == 0 ) ? GenInfo() : -1 ;
-       if ( isData == 0 && nX != 1 ) continue ; // only use for Signal MC  
+       if ( isData == 0 && nX < 1 ) continue ; // only use for Signal MC  
       
+       // Raw Information
+       TLorentzVector t_gP4 = TLorentzVector( t_phoPx, t_phoPy, t_phoPz, t_phoE ) ;
+       TLorentzVector gP4_  = TLorentzVector( phoPx[0], phoPy[0], phoPz[0], phoE[0] ) ;
+       h_trg_gPt->Fill( t_gP4.Pt() ) ;
+       
+       // Denominator for reco-efficiency
+       bool doRecoPt  = false ;
+       bool doRecoEta = false ;
+       if ( triggered == 2 ||  triggered ==3 ) {
+          if ( fabs( gP4_.Eta()) < 1.469 && fabs( seedTime[0]) < 2. ) {  
+             h_gPt->Fill( gP4_.Pt() ) ;
+             doRecoPt = true ;
+          }
+          if ( gP4_.Pt() > 80.  && fabs( seedTime[0]) < 2. ) {  
+	     h_Eta->Fill( gP4_.Eta() ) ;
+             doRecoEta = true ;
+          }
+	  h_Pt_Eta->Fill( gP4_.Pt(), gP4_.Eta()  ) ;
+       }
+
        // MET information
        TLorentzVector t_met = TLorentzVector( t_metPx, t_metPy, 0., t_metE ) ;
        TLorentzVector met( metPx, metPy, 0, metE)  ;
@@ -189,18 +203,53 @@ void Trigger::ReadTree( string dataName ) {
 
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
-       //bool pass = ( (evtType >> 1) & 1  ) ;
-       bool passTrig = select->HLTFilter() ;
-       if ( !passTrig ) continue ;
-
+       bool passTrig   = select->HLTFilter() ;
+       bool passOffline = ( (evtType >> 1) & 1 ) ;
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
        select->GetCollection("Photon", selectPho ) ;
 
+       newMET    = select->newMET ;
+       noPhotMET = select->noPhotMET ;
+       // For Offline Efficiency Study
+       double m_dR ;
+       int itr1 = TrigRecoMatch( gP4_, selectPho, m_dR, 0.5 ) ;
+       if ( passOffline && (triggered == 2 || triggered == 3) && itr1 >  -1 ) {
+          //for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+              //int k = selectPho[kk].first ;
+              int k = selectPho[itr1].first ;
+	      TLorentzVector gP4 = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
+
+	      //bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , gP4_.Eta() ) ;
+	      //bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], gP4_.Eta() ) ;
+	      //bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
+	      //bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+
+	      //if ( !ghostTag && newMET.Et() > jetCuts[4] && noPhotMET.Et() > jetCuts[4] ) {
+	      if ( newMET.Et() > jetCuts[4] && noPhotMET.Et() > jetCuts[4] ) {
+	         if ( doRecoEta ) h_Eta_s->Fill( gP4.Eta() ) ;
+		 if ( doRecoPt  ) h_gPt_s->Fill( gP4.Pt()  ) ;
+		 h_Pt_Eta_s->Fill( gP4.Pt(), gP4.Eta() ) ;
+		 hTime_sel->Fill( seedTime[k] ) ;
+	      }
+          //}
+       }
+       
+       // Use to check time acceptance 
+       if ( passOffline && (triggered == 2 || triggered == 3) ) {
+          for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+              int k = selectPho[kk].first ;
+	      TLorentzVector gP4 = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
+              h_time->Fill( seedTime[k] ) ;
+              if ( seedTime[k] > 3. ) h_latePt->Fill( gP4.Pt() ) ;
+          }
+       }
+
+       if ( !passTrig ) continue ;
+
        // Find matched reco photon
        if ( selectPho.size() < 1 || selectJets.size() < 1 ) continue;
-
 
        double match_dR ;
        int itr = TrigRecoMatch( t_gP4, selectPho, match_dR, 999.9 ) ;
@@ -234,8 +283,8 @@ void Trigger::ReadTree( string dataName ) {
           if ( metE > 130. && t_metE < 25. )  {
              int kk = selectPho[0].first ;
              printf(" gPt : %.2f , eta: %.2f , T: %.2f t_metE= %.2f , nJ= %d \n", 
-                    selectPho[0].second.Pt(), selectPho[0].second.Eta(), seedTime[kk], t_metE, selectJets.size() ) ;
-             for ( int k=0 ; k < selectJets.size() ; k++ ) 
+                    selectPho[0].second.Pt(), selectPho[0].second.Eta(), seedTime[kk], t_metE, (int)selectJets.size() ) ;
+             for ( int k=0 ; k < (int)selectJets.size() ; k++ ) 
                  printf("  jPt : %.2f , eta: %.2f \n", selectJets[k].second.Pt(), selectJets[k].second.Eta() ) ;
           }
             
@@ -253,22 +302,26 @@ void Trigger::ReadTree( string dataName ) {
           }
        }
 
-       // Time Resolution
-       int kk = selectPho[0].first ;
-       bool isHalo   = (cscdPhi[kk] < 0.05) || (sMajPho[kk] > 0.8  && sMinPho[kk] < 0.2)  ;
-       bool isCosmic =  (dtdEta[kk] < 0.1) && (dtdPhi[kk] < 0.1)  ;
-       if ( !isHalo && !isCosmic )  hTime_sel->Fill( seedTime[kk] ) ;
       
 
    } // end of event looping
 
    // 2D Efficiency 
-   for ( int i=1 ; i <=42; i++ ) {
-       for ( int j=1 ; j <=40; j++ ) {
+   for ( int i=1 ; i <=21; i++ ) {
+       for ( int j=1 ; j <=20; j++ ) {
            double bA =  hEff_Sel->GetBinContent(i,j) ;
            double bC =  hEff_Trg->GetBinContent(i,j) ;
            double ef = ( bA > 0. ) ? bC/bA : 0. ;
            hEff_2D->SetBinContent(i,j, ef ) ;
+       }
+   }
+   for ( int i=1 ; i <=42; i++ ) {
+       for ( int j=11 ; j <=51; j++ ) {
+           double bA1 =  h_Pt_Eta->GetBinContent(i,j) ;
+           double bC1 =  h_Pt_Eta_s->GetBinContent(i,j) ;
+           double ef1 = ( bA1 > 0. ) ? bC1/bA1 : 0. ;
+           if ( bC1 > bA1 ) printf( " bA = %f bC = %f \n", bA1, bC1 ) ;
+           hEff_PtEta->SetBinContent(i,j, ef1 ) ;
        }
    }
    // Write the histograms into TFile
@@ -299,8 +352,12 @@ void Trigger::Plot() {
    h_draw->Draw(       h_met, "", " MET (GeV)", "", "logY", 0.95, 2 ) ;
    h_draw->DrawAppend( h_trg_met, "MET_Trig", 0.75, 4, 1, leg1 ) ;
 
-   h_draw->EffPlot( h_gPt_trg, h_gPt_sel, "Photon P_{T} (GeV/c) ", 10, 1, -1,  "PhotonPtEff" );
+   h_draw->EffPlot( h_gPt_trg, h_gPt_sel, "Photon P_{T} (GeV/c) ", 10, 1, -1,  "TrgPhotonPtEff" );
    h_draw->EffPlot( h_met_trg, h_met_sel, "MET (GeV/c) ", 10, 1, -1,  "METEff" );
+
+   h_draw->EffPlot( h_gPt_s, h_gPt, "Photon P_{T} (GeV/c) ", 25, 1, -1,  "RecoPhotonPtff" );
+   h_draw->EffPlot( h_Eta_s, h_Eta, "Photon #eta  ",         25, 11, 41,  "RecoPhotonEtaff" );
+
    // Efficiency
    /*
    TPaveText* tex = new TPaveText(0.50, 0.27, 0.87,0.39, "NDC"); // NDC sets coords
@@ -325,11 +382,25 @@ void Trigger::Plot() {
    h_draw->DrawNxM( 1, dR_Pho90,   "",   "", "", 1, false );
    h_draw->DrawNxM( 2, dR_Pho50,   "",   "", "", 1, true );
 
-   h_draw->Draw( hTime_sel, "hTime_sel", " Ecal Time (ns)", "", "", 0.95, 1 ) ;
+   TLegend* leg2  = new TLegend(.52, .72, .95, .90 );
+   leg2->Clear();
+   leg2->SetTextSize(0.025) ;
+   char legStr[100] ; 
+   sprintf( legStr,  "T : %.0f/%.0f = %.5f "
+          , hTime_sel->Integral(64, 200),  hTime_sel->Integral(), hTime_sel->Integral(64, 200)/hTime_sel->Integral() ) ;
+   leg2->AddEntry( hTime_sel,  legStr,  "L");
+
+   h_draw->Draw( hTime_sel, "hTime_sel", " Ecal Time (ns)", "", "logY", 0.95, 1, 1, leg2 ) ;
+
+   leg2->Clear();
+   sprintf( legStr,  "T : %.0f/%.0f = %.5f "
+          , h_time->Integral(32, 100),  h_time->Integral(), h_time->Integral(32, 100)/h_time->Integral() ) ;
+   leg2->AddEntry( hTime_sel,  legStr,  "L");
+   h_draw->Draw( h_time, "h_time", " Ecal Time (ns)", "", "logY", 0.95, 1, 1, leg2 ) ;
 
 
    // 2D Efficiency 
-   
+   /*
    for ( int i=1 ; i <=42; i++ ) {
        for ( int j=1 ; j <=40; j++ ) {
            double bA =  hEff_Sel->GetBinContent(i,j) ;
@@ -339,7 +410,8 @@ void Trigger::Plot() {
        }
    }
    hEff_2D->Write() ;
-    
+   */
+ 
    TCanvas* c_0  = new TCanvas("c_0","", 800, 600 );
    c_0->SetFillColor(10);
    c_0->SetFillColor(10);
@@ -359,6 +431,19 @@ void Trigger::Plot() {
 
    TString plotname_0 = hfolder + "Eff2D."+plotType ;
    c_0->Print( plotname_0 );
+
+   hEff_PtEta->GetXaxis()->SetTitle( "Photon Pt (GeV)" );
+   hEff_PtEta->GetYaxis()->SetTitle( " #eta " );
+   hEff_PtEta->GetXaxis()->SetTitleOffset(1.5);
+   hEff_PtEta->GetYaxis()->SetTitleOffset(1.6);
+
+   c_0->cd() ;
+   hEff_PtEta->Draw("COLZ") ;
+   c_0->Update();
+
+   plotname_0 = hfolder + "Eff_PtEta."+plotType ;
+   c_0->Print( plotname_0 );
+
    delete c_0 ;
 
 
@@ -465,7 +550,11 @@ void Trigger::HistoOpen() {
    //createFile = true ;
    cout<<" file opened ! "<<endl ;
    
-   h_gPt     = (TH1D*) theFile->Get("h_gPt") ;
+   h_gPt     = (TH1D*) theFile->Get("h_gPt"   ) ;
+   h_gPt_s   = (TH1D*) theFile->Get("h_gPt_s" ) ;
+   h_Eta     = (TH1D*) theFile->Get("h_Eta"   ) ;
+   h_Eta_s   = (TH1D*) theFile->Get("h_Eta_s" ) ;
+
    h_trg_gPt = (TH1D*) theFile->Get("h_trg_gPt")  ;
    dR_TrgReco_Pho = (TH1D*) theFile->Get("dR_TrgReco_Pho") ;
    dR_TrgReco_Met = (TH1D*) theFile->Get("dR_TrgReco_Met") ;
@@ -480,11 +569,17 @@ void Trigger::HistoOpen() {
    h_trg_met = (TH1D*) theFile->Get("h_trg_met") ;
    h_met_trg = (TH1D*) theFile->Get("h_met_trg") ;
 
+   h_Pt_Eta   = (TH2D*) theFile->Get("h_Pt_Eta") ;
+   h_Pt_Eta_s = (TH2D*) theFile->Get("h_Pt_Eta_s") ;
+
    hEff_Sel = (TH2D*) theFile->Get("hEff_Sel") ;
    hEff_Trg = (TH2D*) theFile->Get("hEff_Trg") ;
    hEff_2D  = (TH2D*) theFile->Get("hEff_2D") ;
+   hEff_PtEta = (TH2D*) theFile->Get("hEff_PtEta") ;
 
    hTime_sel = (TH1D*) theFile->Get("hTime_sel")  ;
+   h_time    = (TH1D*) theFile->Get("h_time")  ;
+   h_latePt  = (TH1D*) theFile->Get("h_latePt")  ;
 
    cout<<" histogram linked ! "<<endl ;
 }
@@ -492,6 +587,9 @@ void Trigger::HistoOpen() {
 void Trigger::HistoWrite() {
 
    h_gPt->Write()  ;
+   h_gPt_s->Write()  ;
+   h_Eta->Write()  ;
+   h_Eta_s->Write()  ;
    h_trg_gPt->Write()  ;
    dR_TrgReco_Pho->Write() ;
    dR_TrgReco_Met->Write() ;
@@ -501,16 +599,22 @@ void Trigger::HistoWrite() {
    h_gPt_sel->Write() ;
    h_gPt_trg->Write() ; 
 
+   h_Pt_Eta->Write()   ;
+   h_Pt_Eta_s->Write() ;
+
    h_met->Write()     ;
-   h_met_sel->Write()     ;
+   h_met_sel->Write() ;
    h_trg_met->Write() ;
    h_met_trg->Write() ;
 
    hEff_Sel->Write() ;
    hEff_Trg->Write() ;
    hEff_2D->Write() ;
+   hEff_PtEta->Write() ;
 
    hTime_sel->Write() ;
+   h_time->Write() ;
+   h_latePt->Write() ;
    cout<<" histograms are written ! " <<endl ;
 }
 

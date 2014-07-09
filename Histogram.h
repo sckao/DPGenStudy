@@ -37,8 +37,13 @@ struct hSet {
     TH1D* aveObsTime2 ;
 
     TH2D* seedTime_Chi2  ;
-    TH2D* Time_R  ; 
-    TH2D* Time_Z  ;
+    TH2D* ctbg_RZ0  ;
+    TH2D* ctbg_RZ1  ;
+
+    TH1D* xPhot_pt1 ;
+    TH1D* xPhot_pt2 ;
+    TH1D* xPhot_pt3 ;
+    TH1D* xPhot_pt4 ;
 
     TH1D* h_matchRecoTime ;
     TH1D* h_matchGenTime  ;
@@ -47,9 +52,6 @@ struct hSet {
     TH1D* h_TimeRes1      ;
     TH1D* h_TimeRes2      ;
     TH1D* h_TimeRes3      ;
-    TH1D* h_aTimeRes1     ;
-    TH1D* h_aTimeRes2     ;
-    TH1D* h_aTimeRes3     ;
     TH1D* h_PtRes         ;
 
     TH1D* h_HoverE ;
@@ -58,7 +60,24 @@ struct hSet {
     TH1D* h_Time   ;
     TH1D* h_nChi2  ;
     TH1D* h_ctau   ;
+    TH1D* sel_ctau   ;
+    TH1D* acc_ctau   ;
+    TH1D* h_ctbg   ;
+    TH1D* sel_ctbg   ;
+    TH1D* acc_ctbg   ;
+    TH1D* h_ctbgT   ;
+    TH1D* obs_ctbgT   ;
+    TH1D* sel_ctbgT   ;
+    TH1D* acc_ctbgT   ;
     TH1D* h_xbeta  ;
+    TH1D* h_lateXbeta  ;
+    TH1D* h_XPt  ;
+    TH1D* h_lateXPt  ;
+    TH2D* dt1_dt2 ;
+    TH2D* dt1_dt2_late ;
+    TH2D* ctbg_t_r ;
+    TH2D* ctbgT_dPt ;
+
     TH1D* h_TrkIsoR  ;
     TH1D* h_HcalIsoR ;
     TH1D* h_EcalIsoR ;
@@ -82,10 +101,10 @@ struct hSet {
     TH1D* h_nBC       ;
     TH1D* h_sMin      ;
 
-    TH2D* h_Pt_Eta ;
+    TH2D* h_Pt_Eta   ;
     TH1D* h_Eta        ;
-    TH1D* h_met        ;
     TH1D* h_g1Pt       ;
+    TH1D* h_met        ;
     TH1D* h_gen1Pt     ; 
     TH1D* h_genMET     ; 
     TH1D* h_METRes     ; 
@@ -114,6 +133,11 @@ struct hSet {
 
     TH1D* pureTime ;
     TH1D* ghostTime ;
+
+    TH1D* m_recoPhoTime ;
+    TH1D* m_genPhoTime ;
+    TH1D* m_xBeta ;
+    TH1D* m_xPt ;
 
     TH1D* m_RecoPt ;
     TH1D* m_GenPt ;
@@ -173,6 +197,7 @@ class Histogram {
     int isData ;
     double TCut ;
     double FitCtau ;
+    vector<double> fitRange ;
 
 };
 

@@ -4,7 +4,6 @@ static bool PtDecreasing( objID s1, objID s2) { return ( s1.second.Pt() > s2.sec
 
 TestGen::TestGen( string datacardfile ) {
 
-  //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
   Hist   = new Histogram( ) ;
@@ -60,18 +59,20 @@ TestGen::~TestGen(){
 void TestGen::ReadTree( string dataName, double weight ) { 
 
    string dataFileNames ;
-   if ( dataName != "0" ) {
-      dataFileNames = dataName ;
+   if ( dataName.size() < 2 ) {
+      dataFileNames = dataName ;   
    } else {
       Input->GetParameters( "TheData", &dataFileNames );
    }
+   printf(" Data File Names : %s \n", dataFileNames.c_str() ) ;
+   
+
    TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
    cout<<" Get the tree ! "<<endl ;
 
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 
-   tr->SetBranchAddress("nGen",        &nGen);
    tr->SetBranchAddress("nPhotons",    &nPhotons);
    tr->SetBranchAddress("nJets",       &nJets);
    tr->SetBranchAddress("nMuons",      &nMuons);
@@ -83,7 +84,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
    tr->SetBranchAddress("metPx",       &metPx );
    tr->SetBranchAddress("metPy",       &metPy );
    tr->SetBranchAddress("met",         &metE );
-   tr->SetBranchAddress("muE",         muE );
 
    tr->SetBranchAddress("phoPx",       phoPx );
    tr->SetBranchAddress("phoPy",       phoPy );
@@ -93,8 +93,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
    tr->SetBranchAddress("seedTimeErr", seedTimeErr );
    tr->SetBranchAddress("aveTime",     aveTime );
    tr->SetBranchAddress("aveTime1",    aveTime1 );
-   tr->SetBranchAddress("aveTimeErr",  aveTimeErr );
-   tr->SetBranchAddress("aveTimeErr1", aveTimeErr1 );
    tr->SetBranchAddress("timeChi2",    timeChi2 );
    tr->SetBranchAddress("sigmaEta",    sigmaEta );
    tr->SetBranchAddress("sigmaIeta",   sigmaIeta );
@@ -121,18 +119,17 @@ void TestGen::ReadTree( string dataName, double weight ) {
    //tr->SetBranchAddress("vtxY",       vtxY );
    tr->SetBranchAddress("vtxZ",       vtxZ );
    
+   tr->SetBranchAddress("nGen",        &nGen);
    tr->SetBranchAddress("genPx",       genPx );
    tr->SetBranchAddress("genPy",       genPy );
    tr->SetBranchAddress("genPz",       genPz );
    tr->SetBranchAddress("genE",        genE );
-   tr->SetBranchAddress("genM",        genM );
-   tr->SetBranchAddress("genVx",       genVx );
-   tr->SetBranchAddress("genVy",       genVy );
-   tr->SetBranchAddress("genVz",       genVz );
    tr->SetBranchAddress("genT",        genT );  // tau*gamma*beta
    tr->SetBranchAddress("pdgId",       pdgId );
    tr->SetBranchAddress("momId",       momId );
-
+   tr->SetBranchAddress("genVx",       genVx );
+   tr->SetBranchAddress("genVy",       genVy );
+   tr->SetBranchAddress("genVz",       genVz );
    // initialize selection
    select->Init( tr1 ) ;
    
@@ -144,8 +141,11 @@ void TestGen::ReadTree( string dataName, double weight ) {
    cout<<" from  "<< dataName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
  
    int nEvt = 0 ;
-   int EscapedPhoton = 0 ;
    int beginEvent = SkipEvents + 1 ;
+   int nPass = 0 ;
+   int nPassPhot = 0 ;
+   int nPassGen  = 0 ;
+   int nPassGenPhot = 0 ;
    cout<<" Event start from : "<< beginEvent << endl ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
 
@@ -153,6 +153,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
        tr->GetEntry( i );
        tr1->GetEntry( i );
        if ( i % 100000 == 0 && i > 99999 ) printf(" ----- processed %8d Events \n", i ) ;
+       nEvt++; 
     
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
@@ -160,7 +161,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
-       bool pass = ( (evtType >> 1) & 1  ) ;
+       bool pass     = ( (evtType >> 1) & 1  ) ;
+       bool pass_hlt = ( (evtType >> 5) & 1  ) ;
 
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
@@ -173,47 +175,49 @@ void TestGen::ReadTree( string dataName, double weight ) {
        // MET information
        newMET    = select->newMET ;
        noPhotMET = select->noPhotMET ;
+       bool passMET = newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4]  ;
        TLorentzVector met( metPx, metPy, 0, metE)  ;
 
-       h.h_met->Fill( met.Pt() , weight );
-       if ( selectPho.size() > 0 ) h.h_g1Pt->Fill( selectPho[0].second.Pt() , weight );
-
-       // multiplicity
+       // raw multiplicity information
        h.h_nVtx->Fill(  totalNVtx , weight ) ;
        h.h_nJets->Fill( selectJets.size() , weight ) ;
        h.h_nPhotons->Fill( nPhotons , weight ) ;
        h.h_nMuons->Fill( nMuons , weight ) ;
        h.h_nElectrons->Fill( nElectrons , weight ) ;
+       h.h_met->Fill( met.Pt() , weight );
 
-       if ( pass ) {
+       // use for efficiency estimation
+       if ( pass_hlt ) {
+          TLorentzVector gP4 = TLorentzVector( phoPx[0], phoPy[0], phoPz[0], phoE[0] ) ;
+          h.h_Eta->Fill( gP4.Eta(), weight ) ;
+          h.h_g1Pt->Fill( gP4.Pt() , weight );
+          h.h_Pt_Eta->Fill( gP4.Pt(), gP4.Eta(), weight ) ;
+       }
 
-          nEvt++; 
-	  //cout<<" EVT# : "<< nEvt <<endl ;
-	  TLorentzVector g1P4(0,0,0,0)  ;
+       int nNonGhost = (int)selectPho.size() ;
+       bool eventPass = false ;
+       if ( pass && pass_hlt ) {
+
 	  double max_gPt  = 0 ;
 	  for ( size_t kk =0; kk < selectPho.size() ; kk++) {
               int k = selectPho[kk].first ;
               
 	      TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
               //if ( nPhotons > 0 ) cout<<" photon"<<k <<" pt:"<<gP4_.Pt() <<endl;
-              if ( gP4_.Pt() > max_gPt ) {
-                 max_gPt = gP4_.Pt() ;
-                 g1P4 = gP4_ ;
-              } 
+              if ( gP4_.Pt() > max_gPt )   max_gPt = gP4_.Pt() ;
+              
+	      // Background Tagging
+	      bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , gP4_.Eta() ) ;
+	      bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], gP4_.Eta() ) ;
+	      bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
+	      bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+              if ( ghostTag ) nNonGhost-- ;
 
-              // Define the Tag 
-              bool haloTag  = ( cscdPhi[k] < 0.05 ) ? true : false  ;
-              // if ( sMajPho[k] > 0.7 && cscdPhi[k] < 0.1  && fabs( gP4_.Eta() ) > 0.75 && fabs(gP4_.Eta()) < 1.47 ) haloTag = true;
-              // if ( sMajPho[k] > 0.8 && sMajPho[k] < 1.65 && sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
-
-              bool spikeTag = ( nXtals[k] < 7 && !haloTag ) ? true : false  ;
-              if ( sMajPho[k] < 0.6 && sMinPho[k] < 0.17 && fabs( gP4_.Eta() ) < 1.47 ) spikeTag = true;
-
-              bool cosmicTag = ( dtdEta[k] < 0.1 && dtdPhi[k] < 0.1 && !haloTag ) ? true : false ;
-              bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
-
-              h.h_Eta->Fill( gP4_.Eta(), weight ) ;
-              h.h_Pt_Eta->Fill( gP4_.Pt(), gP4_.Eta(), weight ) ;
+              if ( passMET && seedTime[k] > 3. && seedTime[k] < 15. ) {
+                 if ( !eventPass ) nPass++ ;
+                 eventPass = true ;
+                 nPassPhot++ ;
+              }
 
               // collect good reco photons
 	      recoPho.push_back( make_pair( k , gP4_) );
@@ -223,10 +227,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
 	      h.h_seedSwiss->Fill( seedSwissX[k] , weight );
 	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
-	      if ( nXtals[k] < 3 ) continue ;
 
 	      h.obsTime->Fill( seedTime[k], weight );
-
 	      h.aveObsTime->Fill( aveTime[k], weight );
 
 	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] , weight );
@@ -256,7 +258,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
                  h.h_photIso_nBC->Fill( phIso ,  nBC[k] , weight ) ;
               }
               
-
               // Time correlations
               h.h_Eta_Time->Fill( gP4_.Eta() , seedTime[k] , weight );
               h.h_Phi_Time->Fill( gP4_.Phi() , seedTime[k] , weight );
@@ -265,7 +266,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	      h.h_sigIeta_Time->Fill( sigmaIeta[k], seedTime[k] , weight  ) ;
               h.h_cscdPhi_Time->Fill( cscdPhi[k], seedTime[k] , weight  ) ;
               h.h_Pt_Time->Fill( gP4_.Pt() , seedTime[k] , weight );
-
 
               // Check the efficiency 
 	      if ( ghostTag ) h.ghostTime->Fill( seedTime[k], weight );
@@ -327,19 +327,22 @@ void TestGen::ReadTree( string dataName, double weight ) {
        // look up gen information for signal MC  
        if ( isData == 1 ) continue ;
 
-       genPho.clear() ; // used for matching
-       genTs.clear() ;  // used for matching
+       genPho.clear() ;  // used for matching
+       genTs.clear() ;   // used for matching
        genXTs.clear() ;  // used for matching
-       genPs.clear() ;  // used for matching
+       genPs.clear() ;   // used for matching
+       genXPs.clear() ;  // used for matching
        double maxGenPt = 0. ;
        int nGenPho = 0;
        double genMETP4[4] = {0,0,0,0};
        bool hasGravitino = false ;
-       //printf("======================== \n") ;
  
        // Find the real photon from neutralino decay
+       //printf(" nGen : %d \n", nGen ) ;
+       eventPass = false ;
        for ( int k=0; k< nGen ; k++) {
-
+           //printf("===========%d============ \n", k ) ;
+            
            // check MET from gravitino
            if ( pdgId[k] == 1000039 ) {
                 genMETP4[0] += genPx[k] ;
@@ -359,50 +362,104 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
            if ( gP4.Pt() > maxGenPt ) maxGenPt = gP4.Pt() ;
            nGenPho++ ;
-
-           double EcalTime = genT[mId] ;  // tau*gamma
  
            double vx = genVx[k] ;
            double vy = genVy[k] ;
            double vz = genVz[k] ;
+           double ctbg  = sqrt( (vx*vx) + (vy*vy) + (vz*vz) ) ;
+           double ctbgT = sqrt( (vx*vx) + (vy*vy)  ) ;
+           double EcalTime = genT[mId] ;  // tau*gamma
+           double t1_c = ctbg / 30. ;
+           double dt1  = EcalTime - (ctbg / 30.) ;
+           double vz0 = vz ;
+
+           h.h_ctbg->Fill( ctbg*10. ) ;
+           h.h_ctbgT->Fill( ctbgT*10. ) ;
+           h.ctbg_t_r->Fill( ctbg*10., ctbgT*10. ) ;
+
+           h.h_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ; // ctau in mm -> c = 300 mm / ns
+
            //double vrho = sqrt( (vx*vx) + (vy*vy) ) ;
            //printf("         v4( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
+           h.ctbg_RZ1->Fill( vz0, ctbgT ) ; // where the neutralino decay
+           // Main propagator - to make sure decay photon will hit ECAL
            bool hasEcalTime = Propagator( gP4, vx, vy, vz, EcalTime ) ;
            if ( !hasEcalTime ) continue ;
+           h.ctbg_RZ0->Fill( vz0, ctbgT ) ;  // for those neutralino who are seen by ECAL
 
+           // Construct 4 vector for generated photon
            //vrho = sqrt( (vx*vx) + (vy*vy) ) ;
            //printf("           ( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
-           //double d_x = vx - vtxX[0] ;
-           //double d_y = vy - vtxY[0] ;
            double d_x = vx - 0 ;
            double d_y = vy - 0 ;
            double d_z = vz - vtxZ[0] ;
            double d_r = sqrt( (d_x*d_x) + (d_y*d_y) + (d_z*d_z) ); 
            double t0  = d_r /30. ; // t0 -> ecaltime assuming photon is from original
-          
-           // This is the measured time for gen photons
-           double dT = EcalTime  - t0 ; 
+           // This is the measured ECAL time for gen photons
+           double dT = tRan->Gaus( EcalTime - t0 , timeCalib[1] ) - timeCalib[0] ;
 
-           h.Time_R->Fill( dT, sqrt( (genVx[k]*genVx[k]) + ( genVy[k]*genVy[k]) ) , weight );
-           h.Time_Z->Fill( dT, fabs( genVz[k] ) , weight );
-
-           // build the P4 for gen photon from reconstruction point of view 
-           // skip the escaped photon 
+           // Build the P4 for gen photon from reconstruction point of view 
            TLorentzVector genRecoP4 = TLorentzVector( d_x, d_y, d_z, d_r ) ;
            genRecoP4 = genRecoP4 * ( gP4.E() / d_r ) ;
            //printf("    ---> p4( %.1f,%.1f,%.1f,%.1f) recoT:%.3f , dT: %.3f \n", 
            //                    genRecoP4.Px(),genRecoP4.Py(),genRecoP4.Pz(),genRecoP4.E(), t0, dT ) ;
 
+           // Find any nearby reco photon
+           bool found_Reco = false ;
+	   for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+	       TLorentzVector rP4 = selectPho[kk].second ;
+               double dR_gR = rP4.DeltaR( genRecoP4 ) ;
+               if ( dR_gR < 0.3 ) found_Reco = true ;
+               //if ( ctbgT > 150. && dR_gR < 0.3 && pass && pass_hlt ) {
+               //   printf("dR: %.2f  recoPt : %.2f , genPt :%.2f \n ", dR_gR, rP4.Pt(), genRecoP4.Pt() ) ;
+               //}
+           }
+           if ( !found_Reco ) continue ;
+
+
+           h.obs_ctbgT->Fill( ctbgT*10. ) ;
+           if ( ctbgT  < 30. )                 h.xPhot_pt1->Fill( gP4.Pt() ) ;
+           if ( ctbgT >= 30. && ctbgT < 60. )  h.xPhot_pt2->Fill( gP4.Pt() ) ;
+           if ( ctbgT >= 60. && ctbgT < 90. )  h.xPhot_pt3->Fill( gP4.Pt() ) ;
+           if ( ctbgT >= 90. )                 h.xPhot_pt4->Fill( gP4.Pt() ) ;
+
+           double t2_c = EcalTime - genT[mId] ;
+           double t3_c = sqrt( (vx*vx) + (vy*vy) + (vz*vz) ) / 30. ;
+           double dt2 = t1_c + t2_c - t3_c ;
+           h.dt1_dt2->Fill( dt1, dt2 ) ;
+
+           if ( pass && pass_hlt && nNonGhost > 0 ) h.sel_ctbg->Fill(  ctbg*10. ) ;
+           if ( pass && pass_hlt && nNonGhost > 0 ) h.sel_ctbgT->Fill( ctbgT*10. ) ;
+           if ( pass && pass_hlt && nNonGhost > 0 ) h.sel_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
+
+           if ( dT > 3. ) h.dt1_dt2_late->Fill( dt1, dt2 ) ;
+
+           double dPt = genRecoP4.Pt() - gP4.Pt() ;
+           h.ctbgT_dPt->Fill( ctbgT*10, dPt ) ;
+
            genPho.push_back( make_pair( k, genRecoP4 ) ) ;
 	   genTs.push_back( dT ) ;
 	   genXTs.push_back( genT[mId]*300. / xP4.Gamma()  ) ;
 	   genPs.push_back( gP4 ) ;
+	   genXPs.push_back( xP4 ) ;
     
            h.h_Time->Fill( dT ) ;
           
-           if ( dT > -3.999999 ) EscapedPhoton++ ;
-           h.h_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
            h.h_xbeta->Fill( xP4.Beta() ) ;
+           h.h_XPt->Fill( xP4.Pt() ) ;
+           if ( dT > 3. ) {
+              h.h_lateXbeta->Fill( xP4.Beta() ) ;
+	      h.h_lateXPt->Fill( xP4.Pt() ) ;
+	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctbgT->Fill( ctbgT*10. ) ;
+	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctbg->Fill( ctbg*10. ) ;
+	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
+              if (  pass && pass_hlt && nNonGhost > 0 && passMET ) {
+                 if ( !eventPass ) nPassGen++ ;
+                 eventPass = true ;
+                 nPassGenPhot++ ;
+              }
+
+           }
            //cout<<" PID:"<<pdgId[k] ;
            //cout<<" T_X: "<< genT[k] <<" EcalTime: "<<  EcalTime <<" dT = "<< dT << endl; 
        } 
@@ -410,7 +467,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
        // sort the gen photon collection
        if ( genPho.size() > 1 ) sort( genPho.begin(), genPho.end(), PtDecreasing );
-
        // Check missing Et w.r.t to two Grabitino pt sum
        if ( hasGravitino ) {
           TLorentzVector G_P4 = TLorentzVector( genMETP4[0], genMETP4[1], genMETP4[2], genMETP4[3] ) ;
@@ -431,8 +487,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
        if ( nGoodGenPho > 0 )  {
           for ( size_t j=0; j< genTs.size() ; j++ ) {
               // the smearing according to reconstruction resolution
-              double genT_corr = tRan->Gaus( genTs[j] , timeCalib[1] ) - timeCalib[0] ;
-              h.h_genTime->Fill( genT_corr, weight ) ;
+              h.h_genTime->Fill( genTs[j], weight ) ;
           } 
        }       
 
@@ -444,7 +499,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
        for ( size_t k=0; k< mlist.size(); k++ ) {
            if ( mlist[k].dr > 0.5 ) continue ;
            double recoTime  = seedTime[ mlist[k].ir ] ;
-           double recoTime1 = aveTime1[ mlist[k].ir ] ;
            double genTime  = genTs[ mlist[k].idg ] ;
 
            TLorentzVector m_rp4 = TLorentzVector( phoPx[mlist[k].ir], phoPy[mlist[k].ir], phoPz[mlist[k].ir], phoE[mlist[k].ir] ) ;
@@ -470,12 +524,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
            if ( genTime < 1                 ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
            if ( genTime >=1  && genTime < 3 ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
            if ( genTime >=3                 ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
-           if ( genTime < 1                 ) h.h_aTimeRes1->Fill( recoTime1 - genTime ) ;
-           if ( genTime >=1  && genTime < 3 ) h.h_aTimeRes2->Fill( recoTime1 - genTime ) ;
-           if ( genTime >=3                 ) h.h_aTimeRes3->Fill( recoTime1 - genTime ) ;
            h.h_PtRes->Fill( mlist[k].dPt ) ;
 
-           if ( genTime > 3. ) h.dR_GenReco->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ) ;
            h.dR_Time->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , genTime ) ;
            h.dR_sMaj->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , sMajPho[mlist[k].ir] ) ;
            h.dR_sMin->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , sMinPho[mlist[k].ir] ) ;
@@ -486,6 +536,9 @@ void TestGen::ReadTree( string dataName, double weight ) {
            h.dR_XTime->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ,  genXTs[mlist[k].idg]  ) ;
            h.XTime_genTime->Fill( genXTs[mlist[k].idg] , genTime);
            h.sMaj_sMin->Fill( sMajPho[mlist[k].ir] , sMinPho[mlist[k].ir] ) ;
+           if ( genTime > 3. ) {
+              h.dR_GenReco->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ) ;
+           }
 
        }
        //for ( size_t k=0; k< mlist.size() ; k++ ) printf(" (%d) , dr: %f dPt: %f \n", (int)k , mlist[k].dr, mlist[k].dPt ) ;
@@ -493,12 +546,14 @@ void TestGen::ReadTree( string dataName, double weight ) {
    } // end of event looping
 
    select->PrintCutFlow() ;
-   cout<<" EscapedPhoton = "<< EscapedPhoton << endl ;
+
+   printf("     Event Eff : %f  Phot/nEvt = %f \n", (double)nPass/(double)nEvt, (double)nPassPhot/(double)nEvt ) ;
+   printf(" Gen Event Eff : %f  Phot/nEvt = %f \n", (double)nPassGen/(double)nEvt, (double)nPassGenPhot/(double)nEvt ) ;
 
 }  
 
 // propagator with backward propagation
-// ECal Dimension : R:( 129 ~ 155 cm , Z : 317 ~345 )
+// ECal Dimension : R:( 129 ~ 155 cm , Z(one-side) : 317 ~345 )
 bool TestGen::Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double taugamma ) {
 
     bool hasEcalTime = true ;
@@ -616,10 +671,10 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
         for ( size_t j=0; j< vr.size() ; j++ ) {
             if ( pool[j] == -1 ) continue ;
             double dr_ = vr[j].second.DeltaR( vg[ pool[j] ].second ) ;
-            iM0.idg  = pool[j] ;
-            iM0.idr  = j ;
-            iM0.ig  = vg[ pool[j] ].first ;
-            iM0.ir  = vr[ j ].first ;
+            iM0.idg  = pool[j] ;             // the position in gen list (vg)
+            iM0.idr  = j ;                   // the poistion in reco list (vr)
+            iM0.ig  = vg[ pool[j] ].first ;  // the index of the gen photon in ntuple
+            iM0.ir  = vr[ j ].first ;        // the index of the reco photon in ntuple
             iM0.dr  = dr_ ;
             iM0.dPt = ( vr[j].second.Pt() - vg[ pool[j] ].second.Pt() ) / vg[ pool[j] ].second.Pt()  ;
             vMatch0.push_back( iM0 ) ;

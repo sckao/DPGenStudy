@@ -44,12 +44,12 @@ int main( int argc, const char* argv[] ) {
 
   if ( module == 0 ) {
      TestGen   *tgen  = new TestGen( datacardfile ) ;
-     tgen->ReadTree( dataFileNames);
+     tgen->ReadTree( dataFileNames );
      delete tgen ;
 
-     Histogram *histo = new Histogram() ;
-     histo->DrawHistograms();
-     delete histo ;
+     //Histogram *histo = new Histogram() ;
+     //histo->DrawHistograms();
+     //delete histo ;
   }
   if ( module == 1 ) {
      Trigger   *trg   = new Trigger( datacardfile ) ;
@@ -78,10 +78,8 @@ int main( int argc, const char* argv[] ) {
      delete histo ;
   }
   if ( module == 4 ) {
-
      Output* out = new Output( datacardfile ) ;
      out->Produce() ;
-
      delete out ;
   }
   if ( module == 5 ) {
@@ -98,6 +96,11 @@ int main( int argc, const char* argv[] ) {
      trg->HistoOpen( );
      trg->Plot() ;
      delete trg ;
+  }
+  if ( module == 11 ) {
+     Output* out = new Output( datacardfile ) ;
+     out->ProduceMC() ;
+     delete out ;
   }
   if ( module == 7 ||  module == 8 || module == 9 || module == 10 ) {
      
@@ -118,7 +121,6 @@ int main( int argc, const char* argv[] ) {
         } 
         bgS->WriteDrawHistograms() ;
      } 
-     
 
      if ( module == 9 ) {
      //if ( isData == 0 ) bgS->Run( mcFileNames[0] ) ;

@@ -68,6 +68,7 @@ private:
 
    vector<objID> selectPho ;
    vector<objID> selectJets ;
+   vector<double> jetCuts ;
 
    string hfolder  ;
    string plotType ;
@@ -83,7 +84,7 @@ private:
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO] ;
    float phoHovE[MAXPHO], photIso[MAXPHO], cHadIso[MAXPHO], nHadIso[MAXPHO] ;
-   float cscdPhi[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
+   float cscdPhi[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO], seedSwissX[MAXPHO] ;
 
    int   nXtals[MAXPHO], nBC[MAXPHO] ;
    float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
@@ -97,8 +98,15 @@ private:
    //float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN], genT[MAXGEN] ;
    int pdgId[MAXGEN], momId[MAXGEN] ;
+
+   TLorentzVector newMET ;
+   TLorentzVector noPhotMET ;
+
    //Histograms
    TH1D* h_gPt      ;
+   TH1D* h_Eta      ;
+   TH1D* h_gPt_s    ;
+   TH1D* h_Eta_s    ;
    TH1D* h_trg_gPt  ;
    TH1D* dR_TrgReco_Pho ;
    TH1D* dR_TrgReco_Met ;
@@ -108,14 +116,20 @@ private:
    TH1D* h_gPt_sel ;  
    TH1D* h_gPt_trg ;
 
+   TH1D* h_time ;
+   TH1D* h_latePt ;
+
    TH1D* h_met     ; 
    TH1D* h_met_sel ; 
    TH1D* h_trg_met ;
    TH1D* h_met_trg ;
 
+   TH2D* h_Pt_Eta   ;
+   TH2D* h_Pt_Eta_s ;
    TH2D* hEff_Sel ;
    TH2D* hEff_Trg ;
    TH2D* hEff_2D ;
+   TH2D* hEff_PtEta ;
 
    TH1D* hTime_sel ;
 

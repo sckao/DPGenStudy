@@ -9,7 +9,6 @@
 
 Output::Output( string datacardfile ) {
 
-  //Input  = new AnaInput( datacardfile );
   Input = AnaInput::Instance() ;
 
   select = new DPSelection( datacardfile ) ;
@@ -32,12 +31,14 @@ Output::Output( string datacardfile ) {
   theFile->cd() ;
 
   // Define time scope
-  n_t_bin  = 28 ;
+  n_t_bin  = 48 ;
   t_low = 3. ;
-  t_up  = 10. ;
+  t_up  = 15. ;
 
-  h_dataTimeAll= new TH1D("h_dataTimeAll",   "Photon Seed Time from data - Full Range",   80, -4.5, 15.5);
-  h_sgTimeAll  = new TH1D("h_sgTimeAll",   "Photon Seed Time from signal MC - Full Range",   80, -4.5, 15.5);
+  h_dataTimeBFD= new TH1D("h_dataTimeBFD",   "Photon Seed Time from data - Full Range",   100, -9.5, 15.5);
+  h_dataTimeAEC= new TH1D("h_dataTimeAEC",   "Photon Seed Time from data - Full Range",   100, -9.5, 15.5);
+  h_sgTimeBFD  = new TH1D("h_sgTimeBFD",   "Photon Seed Time from signal MC - Full Range", 100, -9.5, 15.5);
+  h_sgTimeAEC  = new TH1D("h_sgTimeAEC",   "Photon Seed Time from signal MC - Full Range", 100, -9.5, 15.5);
 
   h_dataTime   = new TH1D("h_dataTime",  "Photon Seed Time from data",         n_t_bin, t_low, t_up);
   h_dataTimeA  = new TH1D("h_dataTimeA", "Photon Ave. Cluster Time from data", n_t_bin, t_low, t_up);
@@ -89,15 +90,27 @@ void Output::Produce() {
 
      string dataFileNames ;
      Input->GetParameters( "TheData", &dataFileNames );
-     vector<string> mcFileNames ;
-     Input->GetParameters( "TheMC",   &mcFileNames );
+     //vector<string> mcFileNames ;
+     //Input->GetParameters( "TheMC",   &mcFileNames );
 
      RunData( dataFileNames ) ;
+     /*
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
          RunMC( mcFileNames[i], normV[i] ) ;
      }
-
+     */
 }
+
+void Output::ProduceMC() {
+
+     vector<string> mcFileNames ;
+     Input->GetParameters( "TheMC",   &mcFileNames );
+
+     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
+         RunMC( mcFileNames[i], normV[i] ) ;
+     }
+}
+
 // Produce Data and Background histogram for statistical test
 void Output::RunData( string dataName ) { 
 
@@ -116,7 +129,6 @@ void Output::RunData( string dataName ) {
       Input->GetParameters( "TheData", &dataFileNames );
    }
    TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
-
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 
@@ -161,11 +173,13 @@ void Output::RunData( string dataName ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
+       nEvt++; 
 
        uint32_t evtType = select->EventIdentification();
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
-       bool wanted = ( (evtType >> 1) & 1  ) ;
-       if ( !wanted ) continue ;
+       bool wanted  = ( (evtType >> 1) & 1  ) ;
+       bool passHLT = ( (evtType >> 5) & 1  ) ;     
+       if ( !wanted || !passHLT ) continue ;
 
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
@@ -175,7 +189,6 @@ void Output::RunData( string dataName ) {
        newMET    = select->newMET ;
        noPhotMET = select->noPhotMET ;
 
-       nEvt++; 
        //cout<<" EVT# : "<< nEvt <<endl ;
 
        // Signal Region - Photon Pt > 80 
@@ -200,6 +213,12 @@ void Output::RunData( string dataName ) {
            // * Halo-type Backgorunds *
            // *************************
 
+           // Overall time shape - This is for validation
+           if ( passABCDSelection && !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+              if ( noPhotMET.E() > jetCuts[4] ) h_dataTimeBFD->Fill( seedTime[k] ) ;
+              if ( noPhotMET.E() < jetCuts[4] ) h_dataTimeAEC->Fill( seedTime[k] ) ;
+           }
+
            // Region E,F  |t| < 2 ns  
            if ( fabs( seedTime[k]) < 2. && passCollSelection ) {
               if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj );
@@ -208,7 +227,7 @@ void Output::RunData( string dataName ) {
 
            // Background template
            // A and B region
-           if ( seedTime[k] < -3. && seedTime[k] > -10. && passABCDSelection ) {
+           if ( seedTime[k] < (-1.*t_low) && seedTime[k] > (-1.*t_up) && passABCDSelection ) {
 
               if ( !ghostTag )  h_bgMET->Fill( metE ) ;
               // Region A 
@@ -227,9 +246,8 @@ void Output::RunData( string dataName ) {
               }
            }
            // C and D region
-           if ( seedTime[k] >  3. && seedTime[k] < 10. && passABCDSelection ) {
+           if ( seedTime[k] > t_low && seedTime[k] < t_up && passABCDSelection ) {
 
-              if ( !ghostTag ) h_MET->Fill( metE ) ;
               // Region C
               if ( noPhotMET.E() < jetCuts[4] ) {
 
@@ -237,8 +255,12 @@ void Output::RunData( string dataName ) {
                  if ( haloTag && !cosmicTag && !spikeTag )  hBg_C->Fill( ih, 1.5, nj );
                  if ( spikeTag && !cosmicTag )              hBg_C->Fill( ih, 2.5, nj );
                  if ( cosmicTag )                           hBg_C->Fill( ih, 3.5, nj );
-	         h_bgTime->Fill( seedTime[k] ) ; 
- 	         h_bgTimeA->Fill( aveTime[k] ) ;
+ 
+                 // Background shape selection - C region
+                 if ( !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+	            h_bgTime->Fill( seedTime[k] ) ; 
+    	            h_bgTimeA->Fill( aveTime[k] ) ;
+                 }
               }
 
               // Region D
@@ -248,10 +270,11 @@ void Output::RunData( string dataName ) {
                  if ( spikeTag && !cosmicTag )              hBg_D->Fill( ih, 2.5, nj );
                  if ( cosmicTag )                           hBg_D->Fill( ih, 3.5, nj );
 
-                 // Signal template - D region
-   	         h_dataTimeAll->Fill( seedTime[k] ) ;
-   	         h_dataTime->Fill( seedTime[k] ) ;
-	         h_dataTimeA->Fill( aveTime[k] ) ;
+                 // Final signal sample - D region
+                 if ( !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+      	            h_dataTime->Fill( seedTime[k] ) ;
+ 	            h_dataTimeA->Fill( aveTime[k] ) ;
+                 }
               }
            }
 
@@ -264,7 +287,7 @@ void Output::RunData( string dataName ) {
               if ( noPhotMET.E() > jetCuts[4] ) hCol_F->Fill( ih, 0.5, nj );
               if ( noPhotMET.E() < jetCuts[4] ) hCol_E->Fill( ih, 0.5, nj );
            }
-           if ( seedTime[k] < -3. && seedTime[k] > -10. && passCollSelection ) {
+           if ( seedTime[k] < (-1.*t_low) && seedTime[k] > (-1.*t_up) && passCollSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -285,7 +308,7 @@ void Output::RunData( string dataName ) {
            // ******************
            //   Region C and D
            // ******************
-           if ( seedTime[k] > 3.0 && seedTime[k] < 10.0 && passCollSelection ) {
+           if ( seedTime[k] > t_low && seedTime[k] < t_up && passCollSelection ) {
               // Region D
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -306,8 +329,10 @@ void Output::RunData( string dataName ) {
 
 
        }
-
-       h_NJets->Fill( (int) selectJets.size() ) ;
+       if ( selectPho[0].second.Pt() > photonCuts[8] )  {
+          h_MET->Fill( metE ) ;
+          h_NJets->Fill( (int) selectJets.size() ) ;
+       }
 
    } // end of event looping
 
@@ -320,12 +345,28 @@ void Output::RunData( string dataName ) {
    vector<double> predictBG = select->ABCD_ABCD( hColls, hMIBs ) ;
 
    double bgScale = (  h_bgTime->Integral() > 0. ) ? predictBG[0] / h_bgTime->Integral() : 1. ;
+   if ( h_bgTime->Integral() == 0 ) {
+      // if the predicted background == 0, use the upward 1-sigam as the background 
+      // otherwise the background is set to be 1
+      //double theCount = ( predictBG[0] > 0. ) ? predictBG[0] : predictBG[1] ; 
+      //if ( theCount == 0 ) theCount = 1 ;
+
+      // average the count in each bin
+      double nbin = (double) h_bgTime->GetNbinsX() ;
+      double c_bin = predictBG[0] / nbin  ;
+      for ( int i =1 ; i <= h_bgTime->GetNbinsX() ; i++ ) {
+          h_bgTime->SetBinContent( i , c_bin ) ;
+          h_bgTime->SetBinError( i , predictBG[1]/sqrt( nbin ) ) ;
+      }
+   }
+
    h_bgTime->Scale( bgScale ) ; 
    h_bgTimeA->Scale( bgScale ) ; 
 
    rh_dataTime    = RebinHistogram( h_dataTime,    "rh_dataTime",    -1.*t_low , t_low ) ;
    rh_dataTimeA   = RebinHistogram( h_dataTimeA,   "rh_dataTimeA",   -1.*t_low , t_low ) ;
-   rh_dataTimeAll = RebinHistogram( h_dataTimeAll, "rh_dataTimeAll", -1.*t_low , t_low ) ;
+   rh_dataTimeBFD = RebinHistogram( h_dataTimeBFD, "rh_dataTimeBFD", -1.*t_low , t_low ) ;
+   rh_dataTimeAEC = RebinHistogram( h_dataTimeAEC, "rh_dataTimeAEC", -1.*t_low , t_low ) ;
 
    rh_bgTime      = RebinHistogram( h_bgTime,     "rh_bgTime",  -1.*t_low , t_low ) ;
    rh_bgTimeA     = RebinHistogram( h_bgTimeA,    "rh_bgTimeA", -1.*t_low , t_low ) ;
@@ -336,28 +377,37 @@ void Output::RunData( string dataName ) {
 
 }  
 
+// This is for signal MC 
 void Output::RunMC( string mcName, double weight ) { 
 
+   // Efficiency log file
+   string EffFileName = hfolder + hfName + "_eff.txt" ; 
+   FILE* logfile = fopen( EffFileName.c_str() ,"a");
+   fprintf(logfile," Efficinecy for %s ", mcName.c_str() );
+
    string mcTag = mcName.substr( 8, mcName.size() - 8 ) ;
-   char hName1[32] , hName2[32], hName3[32], hName4[32], hName5[32]   ;
+   char hName1[32] , hName2[32], hName3[32], hName4[32], hName5[32], hName6[32]   ;
    sprintf( hName1, "h_sgTime_%s",  mcTag.c_str() ) ;
    sprintf( hName2, "h_sgTimeA_%s", mcTag.c_str() ) ;
    sprintf( hName3, "h_sgMET_%s",   mcTag.c_str() ) ;
    sprintf( hName4, "h_sgNJets_%s", mcTag.c_str() ) ;
-   sprintf( hName5, "h_sgTimeAll_%s", mcTag.c_str() ) ;
+   sprintf( hName5, "h_sgTimeBFD_%s", mcTag.c_str() ) ;
+   sprintf( hName6, "h_sgTimeAEC_%s", mcTag.c_str() ) ;
 
    // Reset the histogram
    h_sgTime->SetName( hName1 ) ;
    h_sgTimeA->SetName( hName2 ) ;
    h_sgMET->SetName( hName3 ) ;
    h_sgNJets->SetName( hName4 ) ;
-   h_sgTimeAll->SetName( hName5 ) ;
+   h_sgTimeBFD->SetName( hName5 ) ;
+   h_sgTimeAEC->SetName( hName6 ) ;
 
    h_sgTime->Reset() ;
    h_sgTimeA->Reset() ;
    h_sgMET->Reset() ;
    h_sgNJets->Reset() ;
-   h_sgTimeAll->Reset() ;
+   h_sgTimeBFD->Reset() ;
+   h_sgTimeAEC->Reset() ;
 
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float cscdPhi[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
@@ -401,7 +451,9 @@ void Output::RunMC( string mcName, double weight ) {
    TRandom3* tRan = new TRandom3();
    tRan->SetSeed( 0 );
 
-   int nEvt = 0 ;
+   int nEvt  = 0 ;
+   int nPass = 0 ;
+   int nPassPhot = 0 ;
    int beginEvent = SkipEvents + 1 ;
    cout<<" Event start from : "<< beginEvent << endl ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
@@ -412,19 +464,25 @@ void Output::RunMC( string mcName, double weight ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
-       uint32_t evtType = select->EventIdentification();
+       nEvt++; 
+
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
-       bool wanted = ( (evtType >> 1) & 1  ) ;
-       if ( !wanted ) continue ;
+       uint32_t evtType = select->EventIdentification();
+       bool wanted  = ( (evtType >> 1) & 1  ) ;
+       bool passHLT = ( (evtType >> 5) & 1  ) ;     
+       if ( !wanted || !passHLT ) continue ;
 
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
        select->GetCollection("Photon", selectPho ) ;
 
-       nEvt++; 
+       newMET    = select->newMET ;
+       noPhotMET = select->noPhotMET ;
+
        //cout<<" EVT# : "<< nEvt <<endl ;
 
+       bool eventPass = false ;
        for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
            int k = selectPho[j].first ;
            // Background Tagging
@@ -432,43 +490,61 @@ void Output::RunMC( string mcName, double weight ) {
 	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], selectPho[j].second.Eta() ) ;
            bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
            bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
-           if ( ghostTag && j ==0 ) break ;
+           if ( ghostTag && j ==0 && selectPho.size() < 2 ) break ;
            if ( ghostTag ) continue ;
 
            bool passABCDSelection = ( newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4] 
                                      && selectPho[0].second.Pt() > photonCuts[8] ) ;
              
+	   // timing correction : central shift = 0.1211 ,  sigma = 0.4
+           float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
+	   float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
+	   if ( systType == 10 ) tShift = 0. ; 
+	   float tCorr = ( systType == 8 ) ? ( seedTime[k]- tShift ) : tRan->Gaus(seedTime[k], tRes ) - tShift ;
+
            if ( passABCDSelection && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
-	      // timing correction : central shift = 0.1211 ,  sigma = 0.4
-              float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
-              float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
-              if ( systType == 10 ) tShift = 0. ; 
-              float tCorr = ( systType == 8 ) ? ( seedTime[k]- tShift ) : tRan->Gaus(seedTime[k], tRes ) - tShift ;
               
-	      //float tCorr = seedTime[k] - 0.1211 ;
-	      h_sgTimeAll->Fill( tCorr, weight ) ;
-	      h_sgTime->Fill( tCorr, weight ) ;
-              h_sgTimeA->Fill( aveTime[k], weight ) ;
-	      h_sgMET->Fill( metE, weight ) ;
+	      h_sgTimeBFD->Fill( tCorr, weight ) ;
+              if ( seedTime[k] > t_low && seedTime[k] < t_up ) {
+                 nPassPhot++ ;
+                 if ( !eventPass ) nPass++ ;
+                 eventPass = true ;
+	         h_sgTime->Fill( tCorr, weight ) ;
+                 h_sgTimeA->Fill( aveTime[k], weight ) ;
+              }
+           }
+           if ( newMET.E() > jetCuts[4] && noPhotMET.E() < jetCuts[4]  && selectPho[0].second.Pt() > photonCuts[8] 
+                && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+	      h_sgTimeAEC->Fill( tCorr, weight ) ;
            }
        }
-       h_sgNJets->Fill( (int) selectJets.size(), weight ) ;
+       if ( selectPho[0].second.Pt() > photonCuts[8] )  {
+           h_sgNJets->Fill( (int) selectJets.size(), weight ) ;
+           h_sgMET->Fill( metE, weight ) ;
+       }
 
    } // end of event looping
   
-   char rhName1[32] , rhName2[32], rhName3[32], rhName4[32], rhName5[32]   ;
+   char rhName1[32] , rhName2[32], rhName3[32], rhName4[32], rhName5[32], rhName6[32]   ;
    sprintf( rhName1, "rh_sgTime_%s",  mcTag.c_str() ) ;
    sprintf( rhName2, "rh_sgTimeA_%s", mcTag.c_str() ) ;
    sprintf( rhName3, "rh_sgMET_%s",   mcTag.c_str() ) ;
    sprintf( rhName4, "rh_sgNJets_%s", mcTag.c_str() ) ;
-   sprintf( rhName5, "rh_sgTimeAll_%s", mcTag.c_str() ) ;
+   sprintf( rhName5, "rh_sgTimeBFD_%s", mcTag.c_str() ) ;
+   sprintf( rhName6, "rh_sgTimeAEC_%s", mcTag.c_str() ) ;
 
    // rebin two tails
    rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, -1.*t_low , t_low ) ;
    rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, -1.*t_low , t_low ) ;
-   rh_sgTimeAll = RebinHistogram( h_sgTimeAll,  rhName5, -1.*t_low , t_low ) ;
+   rh_sgTimeBFD = RebinHistogram( h_sgTimeBFD,  rhName5, -1.*t_low , t_low ) ;
+   rh_sgTimeAEC = RebinHistogram( h_sgTimeAEC,  rhName6, -1.*t_low , t_low ) ;
 
    WriteMcHisto() ;
+
+
+   fprintf(logfile," Event Eff: %f , nPhot/nEvt =  %f \n", (double)nPass / (double)nEvt , (double)nPassPhot / (double)nEvt );
+   fclose( logfile ) ;
+   printf(" *** Event Efficiency : %f -> %f \n", (double)nPass / (double)nEvt , (double)nPassPhot / (double)nEvt ) ;
    cout<<" ======== CutFlow for Signal MC ======== "<<endl ;
    select->PrintCutFlow() ;
 
@@ -657,7 +733,8 @@ void Output::WriteDataHisto() {
 
      h_dataTime->Write() ; 
      h_dataTimeA->Write() ; 
-     h_dataTimeAll->Write() ; 
+     h_dataTimeBFD->Write() ; 
+     h_dataTimeAEC->Write() ; 
      h_MET->Write() ;
      h_bgTime->Write() ;
      h_bgTimeA->Write() ;
@@ -665,12 +742,10 @@ void Output::WriteDataHisto() {
 
      rh_dataTime->Write() ; 
      rh_dataTimeA->Write() ; 
-     rh_dataTimeAll->Write() ; 
-     //rh_MET->Write() ;
+     rh_dataTimeBFD->Write() ; 
+     rh_dataTimeAEC->Write() ; 
      rh_bgTime->Write() ;
      rh_bgTimeA->Write() ;
-     //rh_bgMET->Write() ;
-     //rh_NJets->Write() ;
 
      h_NJets->Write() ;
 
@@ -693,14 +768,14 @@ void Output::WriteMcHisto() {
 
      h_sgTime->Write() ;
      h_sgTimeA->Write() ;
-     h_sgTimeAll->Write() ;
+     h_sgTimeBFD->Write() ;
+     h_sgTimeAEC->Write() ;
      h_sgMET->Write() ;
      h_sgNJets->Write() ;
 
      rh_sgTime->Write() ;
      rh_sgTimeA->Write() ;
-     rh_sgTimeAll->Write() ;
-     //rh_sgMET->Write() ;
-     //rh_sgNJets->Write() ;
+     rh_sgTimeBFD->Write() ;
+     rh_sgTimeAEC->Write() ;
 
 }

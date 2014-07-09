@@ -82,13 +82,13 @@ private:
    double FitCtau ;
    int nX0, n2X0_g, n1X0_g, n0X0_g  ;
 
-   float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN], genM[MAXGEN] ;
+   float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
    int   pdgId[MAXGEN], momId[MAXGEN] ;
 
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], aveTime1[MAXPHO], timeChi2[MAXPHO] ;
-   float seedTimeErr[MAXPHO], aveTimeErr[MAXPHO], aveTimeErr1[MAXPHO] ;
+   float seedTimeErr[MAXPHO] ;
    float phoEcalIso[MAXPHO], phoHcalIso[MAXPHO], phoTrkIso[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO];
    float photIso[MAXPHO] , cHadIso[MAXPHO], nHadIso[MAXPHO], phoHoverE[MAXPHO] ;
    float fSpike[MAXPHO], seedSwissX[MAXPHO], dR_TrkPho[MAXPHO] ;
@@ -96,7 +96,6 @@ private:
    float sigmaEta[MAXPHO], sigmaIeta[MAXPHO], cscdPhi[MAXPHO], dtdPhi[MAXPHO], dtdEta[MAXPHO] ;
    //float vtxX[MAXVTX], vtxY[MAXVTX], vtxZ[MAXVTX] ;
    float vtxZ[MAXVTX] ;
-   float muE[MAXMU] ;
 
    float metPx, metPy, metE ;
    int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
@@ -112,6 +111,7 @@ private:
    vector<double> genTs ;
    vector<double> genXTs ;
    vector<TLorentzVector> genPs ;
+   vector<TLorentzVector> genXPs ;
  
    vector<double> photonCuts ;
    vector<double> jetCuts ;

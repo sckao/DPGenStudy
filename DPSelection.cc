@@ -284,6 +284,7 @@ bool DPSelection::PhotonFilter() {
 	   //bool isCosmic = CosmicTag( dtdEta[j] , dtdPhi[j]  ) ;
 	   //bool ghostTag = ( isHalo || isSpike || isCosmic ) ? true : false ;
 
+
            // For MET2 calculation
 	   if ( fabs( seedTime[j]) > 3.0 && fabs( phoP4.Eta() ) < 1.47 ) {
 	         met2x -= phoP4.Px()  ;
@@ -555,14 +556,15 @@ uint32_t DPSelection::EventIdentification() {
        passMET = CorrectMET() ;
 
        // Define event types
-       if  ( passVtx  && passPho && passJet && passMET )               eventType |= (1 <<0) ;  // 0001
-       if  ( passVtx  && phoV.size() > 0       )                       eventType |= (1 <<1) ;  // 0010
-       if  ( passVtx  && phoV.size() > 0 && jetV.size() > 0 )          eventType |= (1 <<2) ;  // 0100
-       if  ( passVtx  && phoV.size() > 0 && theMET.Et() > jetCuts[4] ) eventType |= (1 <<3) ;  // 1000
+       if ( passVtx  && passPho && passJet && passMET )               eventType |= (1 <<0) ;   // 0001
+       if ( passVtx  && phoV.size() > 0       )                       eventType |= (1 <<1) ;   // 0010
+       if ( passVtx  && phoV.size() > 0 && jetV.size() > 0 )          eventType |= (1 <<2) ;   // 0100
+       if ( passVtx  && phoV.size() > 0 && theMET.Et() > jetCuts[4] ) eventType |= (1 <<3) ;   // 1000
        if ( passTrigger && passVtx && passPho && passJet && passMET ) {
                                                                        eventType |= (1 <<4) ;  //10000
                                                                        counter[4]++ ;
        }
+       if ( passHLT )                                                 eventType |= (1 <<5) ; // 100000
 
        ResetCuts() ;  // reset cuts from Datacard
        return eventType ;      
@@ -720,7 +722,7 @@ bool DPSelection::HaloTag( double cscdPhi, double sMaj, double sMin, double eta 
 
      bool haloTag  = ( cscdPhi < 0.05 ) ? true : false  ;
      //if ( sMaj > 0.7 && cscdPhi < 0.1 && fabs( eta ) > 0.75 && fabs( eta ) < 1.47 ) haloTag = true;
-     if ( sMaj > 0.8 && sMaj < 1.65 && sMin < 0.2 && fabs( eta ) < 1.47 ) haloTag = true;
+     //if ( sMaj > 0.8 && sMaj < 1.65 && sMin < 0.2 && fabs( eta ) < 1.47 ) haloTag = true;
 
      return haloTag ;
 }
@@ -745,9 +747,9 @@ bool DPSelection::CosmicTag( double dtdEta , double dtdPhi ) {
 // return background prediction, upward and downward uncertainty
 vector<double> DPSelection::ABCD_ABCD( vector<TH3D*>& hColls, vector<TH3D*>& hMIBs ) {
 
-     printf("\n ####### MET2 < 60 ########## \n") ;
+     //printf("\n ####### MET2 < 60 ########## \n") ;
      //vector<double> abcdef_= ABCD( hCol_A,    hCol_B,    hCol_C,    hCol_D,    hCol_E,    hCol_F ) ;
-     vector<double> abcdef_  = ABCD( hColls[0], hColls[1], hColls[2], hColls[3], hColls[4], hColls[5] ) ;
+     //vector<double> abcdef_  = ABCD( hColls[0], hColls[1], hColls[2], hColls[3], hColls[4], hColls[5] ) ;
      printf("\n ####### MET2 > 60 ########## \n") ;
      //vector<double> abcdef= ABCD( hBg_A,    hBg_B,    hBg_C,    hBg_D,    hBg_E,    hBg_F ) ;
      vector<double> abcdef  = ABCD( hMIBs[0], hMIBs[1], hMIBs[2], hMIBs[3], hMIBs[4], hMIBs[5] ) ;
@@ -756,7 +758,7 @@ vector<double> DPSelection::ABCD_ABCD( vector<TH3D*>& hColls, vector<TH3D*>& hMI
      printf("\n ####### Q_B ########## \n") ;
      vector<double> colB    = ABCD_Collision( hColls[5], hMIBs[5], hColls[1], hMIBs[1] ) ;
 
-     double predict =  (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] ;
+     double predict = ( abcdef[1] > colB[0] ) ?  (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] : colD[0] ;
 
      pair<double,double> errB     = MathTools::ErrApnB( abcdef[1] , colB[0] , -1, -1, colB[1], colB[2] ) ;
      pair<double,double> errCovA  = MathTools::ErrAovB( abcdef[2], abcdef[0]) ;
