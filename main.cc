@@ -22,6 +22,7 @@
 #include "BackgroundStudy.h"
 #include "Systematic.h"
 #include "Output.h"
+#include "Tester.h"
 //#include "mtest.h"
 
 using namespace std; 
@@ -130,6 +131,13 @@ int main( int argc, const char* argv[] ) {
 
      delete bgS ;
   }
+
+  if ( module == 20 ) {
+     Tester   *tt  = new Tester( datacardfile ) ;
+     tt->ReadTree( dataFileNames );
+     delete tt ;
+  }
+
 
   delete Input ;
   cout<<" Finished !!!"<<endl ;

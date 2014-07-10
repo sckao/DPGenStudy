@@ -3,7 +3,7 @@ ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags`
 LIB=`${ROOTSYS}/bin/root-config --libs`
 GLIB=`${ROOTSYS}/bin/root-config --glibs`
 
-OBJECTS=AnaInput.o MathTools.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o
+OBJECTS=AnaInput.o MathTools.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o Tester.o
 
 all:test.exe
 
@@ -54,6 +54,9 @@ Output.o : Output.cc Output.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 Systematic.o : Systematic.cc Systematic.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+Tester.o : Tester.cc Tester.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 test.exe : main.cc $(OBJECTS)
