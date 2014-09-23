@@ -3,7 +3,7 @@ ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags`
 LIB=`${ROOTSYS}/bin/root-config --libs`
 GLIB=`${ROOTSYS}/bin/root-config --glibs`
 
-OBJECTS=AnaInput.o MathTools.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o Background.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o Tester.o
+OBJECTS=AnaInput.o MathTools.o hDraw.o Histogram.o Rtuple.o DPSelection.o TestGen.o HaloStudy.o SpikeStudy.o CosmicStudy.o QCDStudy.o BackgroundStudy.o Trigger.o Output.o Systematic.o GenAna.o Tester.o
 
 all:test.exe
 
@@ -29,8 +29,8 @@ DPSelection.o : DPSelection.cc DPSelection.h
 TestGen.o : TestGen.cc TestGen.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
-Background.o : Background.cc Background.h
-	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+#Background.o : Background.cc Background.h
+#	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 HaloStudy.o : HaloStudy.cc HaloStudy.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
@@ -54,6 +54,9 @@ Output.o : Output.cc Output.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 Systematic.o : Systematic.cc Systematic.h
+	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
+
+GenAna.o : GenAna.cc GenAna.h
 	$(CC) -c -o $@ $< $(ROOTFLAG) $(LIB)
 
 Tester.o : Tester.cc Tester.h
