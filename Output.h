@@ -30,9 +30,13 @@ public:
    ~Output();     
    
    void RunData( string dataName ) ;
-   void RunMC( string mcName, double weight = -1 ) ;
+   void RunMC( string mcName, string ctau_Id, double weight = -1 ) ;
+   void RunGenOnly( string mcName, string ctau_Id, double weight = -1, double scale = 1. ) ;
    void Produce() ;
    void ProduceMC() ;
+   void ProduceGen() ;
+   bool Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
+
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, pair<int, int> cw[] ) ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, double minBC ) ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, double lowX, double upX ) ;
@@ -45,6 +49,8 @@ public:
 
    void WriteDataHisto() ;
    void WriteMcHisto() ;
+
+   double RecoWeight( double pT, double ct ) ;
 
 private:
 
@@ -78,17 +84,12 @@ private:
    TH1D* h_dataTimeA  ;
    TH1D* h_dataTimeBFD  ;
    TH1D* h_dataTimeAEC  ;
-   TH1D* h_MET       ;
    TH1D* h_bgTime    ;
    TH1D* h_bgTimeA   ;
-   TH1D* h_bgMET       ;
    TH1D* h_sgTime    ;
    TH1D* h_sgTimeA    ;
    TH1D* h_sgTimeBFD  ;
    TH1D* h_sgTimeAEC  ;
-   TH1D* h_sgMET       ;
-   TH1D* h_NJets     ;
-   TH1D* h_sgNJets     ;
 
    TH3D* hBg_A ;
    TH3D* hBg_B ;

@@ -32,11 +32,6 @@ TestGen::TestGen( string datacardfile ) {
   // initial histograms  
   Hist->Init( h ) ;
 
-  nX0    = 0 ;
-  n2X0_g = 0 ;
-  n1X0_g = 0 ;
-  n0X0_g = 0 ;
-
 }
 
 TestGen::~TestGen(){
@@ -46,8 +41,6 @@ TestGen::~TestGen(){
   cout<<" Output historams written ! "<<endl ;
   theFile->Close() ;
   cout<<" File closed ! "<<endl ;
-
-  if ( isData == 0 ) printf(" nX0 = %d  di-Photon = %d single-photon = %d zero-Photon = %d \n", nX0, n2X0_g, n1X0_g, n0X0_g ) ;
 
   delete select ;
   //delete Input ;
@@ -161,7 +154,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
-       bool pass     = ( (evtType >> 1) & 1  ) ;
+       bool pass     = ( (evtType >> 0) & 1  ) ;
        bool pass_hlt = ( (evtType >> 5) & 1  ) ;
 
        selectJets.clear() ;
@@ -170,7 +163,6 @@ void TestGen::ReadTree( string dataName, double weight ) {
        select->GetCollection("Photon", selectPho ) ;
 
        recoPho.clear() ; // used for matching
-       recoTs.clear() ;  // used for matching
 
        // MET information
        newMET    = select->newMET ;
@@ -192,6 +184,13 @@ void TestGen::ReadTree( string dataName, double weight ) {
           h.h_Eta->Fill( gP4.Eta(), weight ) ;
           h.h_g1Pt->Fill( gP4.Pt() , weight );
           h.h_Pt_Eta->Fill( gP4.Pt(), gP4.Eta(), weight ) ;
+       }
+
+       // collect reco photons for matching
+       for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+           int k = selectPho[kk].first ;
+	   TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
+	   recoPho.push_back( make_pair( k , gP4_) );
        }
 
        int nNonGhost = (int)selectPho.size() ;
@@ -220,16 +219,14 @@ void TestGen::ReadTree( string dataName, double weight ) {
               }
 
               // collect good reco photons
-	      recoPho.push_back( make_pair( k , gP4_) );
-	      recoTs.push_back( seedTime[k] );
 
 	      h.h_sMin->Fill( sMinPho[k] , weight ) ;
 
 	      h.h_seedSwiss->Fill( seedSwissX[k] , weight );
 	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
 
-	      h.obsTime->Fill( seedTime[k], weight );
-	      h.aveObsTime->Fill( aveTime[k], weight );
+	      if ( passMET && !ghostTag ) h.obsTime->Fill( seedTime[k], weight );
+	      if ( passMET && !ghostTag ) h.aveObsTime->Fill( aveTime[k], weight );
 
 	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] , weight );
 	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] , weight );
@@ -252,8 +249,9 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	      h.h_cHadIso_t->Fill( cHadIso[k] , seedTime[k] , weight ) ;
 	      h.h_nHadIso_t->Fill( nHIso , seedTime[k] , weight ) ;
 	      h.h_photIso_t->Fill( phIso , seedTime[k] , weight ) ;
+              h.h_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k], weight ) ;
 	      if ( seedTime[k]  > 3. ) { 
-                 h.h_photIso_sMaj->Fill( phIso , sMajPho[k] , weight ) ;
+                 h.h_sMaj_sMin_late->Fill( sMajPho[k] , sMinPho[k], weight ) ;
                  h.h_photIso_nXtl->Fill( phIso , nXtals[k] , weight ) ;
                  h.h_photIso_nBC->Fill( phIso ,  nBC[k] , weight ) ;
               }
@@ -301,25 +299,9 @@ void TestGen::ReadTree( string dataName, double weight ) {
 		     h.Gh_Eta_Time->Fill( GhP4.Eta(),  theTimeN, weight ) ;
 		 }
               }
-
-              if ( fabs( gP4_.Eta() ) >  1.6 ) {
-                 double theTime = 0;
-		 //double pos[3] = { vtxX[0], vtxY[0], vtxZ[0] };
-		 double pos[3] = { 0, 0, 0 };
-		 Propagator( gP4_, pos[0], pos[1], pos[2], theTime ) ;
-		 double mag = sqrt( pos[0]*pos[0]+ pos[1]*pos[1] + pos[2]*pos[2] ) ;
-		 double rho = sqrt( pos[0]*pos[0]+ pos[1]*pos[1] ) ;
-		 double t0 = mag / 30. ;
-                 theTime = theTime - t0 ;
-                
-                 h.Gh_rho_Time->Fill( rho, seedTime[k] ) ;
-                 h.Gh_rho_dT->Fill( rho, seedTime[k] -theTime ) ;
-                 //if ( fabs( seedTime[k] ) > 3.  ) h.Gh_Phi_Time->Fill( gP4_.Phi(), seedTime[k] ) ;
-              }
               if ( fabs( gP4_.Phi() ) >  0.2 && fabs( gP4_.Phi() ) < 3.12 && !haloTag ) {
                  h.Gh_Eta_Time1->Fill( gP4_.Eta() , seedTime[k] ) ;
               }
-
 
           }
        }
@@ -332,17 +314,21 @@ void TestGen::ReadTree( string dataName, double weight ) {
        genXTs.clear() ;  // used for matching
        genPs.clear() ;   // used for matching
        genXPs.clear() ;  // used for matching
+       v_ctbgTs.clear();
        double maxGenPt = 0. ;
-       int nGenPho = 0;
+       int    nGenPho = 0;
        double genMETP4[4] = {0,0,0,0};
-       bool hasGravitino = false ;
+       bool   hasGravitino = false ;
  
        // Find the real photon from neutralino decay
        //printf(" nGen : %d \n", nGen ) ;
        eventPass = false ;
+       int nX0(0), nX0_g(0), nX0_gb(0) ;
        for ( int k=0; k< nGen ; k++) {
-           //printf("===========%d============ \n", k ) ;
-            
+           // printf("===========%d============ \n", k ) ;
+           // Check BR
+           if ( pdgId[k] == 1000022 ) nX0++ ;
+
            // check MET from gravitino
            if ( pdgId[k] == 1000039 ) {
                 genMETP4[0] += genPx[k] ;
@@ -360,62 +346,88 @@ void TestGen::ReadTree( string dataName, double weight ) {
            TLorentzVector xP4 = TLorentzVector( genPx[mId], genPy[mId], genPz[mId], genE[mId] ) ;
            //printf(" phot[%d] p4( %.1f,%.1f,%.1f,%.1f) genT:%.3f \n", k, genPx[k], genPy[k], genPz[k], genE[k], genT[mId] ) ;
 
-           if ( gP4.Pt() > maxGenPt ) maxGenPt = gP4.Pt() ;
            nGenPho++ ;
- 
            double vx = genVx[k] ;
            double vy = genVy[k] ;
            double vz = genVz[k] ;
            double ctbg  = sqrt( (vx*vx) + (vy*vy) + (vz*vz) ) ;
            double ctbgT = sqrt( (vx*vx) + (vy*vy)  ) ;
            double EcalTime = genT[mId] ;  // tau*gamma
-           double t1_c = ctbg / 30. ;
-           double dt1  = EcalTime - (ctbg / 30.) ;
            double vz0 = vz ;
 
-           h.h_ctbg->Fill( ctbg*10. ) ;
-           h.h_ctbgT->Fill( ctbgT*10. ) ;
-           h.ctbg_t_r->Fill( ctbg*10., ctbgT*10. ) ;
+           // time delay from slowness of neutralino 
+           // has to be placed before Propagator
+           double t1_c = ctbg / 30. ;
+           double dt1  = EcalTime - t1_c ;   
 
+           if ( fabs(vz) < 317. ) h.h_ctbgT->Fill( ctbgT*10. ) ;
+           h.h_ctbg->Fill( ctbg*10. ) ;
            h.h_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ; // ctau in mm -> c = 300 mm / ns
 
            //double vrho = sqrt( (vx*vx) + (vy*vy) ) ;
            //printf("         v4( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
            h.ctbg_RZ1->Fill( vz0, ctbgT ) ; // where the neutralino decay
-           // Main propagator - to make sure decay photon will hit ECAL
+           // **********************************************************
+           //  Main propagator - to make sure decay photon will hit ECAL
+           // **********************************************************
            bool hasEcalTime = Propagator( gP4, vx, vy, vz, EcalTime ) ;
            if ( !hasEcalTime ) continue ;
+
            h.ctbg_RZ0->Fill( vz0, ctbgT ) ;  // for those neutralino who are seen by ECAL
 
            // Construct 4 vector for generated photon
-           //vrho = sqrt( (vx*vx) + (vy*vy) ) ;
-           //printf("           ( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
-           double d_x = vx - 0 ;
-           double d_y = vy - 0 ;
+           // vrho = sqrt( (vx*vx) + (vy*vy) ) ;
+           // printf("           ( %.2f,%.2f,%.2f, rho: %.2f , t: %.2f ) \n", vx, vy, vz, vrho, EcalTime ) ;
+           double d_x = vx - 0. ;
+           double d_y = vy - 0. ;
            double d_z = vz - vtxZ[0] ;
            double d_r = sqrt( (d_x*d_x) + (d_y*d_y) + (d_z*d_z) ); 
            double t0  = d_r /30. ; // t0 -> ecaltime assuming photon is from original
-           // This is the measured ECAL time for gen photons
-           double dT = tRan->Gaus( EcalTime - t0 , timeCalib[1] ) - timeCalib[0] ;
+           // This is the measured ECAL time for gen photons including smearing
+           double dT = tRan->Gaus( EcalTime - t0 , 0.354 ) - 0.162 ;
 
            // Build the P4 for gen photon from reconstruction point of view 
            TLorentzVector genRecoP4 = TLorentzVector( d_x, d_y, d_z, d_r ) ;
            genRecoP4 = genRecoP4 * ( gP4.E() / d_r ) ;
-           //printf("    ---> p4( %.1f,%.1f,%.1f,%.1f) recoT:%.3f , dT: %.3f \n", 
-           //                    genRecoP4.Px(),genRecoP4.Py(),genRecoP4.Pz(),genRecoP4.E(), t0, dT ) ;
+           if ( genRecoP4.Pt() > maxGenPt ) maxGenPt = genRecoP4.Pt() ;
+
+           if ( genRecoP4.Pt() > 45. && fabs(genRecoP4.Eta()) < 1.46 ) nX0_gb++ ;
+
+           if ( dT > 3. ) h.late_ctbgT->Fill( ctbgT*10. ) ;
+
+           if (genRecoP4.Pt() > 1. && fabs( genRecoP4.Eta()) < 1.47 ) {
+              h.reco_ctbgT->Fill( ctbgT*10. ) ;
+              h.reco_xbeta->Fill( xP4.Beta() ) ;
+              h.reco_xPt->Fill( xP4.Pt() ) ;
+              h.reco_gPt->Fill( genRecoP4.Pt() ) ;
+              h.h_Time->Fill( dT ) ;
+
+              double ctT = ( ctbgT*10./(xP4.Beta()*xP4.Gamma()) >= 4000. ) ? 3999. : ctbgT*10./(xP4.Beta()*xP4.Gamma()) ;
+              h.reco_xPt_ctbgT->Fill( xP4.Pt(), ctT ) ;
+              h.simTime->Fill( dT , Input->RecoWeight( xP4.Pt() , ctbgT*10./(xP4.Beta()*xP4.Gamma()) ) ) ;
+              if ( dT > 3. ) h.lateR_ctbgT->Fill( ctbgT*10. ) ;
+           }
+
+           // Collections for matching
+           genPho.push_back( make_pair( k, genRecoP4 ) ) ;
+	   genTs.push_back( dT ) ;
+	   genXTs.push_back( genT[mId]*300. / xP4.Gamma()  ) ;
+	   genPs.push_back( gP4 ) ;
+	   genXPs.push_back( xP4 ) ;
+           v_ctbgTs.push_back( ctbgT*10. );
 
            // Find any nearby reco photon
            bool found_Reco = false ;
+           double match_recoTime = -5. ;
 	   for ( size_t kk =0; kk < selectPho.size() ; kk++) {
 	       TLorentzVector rP4 = selectPho[kk].second ;
+               int kj = selectPho[kk].first ;
                double dR_gR = rP4.DeltaR( genRecoP4 ) ;
-               if ( dR_gR < 0.3 ) found_Reco = true ;
-               //if ( ctbgT > 150. && dR_gR < 0.3 && pass && pass_hlt ) {
-               //   printf("dR: %.2f  recoPt : %.2f , genPt :%.2f \n ", dR_gR, rP4.Pt(), genRecoP4.Pt() ) ;
-               //}
+               if ( dR_gR < 0.3 ) {
+                  found_Reco = true ;
+                  match_recoTime = seedTime[ kj ] ;
+               }
            }
-           if ( !found_Reco ) continue ;
-
 
            h.obs_ctbgT->Fill( ctbgT*10. ) ;
            if ( ctbgT  < 30. )                 h.xPhot_pt1->Fill( gP4.Pt() ) ;
@@ -423,33 +435,36 @@ void TestGen::ReadTree( string dataName, double weight ) {
            if ( ctbgT >= 60. && ctbgT < 90. )  h.xPhot_pt3->Fill( gP4.Pt() ) ;
            if ( ctbgT >= 90. )                 h.xPhot_pt4->Fill( gP4.Pt() ) ;
 
+           // Check the source of time delay
            double t2_c = EcalTime - genT[mId] ;
            double t3_c = sqrt( (vx*vx) + (vy*vy) + (vz*vz) ) / 30. ;
-           double dt2 = t1_c + t2_c - t3_c ;
+           double dt2 = t1_c + t2_c - t3_c ;  // time delay from deviation of photon path
            h.dt1_dt2->Fill( dt1, dt2 ) ;
-
-           if ( pass && pass_hlt && nNonGhost > 0 ) h.sel_ctbg->Fill(  ctbg*10. ) ;
-           if ( pass && pass_hlt && nNonGhost > 0 ) h.sel_ctbgT->Fill( ctbgT*10. ) ;
-           if ( pass && pass_hlt && nNonGhost > 0 ) h.sel_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
-
            if ( dT > 3. ) h.dt1_dt2_late->Fill( dt1, dt2 ) ;
+
+           if ( pass && pass_hlt && nNonGhost > 0 && passMET && found_Reco ) {
+              h.sel_ctbg->Fill(  ctbg*10. ) ;
+	      h.sel_ctbgT->Fill( ctbgT*10. ) ;
+	      h.sel_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
+	      h.h_genTime->Fill( dT ) ;
+	      h.sel_xbeta->Fill( xP4.Beta() ) ;
+	      h.sel_xPt->Fill( xP4.Pt() ) ;
+	      h.sel_gPt->Fill( genRecoP4.Pt() ) ;
+              double ctT = ( ctbgT*10./(xP4.Beta()*xP4.Gamma()) >= 4000. ) ? 3999. : ctbgT*10./(xP4.Beta()*xP4.Gamma()) ;
+              if ( match_recoTime > 3. )   h.sel_xPt_ctbgT->Fill( xP4.Pt(), ctT ) ;
+           }
 
            double dPt = genRecoP4.Pt() - gP4.Pt() ;
            h.ctbgT_dPt->Fill( ctbgT*10, dPt ) ;
 
-           genPho.push_back( make_pair( k, genRecoP4 ) ) ;
-	   genTs.push_back( dT ) ;
-	   genXTs.push_back( genT[mId]*300. / xP4.Gamma()  ) ;
-	   genPs.push_back( gP4 ) ;
-	   genXPs.push_back( xP4 ) ;
-    
-           h.h_Time->Fill( dT ) ;
-          
+	   h.h_gPt_time->Fill( genRecoP4.Pt(), dT ) ;
            h.h_xbeta->Fill( xP4.Beta() ) ;
            h.h_XPt->Fill( xP4.Pt() ) ;
-           if ( dT > 3. ) {
+           if ( dT > 3. && found_Reco ) {
               h.h_lateXbeta->Fill( xP4.Beta() ) ;
+              h.h_lateXctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
 	      h.h_lateXPt->Fill( xP4.Pt() ) ;
+
 	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctbgT->Fill( ctbgT*10. ) ;
 	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctbg->Fill( ctbg*10. ) ;
 	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
@@ -458,15 +473,13 @@ void TestGen::ReadTree( string dataName, double weight ) {
                  eventPass = true ;
                  nPassGenPhot++ ;
               }
-
            }
            //cout<<" PID:"<<pdgId[k] ;
            //cout<<" T_X: "<< genT[k] <<" EcalTime: "<<  EcalTime <<" dT = "<< dT << endl; 
        } 
        // End of gen particle loop
 
-       // sort the gen photon collection
-       if ( genPho.size() > 1 ) sort( genPho.begin(), genPho.end(), PtDecreasing );
+       h.h_XBR->Fill( nX0, nX0_g ) ;
        // Check missing Et w.r.t to two Grabitino pt sum
        if ( hasGravitino ) {
           TLorentzVector G_P4 = TLorentzVector( genMETP4[0], genMETP4[1], genMETP4[2], genMETP4[3] ) ;
@@ -475,55 +488,46 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	  h.h_METdPhi->Fill( fabs( G_P4.DeltaPhi( met ) ) ) ;
        }
 
-       // check gen photon whether pass pt and eta cuts
-       if ( genPho.size() > 0 && fabs(genPho[0].second.Eta()) < photonCuts[1] ) h.h_gen1RecoPt->Fill( genPho[0].second.Pt() ) ;
-
-       int    nGoodGenPho = 0 ;
-       for ( size_t j = 0 ; j < genPho.size() ; j++ ) { 
-           if ( genPho[0].second.Pt() <  photonCuts[8] ) break ;
-           if  ( fabs(genPho[j].second.Eta()) < photonCuts[1]  ) nGoodGenPho++ ;
-       }
-
-       if ( nGoodGenPho > 0 )  {
-          for ( size_t j=0; j< genTs.size() ; j++ ) {
-              // the smearing according to reconstruction resolution
-              h.h_genTime->Fill( genTs[j], weight ) ;
-          } 
-       }       
-
-       if ( maxGenPt > 0. && pass ) h.h_gen1Pt->Fill( maxGenPt ) ;
+       // sort the gen photon collection
+       if ( genPho.size() > 0 && maxGenPt > 0. )  h.h_gen1RecoPt->Fill( maxGenPt ) ;
        h.h_nGenPhotons->Fill( nGenPho ) ;
 
+       // *********************
        // * Matching Process  *
+       // *********************
        vector<iMatch> mlist = GlobalDRMatch( recoPho, genPho );
+       int m_gen(0) ;
        for ( size_t k=0; k< mlist.size(); k++ ) {
+           h.dR_GenReco->Fill( mlist[k].dr ) ;
            if ( mlist[k].dr > 0.5 ) continue ;
-           double recoTime  = seedTime[ mlist[k].ir ] ;
+           m_gen++ ;
+           double recoTime = seedTime[ mlist[k].ir ] ;
            double genTime  = genTs[ mlist[k].idg ] ;
 
            TLorentzVector m_rp4 = TLorentzVector( phoPx[mlist[k].ir], phoPy[mlist[k].ir], phoPz[mlist[k].ir], phoE[mlist[k].ir] ) ;
-           TLorentzVector m_gp4 = TLorentzVector( genPx[mlist[k].idg], genPy[mlist[k].idg], genPz[mlist[k].idg], genE[mlist[k].idg] ) ;
+           TLorentzVector m_gp4 = genPho[ mlist[k].idg ].second ;
            h.m_RecoPt->Fill( m_rp4.Pt() ) ;
-           h.m_GenPt->Fill( m_rp4.Pt() ) ;
-
-           if ( genTime > 2. ) {
-              h.m_sigIeta_time->Fill( sigmaIeta[mlist[k].ir], recoTime );
-	      h.m_sMaj_time->Fill( sMajPho[mlist[k].ir], recoTime );
-	      h.m_sMin_time->Fill( sMinPho[mlist[k].ir], recoTime );
-	      h.m_sMaj_sMin->Fill( sMajPho[mlist[k].ir], sMinPho[mlist[k].ir] );
-	      h.m_cHadIso_time->Fill( cHadIso[mlist[k].ir], recoTime );
-	      h.m_nHadIso_time->Fill( nHadIso[mlist[k].ir], recoTime );
-	      h.m_photIso_time->Fill( photIso[mlist[k].ir], recoTime );
+           h.m_GenPt->Fill( m_gp4.Pt() ) ;
+           h.h_matchRecoTime->Fill( recoTime ) ;
+           h.h_matchGenTime->Fill( genTime ) ;
+           /*
+           TLorentzVector xP4 = genXPs[mlist[k].idg] ;
+           if ( m_gp4.Pt() >  1. && fabs(m_gp4.Eta()) < 1.47) {
+              h.reco_xPt_ctbgT->Fill( xP4.Pt(), v_ctbgTs[ mlist[k].idg ]/(xP4.Beta()*xP4.Gamma()) ) ;
            }
+           */
+           if ( pass && pass_hlt && nNonGhost > 0 && passMET ) {
+              // h.sel_xPt_ctbgT->Fill( xP4.Pt(), v_ctbgTs[ mlist[k].idg ]/(xP4.Beta()*xP4.Gamma()) ) ;
+              h.h_matchTime->Fill( genTime ) ;
+           }
+           if ( v_ctbgTs[ mlist[k].idg ] > 300. && v_ctbgTs[ mlist[k].idg ] < 1200. ) h.m_sMaj_sMin->Fill( sMajPho[mlist[k].ir], sMinPho[mlist[k].ir] );
 
            // time resolution
            if ( fabs(mlist[k].dPt) > 0.25 ) continue ;
-           h.h_matchRecoTime->Fill( recoTime ) ;
-           h.h_matchGenTime->Fill( genTime ) ;
-           if ( fabs( recoTime - genTime + timeCalib[0] ) < 1. ) h.h_matchTime->Fill( genTime ) ;
-           if ( genTime < 1                 ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
-           if ( genTime >=1  && genTime < 3 ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
-           if ( genTime >=3                 ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
+           //if ( fabs( recoTime - genTime + timeCalib[0] ) < 1. ) h.h_matchTime->Fill( genTime ) ;
+           if (  genTime > 3                  ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
+           if ( recoTime > 3. && genTime < 3. ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
+           if ( recoTime < 3. && genTime > 3. ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
            h.h_PtRes->Fill( mlist[k].dPt ) ;
 
            h.dR_Time->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , genTime ) ;
@@ -532,16 +536,24 @@ void TestGen::ReadTree( string dataName, double weight ) {
            h.dR_photIso->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , photIso[mlist[k].ir] ) ;
            h.dR_nHadIso->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , nHadIso[mlist[k].ir] ) ;
            h.dR_cHadIso->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , cHadIso[mlist[k].ir] ) ;
-           h.dR_sigIeta->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) , sigmaIeta[mlist[k].ir] ) ;
-           h.dR_XTime->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ,  genXTs[mlist[k].idg]  ) ;
+           h.dR_XTime->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ,  v_ctbgTs[mlist[k].idg]  ) ;
            h.XTime_genTime->Fill( genXTs[mlist[k].idg] , genTime);
            h.sMaj_sMin->Fill( sMajPho[mlist[k].ir] , sMinPho[mlist[k].ir] ) ;
-           if ( genTime > 3. ) {
-              h.dR_GenReco->Fill( recoPho[mlist[k].idr].second.DeltaR( genPs[ mlist[k].idg ] ) ) ;
-           }
 
        }
-       //for ( size_t k=0; k< mlist.size() ; k++ ) printf(" (%d) , dr: %f dPt: %f \n", (int)k , mlist[k].dr, mlist[k].dPt ) ;
+       if ( pass && pass_hlt ) h.m_nPhot->Fill( (int)recoPho.size(), m_gen ) ; 
+       if ( pass && pass_hlt && nX0_gb == 2 ) h.m2_nPhot->Fill( (int)recoPho.size(), m_gen ) ; 
+       if ( pass && pass_hlt && nX0_gb == 1 ) h.m1_nPhot->Fill( (int)recoPho.size(), m_gen ) ; 
+       if ( pass && pass_hlt && nX0_gb == 0 ) h.m0_nPhot->Fill( (int)recoPho.size(), m_gen ) ; 
+       int n_rec = ( recoPho.size() >= 4 ) ? 4 : (int)recoPho.size() ;
+       h.nPhot_g_r->Fill( (int)genPho.size(), n_rec ) ; 
+
+       if ( genPho.size() > 0 && recoPho.size() < 1 ) {
+          for ( size_t k=0; k< genPho.size(); k++ ) { 
+              h.failGen_Pt->Fill(  genPho[k].second.Pt()  ) ;
+              h.failGen_Eta->Fill(  genPho[k].second.Eta()  ) ;
+          }
+       }
 
    } // end of event looping
 
@@ -554,7 +566,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
 // propagator with backward propagation
 // ECal Dimension : R:( 129 ~ 155 cm , Z(one-side) : 317 ~345 )
-bool TestGen::Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double taugamma ) {
+bool TestGen::Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double taugamma ) {
 
     bool hasEcalTime = true ;
 
@@ -566,6 +578,7 @@ bool TestGen::Propagator( TLorentzVector v, double& x, double& y, double& z, dou
     double r = sqrt( (x*x) + (y*y ) );
     double r0 = r ;
     double z0 = z ;
+    double dL = 0 ;
 
     bool insideEcal =  ( r < 129. && fabs(z) < 317. ) ? true : false ;  // inner edge of ECAL
     bool outsideEcal = ( r > 155. || fabs(z) > 345. ) ? true : false ;  // outer edge of ECAL
@@ -602,6 +615,12 @@ bool TestGen::Propagator( TLorentzVector v, double& x, double& y, double& z, dou
           if ( dr < 0 && r < 155 && dz > 0 ) alived = false ;
           if ( dz < 0 && z < 345 && dr > 0 ) alived = false ;
           if ( !alived ) hasEcalTime = false ;
+          // simulate the energy loss from HCAL , radiation length = 1.5 cm
+          dL += sqrt( (dr*dr) + (dz*dz) ) ;
+          if ( dL > 1.5 ) {
+             v = v*0.63 ;
+             dL = 0. ;
+          }
        }
 
     } while ( alived ) ;
@@ -702,25 +721,34 @@ vector<iMatch> TestGen::GlobalDRMatch( vector<objID> vr, vector<objID> vg ) {
     return vMatch ;
 }
 
-int TestGen::NeutralinoBR() {
+/*
+double TestGen::RecoWeight( double ctbgT ) {
 
-    int nX0_(0) , nX0_g_(0) ;
-    for (int j=0; j< nGen; j++ ) {
-        if ( pdgId[j] == 1000022 ) {
-           nX0_++ ;
-        }
-        if ( pdgId[j] == 22 && momId[j] > -1 ) {
-           if ( pdgId[ momId[j] ] == 1000022 ) {
-              nX0_g_++ ;
-           }
-        }
-    }
+     int ibin = (ctbgT/100)  ;
+     if ( ibin > 17 ) ibin = 17 ;
 
-    if ( nX0_ > 0 )     nX0++ ;
-    if ( nX0_g_ == 2 )  n2X0_g++ ;
-    if ( nX0_g_ == 1 )  n1X0_g++ ;
-    if ( nX0_g_ == 0 )  n0X0_g++ ;
+     double effA[18] =  { 0.208, 0.200, 0.210, 0.209, 0.210, 0.223, 0.232, 0.220, 0.208, 0.236,
+                          0.216, 0.208, 0.201, 0.144, 0.048, 0.003, 0.069, 0.0    } ;
 
-    if ( nX0_ < 1 ) return -1 ;
-    else            return nX0_g_ ;
+     if ( ibin > 17 || effA[ibin] > 0.3 ) printf(" ibin = %d , weight = %.3f \n ", ibin, effA[ibin] ) ;
+
+     double weight = effA[ibin] ;
+     return weight ;
+
 }
+*/
+double TestGen::RecoWeight( double pT ) {
+
+     int ibin = ( pT/20)  ;
+     if ( ibin > 24 ) ibin = 24 ;
+
+     double effA[25] = { 0.000, 0.003, 0.028, 0.049, 0.195, 0.225, 0.240, 0.259, 0.259, 0.275, 0.283, 0.261,
+                         0.265, 0.277, 0.266, 0.257, 0.252, 0.283, 0.226, 0.295, 0.261, 0.222, 0.356, 0.200, 0.324 } ;
+
+     if ( ibin > 24 || effA[ibin] > 0.4 ) printf(" ibin = %d , weight = %.3f \n ", ibin, effA[ibin] ) ;
+
+     double weight = effA[ibin] ;
+     return weight ;
+
+}
+

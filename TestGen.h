@@ -59,12 +59,12 @@ public:
    ~TestGen();     
    
    void ReadTree( string dataName = "0", double weight = 1. ) ;
-   bool Propagator( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
+   bool Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
    bool Propagator1( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
 
    //vector<int> GlobalDRMatch( vector<objID> vr, vector<objID> vg, vector<double>& v_dr ) ;
    vector<iMatch> GlobalDRMatch( vector<objID> vr, vector<objID> vg ) ;
-   int NeutralinoBR() ;
+   double RecoWeight( double pT ) ;
 
 private:
 
@@ -80,7 +80,6 @@ private:
    int isData ;
    double TCut ;
    double FitCtau ;
-   int nX0, n2X0_g, n1X0_g, n0X0_g  ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
@@ -110,6 +109,7 @@ private:
    vector<double> recoTs ;
    vector<double> genTs ;
    vector<double> genXTs ;
+   vector<double> v_ctbgTs ;
    vector<TLorentzVector> genPs ;
    vector<TLorentzVector> genXPs ;
  

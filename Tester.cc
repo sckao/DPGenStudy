@@ -125,8 +125,8 @@ void Tester::ReadTree( string dataName ) {
    // Main event loop
    for ( int i=0; i< totalN ; i++ ) {
 
+       // 0. Get event entry
        if ( ProcessEvents > 0 && i > ( ProcessEvents - 1 ) ) break;
-       // Get event entry
        tr->GetEntry( i );
        tr1->GetEntry( i );
        if ( i % 100000 == 0 && i > 99999 ) printf(" ----- processed %8d Events \n", i ) ;
@@ -156,6 +156,7 @@ void Tester::ReadTree( string dataName ) {
            int k = selectPho[kk].first ;
            TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
            h_PhotPt->Fill( gP4_.Pt() ) ;
+
        }
 
        // Method to Loop all objects
@@ -169,6 +170,13 @@ void Tester::ReadTree( string dataName ) {
    // Write the histograms into TFile
    HistoWrite() ;
    Plot() ;
+}
+
+void Tester::PlotOnly() {
+
+   HistoOpen() ;
+   Plot() ;
+
 }
 
 void Tester::Plot() {

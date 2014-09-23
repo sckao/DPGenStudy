@@ -42,18 +42,13 @@ Output::Output( string datacardfile ) {
 
   h_dataTime   = new TH1D("h_dataTime",  "Photon Seed Time from data",         n_t_bin, t_low, t_up);
   h_dataTimeA  = new TH1D("h_dataTimeA", "Photon Ave. Cluster Time from data", n_t_bin, t_low, t_up);
-  h_MET        = new TH1D("h_MET",       " MET  ", 50,  30, 530);
 
   h_bgTime     = new TH1D("h_bgTime",  "Photon Seed Time of background ",         n_t_bin, t_low, t_up);
   h_bgTimeA    = new TH1D("h_bgTimeA", "Photon Ave. Cluster Time of background ", n_t_bin, t_low, t_up);
-  h_bgMET      = new TH1D("h_bgMET",   "MET of background sample  ", 50,  30, 530);
 
   h_sgTime     = new TH1D("h_sgTime",  "Photon Seed Time of signal ",         n_t_bin, t_low, t_up);
   h_sgTimeA    = new TH1D("h_sgTimeA", "Photon Ave. Cluster Time of signal ", n_t_bin, t_low, t_up);
-  h_sgMET      = new TH1D("h_sgMET",   "MET from signal MC ", 50,  30, 530);
 
-  h_NJets      = new TH1D("h_NJets",   "N of Jets from Data",      10,  0, 10 );
-  h_sgNJets    = new TH1D("h_sgNJets", "N of Jets from Signal MC", 10,  0, 10 );
 
   // ABCD use
   // x is eta region , each is 0.28 
@@ -105,9 +100,24 @@ void Output::ProduceMC() {
 
      vector<string> mcFileNames ;
      Input->GetParameters( "TheMC",   &mcFileNames );
+     string ctau_Id[7] = { "93", "185", "368", "733", "1076", "1444", "2161" } ;
 
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
-         RunMC( mcFileNames[i], normV[i] ) ;
+         RunMC( mcFileNames[i], ctau_Id[i], normV[i] ) ;
+     }
+}
+
+void Output::ProduceGen() {
+
+     vector<string> mcFileNames ;
+     Input->GetParameters( "TheMC",   &mcFileNames );
+     // use official 6000 mm sample as base , normalize every sample to the number*scale factor
+     double n6k = 5.681 ;
+     double scale[6]   = { 0.412,  0.807,  1.004,  0.948,  0.721,  0.488 } ;
+     string ctau_Id[6] = { "500", "1000", "2000", "3000", "6000", "12000" } ;
+
+     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
+         RunGenOnly( mcFileNames[i], ctau_Id[i], normV[i], scale[i]*n6k ) ;
      }
 }
 
@@ -177,7 +187,7 @@ void Output::RunData( string dataName ) {
 
        uint32_t evtType = select->EventIdentification();
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
-       bool wanted  = ( (evtType >> 1) & 1  ) ;
+       bool wanted  = ( (evtType >> 4) & 1  ) ;
        bool passHLT = ( (evtType >> 5) & 1  ) ;     
        if ( !wanted || !passHLT ) continue ;
 
@@ -229,7 +239,6 @@ void Output::RunData( string dataName ) {
            // A and B region
            if ( seedTime[k] < (-1.*t_low) && seedTime[k] > (-1.*t_up) && passABCDSelection ) {
 
-              if ( !ghostTag )  h_bgMET->Fill( metE ) ;
               // Region A 
               if (  noPhotMET.E() < jetCuts[4] ) {
                  hBg_A->Fill( ih, 0.5, nj );
@@ -330,8 +339,6 @@ void Output::RunData( string dataName ) {
 
        }
        if ( selectPho[0].second.Pt() > photonCuts[8] )  {
-          h_MET->Fill( metE ) ;
-          h_NJets->Fill( (int) selectJets.size() ) ;
        }
 
    } // end of event looping
@@ -378,34 +385,29 @@ void Output::RunData( string dataName ) {
 }  
 
 // This is for signal MC 
-void Output::RunMC( string mcName, double weight ) { 
+void Output::RunMC( string mcName, string ctau_Id, double weight ) { 
 
    // Efficiency log file
    string EffFileName = hfolder + hfName + "_eff.txt" ; 
    FILE* logfile = fopen( EffFileName.c_str() ,"a");
-   fprintf(logfile," Efficinecy for %s ", mcName.c_str() );
+   fprintf(logfile," Efficinecy for %s ", ctau_Id.c_str() );
 
-   string mcTag = mcName.substr( 8, mcName.size() - 8 ) ;
-   char hName1[32] , hName2[32], hName3[32], hName4[32], hName5[32], hName6[32]   ;
+   //string mcTag = mcName.substr( 8, mcName.size() - 8 ) ;
+   string mcTag = ctau_Id ;
+   char hName1[32] , hName2[32], hName5[32], hName6[32]   ;
    sprintf( hName1, "h_sgTime_%s",  mcTag.c_str() ) ;
    sprintf( hName2, "h_sgTimeA_%s", mcTag.c_str() ) ;
-   sprintf( hName3, "h_sgMET_%s",   mcTag.c_str() ) ;
-   sprintf( hName4, "h_sgNJets_%s", mcTag.c_str() ) ;
    sprintf( hName5, "h_sgTimeBFD_%s", mcTag.c_str() ) ;
    sprintf( hName6, "h_sgTimeAEC_%s", mcTag.c_str() ) ;
 
    // Reset the histogram
    h_sgTime->SetName( hName1 ) ;
    h_sgTimeA->SetName( hName2 ) ;
-   h_sgMET->SetName( hName3 ) ;
-   h_sgNJets->SetName( hName4 ) ;
    h_sgTimeBFD->SetName( hName5 ) ;
    h_sgTimeAEC->SetName( hName6 ) ;
 
    h_sgTime->Reset() ;
    h_sgTimeA->Reset() ;
-   h_sgMET->Reset() ;
-   h_sgNJets->Reset() ;
    h_sgTimeBFD->Reset() ;
    h_sgTimeAEC->Reset() ;
 
@@ -416,7 +418,6 @@ void Output::RunMC( string mcName, double weight ) {
    float metE ;
    int   nPhotons, nJets ;
 
-   //TTree* tr   = Input->TreeMap( mcName );
    TTree* tr   = Input->GetTree( mcName, "DPAnalysis" );
    // clone the tree for event selection
    TChain* tr1   = (TChain*) tr->Clone() ;
@@ -455,6 +456,7 @@ void Output::RunMC( string mcName, double weight ) {
    int nPass = 0 ;
    int nPassPhot = 0 ;
    int beginEvent = SkipEvents + 1 ;
+   bool eventPass = false;
    cout<<" Event start from : "<< beginEvent << endl ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
@@ -468,7 +470,7 @@ void Output::RunMC( string mcName, double weight ) {
 
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
-       bool wanted  = ( (evtType >> 1) & 1  ) ;
+       bool wanted  = ( (evtType >> 4) & 1  ) ;
        bool passHLT = ( (evtType >> 5) & 1  ) ;     
        if ( !wanted || !passHLT ) continue ;
 
@@ -482,7 +484,7 @@ void Output::RunMC( string mcName, double weight ) {
 
        //cout<<" EVT# : "<< nEvt <<endl ;
 
-       bool eventPass = false ;
+       bool passBasic = false ;
        for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
            int k = selectPho[j].first ;
            // Background Tagging
@@ -493,16 +495,15 @@ void Output::RunMC( string mcName, double weight ) {
            if ( ghostTag && j ==0 && selectPho.size() < 2 ) break ;
            if ( ghostTag ) continue ;
 
-           bool passABCDSelection = ( newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4] 
-                                     && selectPho[0].second.Pt() > photonCuts[8] ) ;
-             
+           bool passABCDSelection = newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4]  ;
+           passBasic = (selectPho[0].second.Pt() > photonCuts[8]) && (selectJets.size() >= jetCuts[2]) && (selectJets.size() < jetCuts[3] ) ;
 	   // timing correction : central shift = 0.1211 ,  sigma = 0.4
            float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
 	   float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
 	   if ( systType == 10 ) tShift = 0. ; 
 	   float tCorr = ( systType == 8 ) ? ( seedTime[k]- tShift ) : tRan->Gaus(seedTime[k], tRes ) - tShift ;
 
-           if ( passABCDSelection && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+           if ( passABCDSelection && passBasic ) {
               
 	      h_sgTimeBFD->Fill( tCorr, weight ) ;
               if ( seedTime[k] > t_low && seedTime[k] < t_up ) {
@@ -513,23 +514,16 @@ void Output::RunMC( string mcName, double weight ) {
                  h_sgTimeA->Fill( aveTime[k], weight ) ;
               }
            }
-           if ( newMET.E() > jetCuts[4] && noPhotMET.E() < jetCuts[4]  && selectPho[0].second.Pt() > photonCuts[8] 
-                && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+           if ( newMET.E() > jetCuts[4] && noPhotMET.E() < jetCuts[4]  && passBasic ) { 
 	      h_sgTimeAEC->Fill( tCorr, weight ) ;
            }
-       }
-       if ( selectPho[0].second.Pt() > photonCuts[8] )  {
-           h_sgNJets->Fill( (int) selectJets.size(), weight ) ;
-           h_sgMET->Fill( metE, weight ) ;
        }
 
    } // end of event looping
   
-   char rhName1[32] , rhName2[32], rhName3[32], rhName4[32], rhName5[32], rhName6[32]   ;
+   char rhName1[32] , rhName2[32], rhName5[32], rhName6[32]   ;
    sprintf( rhName1, "rh_sgTime_%s",  mcTag.c_str() ) ;
    sprintf( rhName2, "rh_sgTimeA_%s", mcTag.c_str() ) ;
-   sprintf( rhName3, "rh_sgMET_%s",   mcTag.c_str() ) ;
-   sprintf( rhName4, "rh_sgNJets_%s", mcTag.c_str() ) ;
    sprintf( rhName5, "rh_sgTimeBFD_%s", mcTag.c_str() ) ;
    sprintf( rhName6, "rh_sgTimeAEC_%s", mcTag.c_str() ) ;
 
@@ -539,6 +533,8 @@ void Output::RunMC( string mcName, double weight ) {
    rh_sgTimeBFD = RebinHistogram( h_sgTimeBFD,  rhName5, -1.*t_low , t_low ) ;
    rh_sgTimeAEC = RebinHistogram( h_sgTimeAEC,  rhName6, -1.*t_low , t_low ) ;
 
+   printf(" [%s] Observe number = %.3f \n", ctau_Id.c_str(), rh_sgTime->Integral() ) ;
+
    WriteMcHisto() ;
 
 
@@ -547,6 +543,198 @@ void Output::RunMC( string mcName, double weight ) {
    printf(" *** Event Efficiency : %f -> %f \n", (double)nPass / (double)nEvt , (double)nPassPhot / (double)nEvt ) ;
    cout<<" ======== CutFlow for Signal MC ======== "<<endl ;
    select->PrintCutFlow() ;
+
+}
+
+void Output::RunGenOnly( string mcName, string ctau_Id, double weight, double scale_ ) { 
+
+   // Efficiency log file
+   //string EffFileName = hfolder + hfName + "_eff.txt" ; 
+   //FILE* logfile = fopen( EffFileName.c_str() ,"a");
+   //fprintf(logfile," Efficinecy for %s ", mcName.c_str() );
+
+   string mcTag = ctau_Id ;
+   //string mcTag = mcName.substr( 8, mcName.size() - 8 ) ;
+   char hName1[32] , hName2[32], hName5[32], hName6[32]   ;
+   sprintf( hName1, "h_sgTime_%s",  mcTag.c_str() ) ;
+   sprintf( hName2, "h_sgTimeA_%s", mcTag.c_str() ) ;
+   sprintf( hName5, "h_sgTimeBFD_%s", mcTag.c_str() ) ;
+   sprintf( hName6, "h_sgTimeAEC_%s", mcTag.c_str() ) ;
+
+   // Reset the histogram
+   h_sgTime->SetName( hName1 ) ;
+   h_sgTimeA->SetName( hName2 ) ;
+   h_sgTimeBFD->SetName( hName5 ) ;
+   h_sgTimeAEC->SetName( hName6 ) ;
+
+   h_sgTime->Reset() ;
+   h_sgTimeA->Reset() ;
+   h_sgTimeBFD->Reset() ;
+   h_sgTimeAEC->Reset() ;
+
+   float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN] ;
+   float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
+   int   pdgId[MAXGEN], momId[MAXGEN] ;
+
+   float jetPx[10], jetPy[10], jetPz[10], jetE[10] ;
+
+   float metPx, metPy, metE ;
+   int   nGen, nJets ;
+
+
+   TTree* tr   = Input->GetTree( mcName, "DPGenAnalysis" );
+
+   tr->SetBranchAddress("nJets",       &nJets);
+   tr->SetBranchAddress("nGen",        &nGen);
+
+   tr->SetBranchAddress("metPx",       &metPx );
+   tr->SetBranchAddress("metPy",       &metPy );
+   tr->SetBranchAddress("met",         &metE );
+
+   tr->SetBranchAddress("jetPx",       jetPx );
+   tr->SetBranchAddress("jetPy",       jetPy );
+   tr->SetBranchAddress("jetPz",       jetPz );
+   tr->SetBranchAddress("jetE",        jetE );
+
+   tr->SetBranchAddress("genPx",       genPx );
+   tr->SetBranchAddress("genPy",       genPy );
+   tr->SetBranchAddress("genPz",       genPz );
+   tr->SetBranchAddress("genE",        genE );
+   tr->SetBranchAddress("genT",        genT );  // tau*gamma*beta
+   tr->SetBranchAddress("pdgId",       pdgId );
+   tr->SetBranchAddress("momId",       momId );
+   tr->SetBranchAddress("genVx",       genVx );
+   tr->SetBranchAddress("genVy",       genVy );
+   tr->SetBranchAddress("genVz",       genVz );
+
+   int totalN = tr->GetEntries();
+   cout<<" **** from  "<< mcName <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
+
+   // Set up gaussian smearing for timing correction
+   TRandom3* tRan = new TRandom3();
+   tRan->SetSeed( 0 );
+
+   //int nEvt  = 0 ;
+   int beginEvent = SkipEvents + 1 ;
+   cout<<" Event start from : "<< beginEvent << endl ;
+
+   vector<double> v_time ;
+   vector<TLorentzVector> v_p4 ;
+   for ( int i= beginEvent ; i< totalN ; i++ ) {
+       if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
+       tr->GetEntry( i );
+
+       // Count number of jets
+       int nPassJet = 0 ;
+       for ( int k=0 ; k < nJets; k++ ) {
+           TLorentzVector jP4 = TLorentzVector( jetPx[k], jetPy[k], jetPz[k], jetE[k] ) ;
+           if ( fabs( jP4.Eta()) > jetCuts[1] ) continue ;
+           if ( jP4.Pt() > jetCuts[0] ) nPassJet++ ;
+       }
+       // Gen MET
+       TLorentzVector met = TLorentzVector( metPx, metPy, 0., metE ) ;
+       noPhotMET = met ;
+
+       // Photon signal
+       v_time.clear() ;
+       v_p4.clear() ;
+       double maxPhoPt = 0 ;
+       for ( int k=0; k< nGen ; k++) {
+
+           if ( pdgId[k] != 22 ) continue ;
+           TLorentzVector gP4 = TLorentzVector( genPx[k], genPy[k], genPz[k], genE[k] ) ;
+
+           int mId = momId[k]  ;
+           if ( mId < 0  ) continue ;
+           TLorentzVector xP4 = TLorentzVector( genPx[mId], genPy[mId], genPz[mId], genE[mId] ) ;
+
+           // This is where the neutralino decays
+           double vx = genVx[k] ;
+           double vy = genVy[k] ;
+           double vz = genVz[k] ;
+           double EcalTime = genT[mId] ;  // tau*gamma
+           // *************************************************************
+           // * Main propagator - to make sure decay photon will hit ECAL *
+           // *************************************************************
+           bool hasEcalTime = Propagator( gP4, vx, vy, vz, EcalTime ) ;
+           if ( !hasEcalTime ) continue ;
+
+           double d_x = vx - 0 ;
+           double d_y = vy - 0 ;
+           double d_z = vz - 0 ;
+           double d_r = sqrt( (d_x*d_x) + (d_y*d_y) + (d_z*d_z) );
+           double t0  = d_r /30. ; // t0 -> ecaltime assuming photon is from original
+           // This is the measured ECAL time for gen photons
+           double dT = EcalTime - t0 ;
+
+	   // timing correction : central shift = 0.162 ,  sigma = 0.354
+           // Syst 7: tRes up , 8: tRes down , 9 : tShift up , 10: tShift down
+           float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
+	   float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
+	   if ( systType == 10 ) tShift = 0. ; 
+	   float tCorr = ( systType == 8 ) ? ( dT - tShift ) : tRan->Gaus( dT, tRes ) - tShift ;
+
+           // Build the P4 for gen photon from reconstruction point of view 
+           TLorentzVector genRecoP4 = TLorentzVector( d_x, d_y, d_z, d_r ) ;
+           genRecoP4 = genRecoP4 * ( gP4.E() / d_r ) ;
+           noPhotMET += genRecoP4 ;
+           if ( genRecoP4.Pt() < 1. ||  fabs(genRecoP4.Eta()) > photonCuts[1] ) continue ;
+
+           if ( genRecoP4.Pt() > maxPhoPt ) maxPhoPt = genRecoP4.Pt() ;
+           v_time.push_back( tCorr ) ;
+           v_p4.push_back( genRecoP4 ) ;
+       }
+
+       bool passABCDSelection = (met.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4] ) ;
+       bool passBasic  = (maxPhoPt > photonCuts[8]) && (nPassJet >= jetCuts[2]) && (nPassJet < jetCuts[3])  ;
+
+       for ( size_t k=0; k < v_p4.size() ; k++ ) {
+             
+           if ( passABCDSelection && passBasic ) {
+	      h_sgTimeBFD->Fill( v_time[k], weight ) ;
+              if ( v_time[k] > t_low && v_time[k] < t_up ) {
+	         h_sgTime->Fill( v_time[k], weight ) ;
+                 h_sgTimeA->Fill( v_time[k], weight ) ;
+              }
+           }
+           if ( met.E() > jetCuts[4] && noPhotMET.E() < jetCuts[4] && passBasic ) {
+	        h_sgTimeAEC->Fill( v_time[k], weight ) ;
+           }
+
+       }
+
+   } // end of event looping
+  
+   char rhName1[64] , rhName2[64], rhName5[64], rhName6[64]   ;
+   sprintf( rhName1, "rh_sgTime_%s",  mcTag.c_str() ) ;
+   sprintf( rhName2, "rh_sgTimeA_%s", mcTag.c_str() ) ;
+   sprintf( rhName5, "rh_sgTimeBFD_%s", mcTag.c_str() ) ;
+   sprintf( rhName6, "rh_sgTimeAEC_%s", mcTag.c_str() ) ;
+
+   // rebin two tails
+   rh_sgTime    = RebinHistogram( h_sgTime,   rhName1, -1.*t_low , t_low ) ;
+   rh_sgTimeA   = RebinHistogram( h_sgTimeA,  rhName2, -1.*t_low , t_low ) ;
+   rh_sgTimeBFD = RebinHistogram( h_sgTimeBFD,  rhName5, -1.*t_low , t_low ) ;
+   rh_sgTimeAEC = RebinHistogram( h_sgTimeAEC,  rhName6, -1.*t_low , t_low ) ;
+
+   double scale_factor = scale_ / rh_sgTime->Integral() ;
+   printf(" orignal: %.3f , scale factor = %.3f ", rh_sgTime->Integral() , scale_factor ) ;
+   rh_sgTime->Scale( scale_factor ) ;
+   rh_sgTimeA->Scale( scale_factor  ) ;
+   rh_sgTimeBFD->Scale( scale_factor ) ;
+   rh_sgTimeAEC->Scale( scale_factor ) ;
+
+   h_sgTime->Scale( scale_factor ) ;
+   h_sgTimeA->Scale( scale_factor  ) ;
+   h_sgTimeBFD->Scale( scale_factor ) ;
+   h_sgTimeAEC->Scale( scale_factor ) ;
+   printf(" scaled N: %.3f , should be : %.3f \n", rh_sgTime->Integral(), scale_ ) ;
+
+   WriteMcHisto() ;
+
+   //fprintf(logfile," Event Eff: %f , nPhot/nEvt =  %f \n", (double)nPass / (double)nEvt , (double)nPassPhot / (double)nEvt );
+   //fclose( logfile ) ;
+   //printf(" *** Event Efficiency : %f -> %f \n", (double)nPass / (double)nEvt , (double)nPassPhot / (double)nEvt ) ;
 
 }
 
@@ -735,10 +923,8 @@ void Output::WriteDataHisto() {
      h_dataTimeA->Write() ; 
      h_dataTimeBFD->Write() ; 
      h_dataTimeAEC->Write() ; 
-     h_MET->Write() ;
      h_bgTime->Write() ;
      h_bgTimeA->Write() ;
-     h_bgMET->Write() ;
 
      rh_dataTime->Write() ; 
      rh_dataTimeA->Write() ; 
@@ -746,8 +932,6 @@ void Output::WriteDataHisto() {
      rh_dataTimeAEC->Write() ; 
      rh_bgTime->Write() ;
      rh_bgTimeA->Write() ;
-
-     h_NJets->Write() ;
 
      hBg_A->Write() ;
      hBg_B->Write() ;
@@ -770,8 +954,6 @@ void Output::WriteMcHisto() {
      h_sgTimeA->Write() ;
      h_sgTimeBFD->Write() ;
      h_sgTimeAEC->Write() ;
-     h_sgMET->Write() ;
-     h_sgNJets->Write() ;
 
      rh_sgTime->Write() ;
      rh_sgTimeA->Write() ;
@@ -779,3 +961,103 @@ void Output::WriteMcHisto() {
      rh_sgTimeAEC->Write() ;
 
 }
+
+// propagator with backward propagation
+// ECal Dimension : R:( 129 ~ 155 cm , Z(one-side) : 317 ~345 )
+bool Output::Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double taugamma ) {
+
+    bool hasEcalTime = true ;
+
+    double bx = v.Px() / v.P() ;
+    double by = v.Py() / v.P() ;
+    double bz = v.Pz() / v.P() ;
+
+    double dt = 0.01 ;
+    double r = sqrt( (x*x) + (y*y ) );
+    double r0 = r ;
+    double z0 = z ;
+    double dL = 0. ;
+
+    bool insideEcal =  ( r < 129. && fabs(z) < 317. ) ? true : false ;  // inner edge of ECAL
+    bool outsideEcal = ( r > 155. || fabs(z) > 345. ) ? true : false ;  // outer edge of ECAL
+    bool alived     = true ;
+
+    //if ( r < 129. && fabs(z) < 317. )  cout<<"   Inside ECAL  " ;
+    //if ( r > 155. || fabs(z) > 345. )  cout<<"   Outside ECAL " ;
+    //if ( !insideEcal && !outsideEcal ) cout<<"   In ECAL      " ; 
+
+    int     i = 0 ;
+    do {
+
+       i++ ;
+       r0 = sqrt( (x*x) + (y*y ) ) ;
+       z0 = z ;
+       t = t + dt ;
+       x = x + (bx*dt*30 ) ;
+       y = y + (by*dt*30 ) ;
+       z = z + (bz*dt*30 ) ;
+       r = sqrt( (x*x) + (y*y) ) ;
+
+       alived      = ( t < taugamma ) ? true : false ;
+       if ( t > taugamma )  hasEcalTime = false ;
+
+       insideEcal  = ( r < 129 && fabs(z) < 317 ) ? true : false ; // inner surface of ECAL
+       outsideEcal = ( r > 155 || fabs(z) > 345 ) ? true : false ; // outer surface of ECAL
+       if ( !insideEcal && !outsideEcal )     alived = false ; // for those photons just hit the Ecal
+
+       double dr = r - r0 ;
+       double dz = fabs(z) - fabs(z0) ;
+       if ( outsideEcal && alived ) {
+          if ( dr > 0 && dz > 0            ) alived = false ;
+          if ( dr < 0 && r < 155 && dz > 0 ) alived = false ;
+          if ( dz < 0 && z < 345 && dr > 0 ) alived = false ;
+          if ( !alived ) hasEcalTime = false ;
+          // simulate the energy loss from HCAL , radiation length = 1.5 cm
+          dL += sqrt( (dr*dr) + (dz*dz) ) ;
+          if ( dL > 1.5 ) {
+             v = v*0.63 ;
+             dL = 0. ;
+          }
+       }
+
+    } while ( alived ) ;
+
+    //printf( " .... N_Steps : %d , ( %4.2f %4.2f %4.2f )  \n", i, x, y, z ) ;
+    return hasEcalTime ;
+}
+
+double Output::RecoWeight( double pT, double ct ) {
+
+     int x = ( pT/25)  ;
+     if ( x > 12 ) x = 12 ;
+     int y = ( ct/200)  ;
+     if ( y > 19 ) y = 19 ;
+     int k = (y*13) + x ;
+
+     double effA[260] = {
+            0.009, 0.002, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.077, 0.031, 0.011, 0.004, 0.002, 0.001, 0.002, 0.000, 0.001, 0.000, 0.000, 0.001, 0.000,
+            0.086, 0.067, 0.040, 0.017, 0.010, 0.005, 0.004, 0.002, 0.002, 0.001, 0.000, 0.002, 0.001,
+            0.111, 0.116, 0.084, 0.056, 0.034, 0.025, 0.011, 0.006, 0.007, 0.004, 0.005, 0.005, 0.002,
+            0.151, 0.149, 0.137, 0.101, 0.060, 0.047, 0.018, 0.014, 0.013, 0.008, 0.004, 0.006, 0.003,
+            0.256, 0.148, 0.180, 0.163, 0.140, 0.087, 0.045, 0.019, 0.015, 0.006, 0.004, 0.000, 0.000,
+            0.179, 0.196, 0.207, 0.223, 0.170, 0.121, 0.079, 0.047, 0.015, 0.002, 0.000, 0.000, 0.000,
+            0.200, 0.168, 0.170, 0.208, 0.217, 0.165, 0.109, 0.052, 0.011, 0.000, 0.000, 0.000, 0.000,
+            0.167, 0.164, 0.147, 0.167, 0.212, 0.184, 0.139, 0.044, 0.013, 0.018, 0.250, 0.000, 0.000,
+            0.158, 0.210, 0.169, 0.175, 0.239, 0.199, 0.156, 0.085, 0.040, 0.000, 0.000, 0.000, 0.000,
+            0.385, 0.156, 0.250, 0.200, 0.207, 0.191, 0.202, 0.052, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.067, 0.268, 0.248, 0.172, 0.145, 0.136, 0.090, 0.250, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.100, 0.209, 0.163, 0.149, 0.110, 0.106, 0.094, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.125, 0.281, 0.229, 0.195, 0.119, 0.098, 0.500, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.000, 0.346, 0.210, 0.185, 0.074, 0.088, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.000, 0.259, 0.125, 0.130, 0.143, 0.143, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.000, 0.143, 0.188, 0.164, 0.143, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.000, 0.062, 0.256, 0.108, 0.143, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.250, 0.333, 0.162, 0.056, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+            0.000, 0.077, 0.172, 0.172, 0.250, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+     } ;
+
+     double weight = effA[k] ;
+     return weight ;
+}
+

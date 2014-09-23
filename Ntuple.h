@@ -5,7 +5,7 @@
 
 #define MAXVTX 10
 #define MAXJET 15
-#define MAXPHO 10
+#define MAXPHO 12
 #define MAXMU 5
 #define MAXELE 5
 #define MAXGEN 20

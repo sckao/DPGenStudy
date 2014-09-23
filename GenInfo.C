@@ -29,7 +29,17 @@ void GenInfo() {
     TString plotname12 = "ctbg_Obs.png" ;
     TString plotname15 = "ctbgT_inEcal.png" ;
     TString plotname16 = "Eff_ctau.png" ;
-    TString plotname17 = "Accept_ctau.png" ;
+    TString plotname17 = "EffxAccept_ctau.png" ;
+    TString plotname18 = "Accept_ctau.png" ;
+    TString plotname19 = "EcalTime_Gen.png" ;
+    TString plotname20 = "EcalTime_Reco.png" ;
+    TString plotname21 = "Eff_Obs_ctbgT.png" ;
+    TString plotname22 = "Eff_Reco_ctbgT.png" ;
+    TString plotname23 = "Normal_Eff_ctbgT.png" ;
+    TString plotname24 = "Acc_Reco_ctbgT.png" ;
+    TString plotname25 = "Acc_Obs_ctbgT.png" ;
+    TString plotname26 = "Normal_Acc_ctbgT.png" ;
+    TString plotname27 = "EcalTime_Sim.png" ;
 
     string xlable = "ECAL Time (ns) " ;
 
@@ -47,19 +57,27 @@ void GenInfo() {
     string hName11 = "acc_ctbgT" ;
     string hName12 = "acc_ctbg" ;
     string hName13 = "obs_ctbgT" ;
+    string hName14 = "h_genTime" ;
+    string hName15 = "obsTime" ;
+    string hName16 = "reco_ctbgT" ;
+    string hName17 = "lateR_ctbgT" ;
+    string hName18 = "late_ctbgT" ;
+    string hName19 = "simTime" ;
 
-    /* 
+    /*
     double nGen[5] = { 50112, 50112, 50112, 50112, 50112 } ;
     TString names[5] = { "250","500", "2000", "4000", "6000" } ;
     int color[5]     = {     1,    2,      4,      6,     8  } ;
     const int nModel = 5;
     */
-    
+     
     double nGen[7]   = { 50112, 50112, 50112,  50112,  50112,  46944,  50112 } ;
     TString names[7] = { "250", "500","1000", "2000", "3000", "4000", "6000" } ;
     int color[7]     = {     1,     2,     4,      5,      6,      7,      8 } ;
     const int nModel = 7;
     
+   
+
     TFile* hfile[ nModel ] ;
     TH1D*  hctbg[ nModel ] ;
     TH1D*  hCtau[ nModel ] ;
@@ -73,8 +91,14 @@ void GenInfo() {
     TH1D*  hctbgT[ nModel ] ;
     TH1D*  SctbgT[ nModel ] ;
     TH1D*  OctbgT[ nModel ] ;
+    TH1D*  RctbgT[ nModel ] ;
+    TH1D*  LctbgT[ nModel ] ;
+    TH1D*  BctbgT[ nModel ] ;
     TH1D*  Octbg[ nModel ] ;
     TH1D*  ActbgT[ nModel ] ;
+    TH1D*  hTime[ nModel ] ;
+    TH1D*  obsTime[ nModel ] ;
+    TH1D*  simTime[ nModel ] ;
 
     for ( int i=0 ; i< nModel ; i++ ) {
         hfile[i]  = TFile::Open( fileName+names[i]+".root" );
@@ -84,14 +108,20 @@ void GenInfo() {
         Acc_Ctau[i]   = (TH1D *) hfile[i]->Get( hName3.c_str() )  ;
         hlateXbeta[i] = (TH1D *) hfile[i]->Get( hName4.c_str() )  ;
         hXbeta[i]     = (TH1D *) hfile[i]->Get( hName5.c_str() )  ;
-        PassCtau[i] = (TH1D *) hfile[i]->Get( hName6.c_str() )  ;
-        lateXPt[i]  = (TH1D *) hfile[i]->Get( hName7.c_str() )  ;
-        hXPt[i]     = (TH1D *) hfile[i]->Get( hName8.c_str() )  ;
-        hctbgT[i]   = (TH1D *) hfile[i]->Get( hName9.c_str() )  ;
-	SctbgT[i]   = (TH1D *) hfile[i]->Get( hName10.c_str() )  ;
-        OctbgT[i]   = (TH1D *) hfile[i]->Get( hName11.c_str() )  ;
-        Octbg[i]    = (TH1D *) hfile[i]->Get( hName12.c_str() )  ;
-        ActbgT[i]   = (TH1D *) hfile[i]->Get( hName13.c_str() )  ;
+        PassCtau[i]   = (TH1D *) hfile[i]->Get( hName6.c_str() )  ;
+        lateXPt[i]    = (TH1D *) hfile[i]->Get( hName7.c_str() )  ;
+        hXPt[i]       = (TH1D *) hfile[i]->Get( hName8.c_str() )  ;
+        hctbgT[i]     = (TH1D *) hfile[i]->Get( hName9.c_str() )  ;
+	SctbgT[i]     = (TH1D *) hfile[i]->Get( hName10.c_str() )  ;
+        OctbgT[i]     = (TH1D *) hfile[i]->Get( hName11.c_str() )  ;
+        Octbg[i]      = (TH1D *) hfile[i]->Get( hName12.c_str() )  ;
+        ActbgT[i]     = (TH1D *) hfile[i]->Get( hName13.c_str() )  ;
+        hTime[i]      = (TH1D *) hfile[i]->Get( hName14.c_str() )  ;
+        obsTime[i]    = (TH1D *) hfile[i]->Get( hName15.c_str() )  ;
+        RctbgT[i]     = (TH1D *) hfile[i]->Get( hName16.c_str() )  ;
+        LctbgT[i]     = (TH1D *) hfile[i]->Get( hName17.c_str() )  ;
+        BctbgT[i]     = (TH1D *) hfile[i]->Get( hName18.c_str() )  ;
+        simTime[i]    = (TH1D *) hfile[i]->Get( hName19.c_str() )  ;
     }
 
     gStyle->SetOptStat("");
@@ -347,7 +377,7 @@ void GenInfo() {
     c0->Update() ;  
     c0->Print( hfolder+ plotname15 );
 
-    // Plot16 and 17 - Efficiency Plots in different ctau Models
+    // Plot16 ~ 18 - Efficiency Plots in different ctau Models
     TH1D* hObs      = new TH1D("hObs", " ",  nModel,  0, nModel );
     TH1D* hRec      = new TH1D("hRec", " ",  nModel,  0, nModel );
     TH1D* hGen      = new TH1D("hGen", " ",  nModel,  0, nModel );
@@ -363,14 +393,14 @@ void GenInfo() {
     acc_x0->BayesDivide( hObs, hGen );
     TGraphAsymmErrors* eff_x0 = new TGraphAsymmErrors();
     eff_x0->BayesDivide( hRec, hGen );
-    //TGraphAsymmErrors* acp_x0 = new TGraphAsymmErrors();
-    //acp_x0->BayesDivide( hObs, hRec );
+    TGraphAsymmErrors* acp_x0 = new TGraphAsymmErrors();
+    acp_x0->BayesDivide( hObs, hRec );
 
     c0->cd();
     c0->SetLogy(0);
 
     eff_x0->SetTitle(" Reco_Efficiency ") ;
-    eff_x0->SetMaximum( 0.9 );
+    eff_x0->SetMaximum( 0.8 );
     eff_x0->SetMinimum( 0.0 );
     eff_x0->SetMarkerColor(4);
     eff_x0->SetMarkerStyle(22);
@@ -395,13 +425,369 @@ void GenInfo() {
     acc_x0->SetLineColor(1);
     acc_x0->SetLineWidth(2);
     acc_x0->GetXaxis()->SetTitleOffset(1.34);
-    acc_x0->GetYaxis()->SetTitleOffset(1.41);
+    acc_x0->GetYaxis()->SetTitleOffset(1.5);
 
     acc_x0->GetXaxis()->SetTitle(" Neutralino c#tau (mm) " ) ;
-    acc_x0->GetYaxis()->SetTitle(" Reco_Efficiency*Time_Acceptance ") ;
+    acc_x0->GetYaxis()->SetTitle(" Efficiency*Acceptance ") ;
     acc_x0->Draw("AP");
     c0->Update();
     c0->Print( hfolder + plotname17 );
+
+    acp_x0->SetTitle(" Acceptance ") ;
+    acp_x0->SetMaximum( 0.5 );
+    acp_x0->SetMinimum( 0.0 );
+    acp_x0->SetMarkerColor(4);
+    acp_x0->SetMarkerStyle(22);
+    acp_x0->SetMarkerSize(1);
+    acp_x0->SetLineColor(1);
+    acp_x0->SetLineWidth(2);
+    acp_x0->GetXaxis()->SetTitleOffset(1.34);
+    acp_x0->GetYaxis()->SetTitleOffset(1.5);
+
+    acp_x0->GetXaxis()->SetTitle(" Neutralino c#tau (mm) " ) ;
+    acp_x0->GetYaxis()->SetTitle(" Acceptance ") ;
+    acp_x0->Draw("AP");
+    c0->Update();
+    c0->Print( hfolder + plotname18 );
+
+
+    // Plot19
+    printf(" GenTime \n") ;
+    leg1->Clear() ;
+    c0->SetLogy() ; 
+    double nGen[ nModel ] = { 0 } ;
+    double nReco[ nModel ] = { 0 } ;
+    for ( int i = 0; i < nModel; i++ ) {
+        n_late = hTime[i]->Integral(71,160) ;
+        //n_late = hTime[i]->Integral(1,160) ;
+        hTime[i]->SetLineColor( color[i] ) ;
+        hTime[i]->Rebin(2) ;
+        if ( i == 0 )  hTime[i]->Draw() ;
+        else           hTime[i]->Draw("SAMES") ;
+        sprintf( legStr,  ": %.0f ", n_late  ) ;
+        nGen[i] = n_late ;
+        leg1->AddEntry( hTime[i], names[i]+legStr ,  "L");
+        c0->Update() ;  
+    }
+    leg1->Draw("sames") ;
+    c0->Update() ;  
+    c0->Print( hfolder + plotname19 );
+
+    // Plot20
+    printf(" RecoTime \n") ;
+    leg1->Clear() ;
+    c0->SetLogy() ; 
+    for ( int i = 0; i < nModel; i++ ) {
+        n_late = obsTime[i]->Integral(71,160) ;
+        //n_late = obsTime[i]->Integral(1,160) ;
+        obsTime[i]->Rebin(2) ;
+        obsTime[i]->SetLineColor( color[i] ) ;
+        if ( i == 0 )  obsTime[i]->Draw() ;
+        else           obsTime[i]->Draw("SAMES") ;
+        sprintf( legStr,  ": %.0f ", n_late  ) ;
+        nReco[i] = n_late ;
+        leg1->AddEntry( obsTime[i], names[i]+legStr ,  "L");
+        c0->Update() ;  
+    }
+    leg1->Draw("sames") ;
+    c0->Update() ;  
+    c0->Print( hfolder + plotname20 );
+
+    
+    for ( int i = 0; i < nModel; i++ ) {
+        printf("(%d) nR: %.2f / nG: %.2f = Eff %f \n", i, nReco[i], nGen[i], nReco[i]/nGen[i]) ;
+    }
+
+    // Plot27
+    printf(" SimTime \n") ;
+    leg1->Clear() ;
+    c0->SetLogy() ; 
+    //for ( int i = 0; i < nModel; i++ ) {
+    for ( int i = nModel-1; i >=0; i-- ) {
+        //n_late = simTime[i]->Integral(71,160) ;
+        n_late = simTime[i]->Integral(1,160) ;
+        simTime[i]->Rebin(2) ;
+        simTime[i]->SetLineColor( color[i] ) ;
+        if ( i == nModel-1 )  simTime[i]->Draw() ;
+        else           simTime[i]->Draw("SAMES") ;
+        sprintf( legStr,  ": %.0f ", n_late  ) ;
+        nReco[i] = n_late ;
+        leg1->AddEntry( simTime[i], names[i]+legStr ,  "L");
+        c0->Update() ;  
+    }
+    leg1->Draw("sames") ;
+    c0->Update() ;  
+    c0->Print( hfolder + plotname27 );
+
+    // Plot 21 
+    TLegend* leg3  = new TLegend(.80, .65, .95, .90 );
+    TGraphAsymmErrors* eff_ctbgT[nModel] ;
+    leg3->Clear() ;
+    for ( int i=1; i< nModel; i++ ) {
+        eff_ctbgT[i]= new TGraphAsymmErrors();
+
+        ActbgT[i]->Rebin(2) ;
+        RctbgT[i]->Rebin(2) ;
+        SctbgT[i]->Rebin(2) ;
+        hctbgT[i]->Rebin(2) ;
+        OctbgT[i]->Rebin(2) ;
+        LctbgT[i]->Rebin(2) ;
+        BctbgT[i]->Rebin(2) ;
+
+        leg3->AddEntry( hctbgT[i], names[i]  ,  "L");
+        //eff_ctbgT[i]->BayesDivide( ActbgT[i], hctbgT[i] );
+        eff_ctbgT[i]->BayesDivide( SctbgT[i], hctbgT[i] );    // including other event selection like MET ...
+        eff_ctbgT[i]->SetMarkerColor( color[i] );
+        eff_ctbgT[i]->SetLineColor( color[i] );
+
+        if ( i ==1 ) {
+           c0->cd();
+           c0->SetLogy(0);
+
+           eff_ctbgT[i]->SetTitle(" Efficiency") ;
+           eff_ctbgT[i]->SetMaximum( 1.0 );
+           eff_ctbgT[i]->SetMinimum( 0.0 );
+           eff_ctbgT[i]->SetMarkerStyle(22);
+           eff_ctbgT[i]->SetMarkerSize(1);
+           eff_ctbgT[i]->SetLineWidth(2);
+           eff_ctbgT[i]->GetXaxis()->SetTitleOffset(1.34);
+           eff_ctbgT[i]->GetYaxis()->SetTitleOffset(1.41);
+
+           eff_ctbgT[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
+           eff_ctbgT[i]->GetYaxis()->SetTitle(" Reco_Efficiency ") ;
+           eff_ctbgT[i]->Draw("AP");
+        } else {
+           eff_ctbgT[i]->Draw("SAMEPS");
+        }
+
+    }
+    leg3->Draw("sames") ;
+    c0->Update();
+    c0->Print( hfolder + plotname21 );
+
+    // Plot 22
+    TGraphAsymmErrors* eff1_ctbgT[nModel] ;
+    leg3->Clear() ;
+    for ( int i=1; i< nModel; i++ ) {
+        eff1_ctbgT[i]= new TGraphAsymmErrors();
+
+        leg3->AddEntry( hctbgT[i], names[i]  ,  "L");
+        eff1_ctbgT[i]->BayesDivide( RctbgT[i], hctbgT[i] );
+        eff1_ctbgT[i]->SetMarkerColor( color[i] );
+        eff1_ctbgT[i]->SetLineColor( color[i] );
+
+        if ( i ==1 ) {
+           c0->cd();
+           c0->SetLogy(0);
+
+           eff1_ctbgT[i]->SetTitle(" Efficiency") ;
+           eff1_ctbgT[i]->SetMaximum( 1.0 );
+           eff1_ctbgT[i]->SetMinimum( 0.0 );
+           eff1_ctbgT[i]->SetMarkerStyle(22);
+           eff1_ctbgT[i]->SetMarkerSize(1);
+           eff1_ctbgT[i]->SetLineWidth(2);
+           eff1_ctbgT[i]->GetXaxis()->SetTitleOffset(1.34);
+           eff1_ctbgT[i]->GetYaxis()->SetTitleOffset(1.41);
+
+           eff1_ctbgT[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
+           eff1_ctbgT[i]->GetYaxis()->SetTitle(" Reco_Efficiency ") ;
+           eff1_ctbgT[i]->Draw("AP");
+        } else {
+           eff1_ctbgT[i]->Draw("SAMEPS");
+        }
+
+    }
+    leg3->Draw("sames") ;
+    c0->Update();
+    c0->Print( hfolder + plotname22 );
+   
+
+    // Plot 23
+    TGraphAsymmErrors* eff2_ctbgT[nModel] ;
+    leg3->Clear() ;
+
+    int nBin1 = RctbgT[1]->GetNbinsX() ;
+    TH1D* hRec1   = new TH1D("hRec1", " ",  nBin1,  0, 4000. );
+    TH1D* hObs1   = new TH1D("hObs1", " ",  nBin1,  0, 4000. );
+    for ( int i=1; i< nModel; i++ ) {
+
+	for ( int j= 1; j <= nBin1 ; j++ ) {
+            double nA1 = SctbgT[i]->GetBinContent(j) ;
+	    double nR1 = RctbgT[i]->GetBinContent(j) ;
+	    if ( nA1 > nR1 ) nA1 = nR1 ;
+	    hObs1->SetBinContent( j, nA1 ) ;
+	    hRec1->SetBinContent( j, nR1 ) ;
+            if ( i == nModel -1 ) printf(" (%d) eff = %.3f \n", j , nA1/nR1 ) ;
+        }
+
+        eff2_ctbgT[i]= new TGraphAsymmErrors();
+        leg3->AddEntry( hctbgT[i], names[i]  ,  "L");
+        //eff2_ctbgT[i]->BayesDivide( ActbgT[i], RctbgT[i] );
+        eff2_ctbgT[i]->Divide( hObs1, hRec1 );
+        eff2_ctbgT[i]->SetMarkerColor( color[i] );
+        eff2_ctbgT[i]->SetLineColor( color[i] );
+
+        if ( i ==1 ) {
+           c0->cd();
+           c0->SetLogy(0);
+
+           eff2_ctbgT[i]->SetTitle(" Efficiency") ;
+           eff2_ctbgT[i]->SetMaximum( 0.5 );
+           eff2_ctbgT[i]->SetMinimum( 0.0 );
+           eff2_ctbgT[i]->SetMarkerStyle(22);
+           eff2_ctbgT[i]->SetMarkerSize(1);
+           eff2_ctbgT[i]->SetLineWidth(2);
+           eff2_ctbgT[i]->GetXaxis()->SetTitleOffset(1.34);
+           eff2_ctbgT[i]->GetYaxis()->SetTitleOffset(1.41);
+
+           eff2_ctbgT[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
+           eff2_ctbgT[i]->GetYaxis()->SetTitle(" Reco_Efficiency ") ;
+           eff2_ctbgT[i]->Draw("AP");
+        } else {
+           eff2_ctbgT[i]->Draw("SAMEPS");
+        }
+
+        
+    }
+    leg3->Draw("sames") ;
+    c0->Update();
+    c0->Print( hfolder + plotname23 );
+
+    // Plot 24
+    cout<<" Plot 24 "<<endl;
+    TGraphAsymmErrors* tcut_ctbgT[nModel] ;
+    leg3->Clear() ;
+    for ( int i=1; i< nModel; i++ ) {
+        tcut_ctbgT[i]= new TGraphAsymmErrors();
+
+        leg3->AddEntry( hctbgT[i], names[i]  ,  "L");
+        //tcut_ctbgT[i]->BayesDivide( LctbgT[i], BctbgT[i] );
+        tcut_ctbgT[i]->BayesDivide( LctbgT[i], RctbgT[i] );
+        tcut_ctbgT[i]->SetMarkerColor( color[i] );
+        tcut_ctbgT[i]->SetLineColor( color[i] );
+
+        if ( i ==1 ) {
+           c0->cd();
+           c0->SetLogy(0);
+
+           tcut_ctbgT[i]->SetTitle(" Efficiency") ;
+           tcut_ctbgT[i]->SetMaximum( 1.0 );
+           tcut_ctbgT[i]->SetMinimum( 0.0 );
+           tcut_ctbgT[i]->SetMarkerStyle(22);
+           tcut_ctbgT[i]->SetMarkerSize(1);
+           tcut_ctbgT[i]->SetLineWidth(2);
+           tcut_ctbgT[i]->GetXaxis()->SetTitleOffset(1.34);
+           tcut_ctbgT[i]->GetYaxis()->SetTitleOffset(1.41);
+
+           tcut_ctbgT[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
+           tcut_ctbgT[i]->GetYaxis()->SetTitle(" Reco_Efficiency ") ;
+           tcut_ctbgT[i]->Draw("AP");
+        } else {
+           tcut_ctbgT[i]->Draw("SAMEPS");
+        }
+
+    }
+    leg3->Draw("sames") ;
+    c0->Update();
+    c0->Print( hfolder + plotname24 );
+
+    // Plot 25
+    cout<<" Plot 25 "<<endl;
+    TGraphAsymmErrors* tcut1_ctbgT[nModel] ;
+    leg3->Clear() ;
+    TH1D* hRec2   = new TH1D("hRec2", " ",  nBin1,  0, 4000. );
+    TH1D* hObs2   = new TH1D("hObs2", " ",  nBin1,  0, 4000. );
+    for ( int i=1; i< nModel; i++ ) {
+
+        tcut1_ctbgT[i]= new TGraphAsymmErrors();
+	for ( int j= 1; j <= nBin1 ; j++ ) {
+            double nO2 = OctbgT[i]->GetBinContent(j) ;
+	    double nR2 = RctbgT[i]->GetBinContent(j) ;
+	    if ( nO2 > nR2 ) nO2 = nR2 ;
+	    hObs2->SetBinContent( j, nO2 ) ;
+	    hRec2->SetBinContent( j, nR2 ) ;
+        }
+        leg3->AddEntry( hctbgT[i], names[i]  ,  "L");
+
+        tcut1_ctbgT[i]->Divide( hObs2, hRec2 );
+        tcut1_ctbgT[i]->SetMarkerColor( color[i] );
+        tcut1_ctbgT[i]->SetLineColor( color[i] );
+
+        if ( i ==1 ) {
+           c0->cd();
+           c0->SetLogy(0);
+
+           tcut1_ctbgT[i]->SetTitle(" Efficiency") ;
+           tcut1_ctbgT[i]->SetMaximum( 0.2 );
+           tcut1_ctbgT[i]->SetMinimum( 0.0 );
+           tcut1_ctbgT[i]->SetMarkerStyle(22);
+           tcut1_ctbgT[i]->SetMarkerSize(1);
+           tcut1_ctbgT[i]->SetLineWidth(2);
+           tcut1_ctbgT[i]->GetXaxis()->SetTitleOffset(1.34);
+           tcut1_ctbgT[i]->GetYaxis()->SetTitleOffset(1.41);
+
+           tcut1_ctbgT[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
+           tcut1_ctbgT[i]->GetYaxis()->SetTitle(" Reco_Efficiency ") ;
+           tcut1_ctbgT[i]->Draw("AP");
+        } else {
+           tcut1_ctbgT[i]->Draw("SAMEPS");
+        }
+
+    }
+    leg3->Draw("sames") ;
+    c0->Update();
+    c0->Print( hfolder + plotname25 );
+   
+
+    // Plot 26
+    cout<<" Plot 26 "<<endl;
+    TGraphAsymmErrors* tcut2_ctbgT[nModel] ;
+    leg3->Clear() ;
+
+    //int nBin2 = RctbgT[0]->GetNbinsX() ;
+    TH1D* hLate1    = new TH1D("hLate1", " ",  nBin1,  0, 4000. );
+    TH1D* hFinal1   = new TH1D("hFinal1", " ",  nBin1,  0, 4000. );
+    for ( int i=1; i< nModel; i++ ) {
+
+	for ( int j= 1; j <= nBin1 ; j++ ) {
+            double nO1 = OctbgT[i]->GetBinContent(j) ;
+	    double nL1 = LctbgT[i]->GetBinContent(j) ;
+	    if ( nO1 > nL1 ) nO1 = nL1 ;
+	    hFinal1->SetBinContent( j, nO1 ) ;
+	    hLate1->SetBinContent( j, nL1 ) ;
+        }
+
+        tcut2_ctbgT[i]= new TGraphAsymmErrors();
+        leg3->AddEntry( hctbgT[i], names[i]  ,  "L");
+        //tcut2_ctbgT[i]->BayesDivide( ActbgT[i], RctbgT[i] );
+        tcut2_ctbgT[i]->Divide( hFinal1, hLate1 );
+        tcut2_ctbgT[i]->SetMarkerColor( color[i] );
+        tcut2_ctbgT[i]->SetLineColor( color[i] );
+
+        if ( i ==1 ) {
+           c0->cd();
+           c0->SetLogy(0);
+
+           tcut2_ctbgT[i]->SetTitle(" Efficiency") ;
+           tcut2_ctbgT[i]->SetMaximum( 0.5 );
+           tcut2_ctbgT[i]->SetMinimum( 0.0 );
+           tcut2_ctbgT[i]->SetMarkerStyle(22);
+           tcut2_ctbgT[i]->SetMarkerSize(1);
+           tcut2_ctbgT[i]->SetLineWidth(2);
+           tcut2_ctbgT[i]->GetXaxis()->SetTitleOffset(1.34);
+           tcut2_ctbgT[i]->GetYaxis()->SetTitleOffset(1.41);
+
+           tcut2_ctbgT[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
+           tcut2_ctbgT[i]->GetYaxis()->SetTitle(" Reco_Efficiency ") ;
+           tcut2_ctbgT[i]->Draw("AP");
+        } else {
+           tcut2_ctbgT[i]->Draw("SAMEPS");
+        }
+
+    }
+    leg3->Draw("sames") ;
+    c0->Update();
+    c0->Print( hfolder + plotname26 );
 
 
     delete c0 ;

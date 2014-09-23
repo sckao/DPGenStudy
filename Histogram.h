@@ -58,6 +58,7 @@ struct hSet {
     TH1D* h_sigIeta;
     TH1D* h_sigEta;
     TH1D* h_Time   ;
+    TH1D* simTime   ;
     TH1D* h_nChi2  ;
     TH1D* h_ctau   ;
     TH1D* sel_ctau   ;
@@ -66,16 +67,27 @@ struct hSet {
     TH1D* sel_ctbg   ;
     TH1D* acc_ctbg   ;
     TH1D* h_ctbgT   ;
+    TH1D* reco_ctbgT   ;
+    TH1D* late_ctbgT   ;
+    TH1D* lateR_ctbgT   ;
     TH1D* obs_ctbgT   ;
     TH1D* sel_ctbgT   ;
     TH1D* acc_ctbgT   ;
     TH1D* h_xbeta  ;
+    TH1D* reco_xbeta  ;
+    TH1D* sel_xbeta  ;
     TH1D* h_lateXbeta  ;
+    TH1D* h_lateXctau  ;
+    TH1D* reco_xPt  ;
+    TH1D* sel_xPt  ;
+    TH2D* reco_xPt_ctbgT  ;
+    TH2D* sel_xPt_ctbgT  ;
+    TH1D* reco_gPt  ;
+    TH1D* sel_gPt  ;
     TH1D* h_XPt  ;
     TH1D* h_lateXPt  ;
     TH2D* dt1_dt2 ;
     TH2D* dt1_dt2_late ;
-    TH2D* ctbg_t_r ;
     TH2D* ctbgT_dPt ;
 
     TH1D* h_TrkIsoR  ;
@@ -88,8 +100,10 @@ struct hSet {
     TH2D* h_cHadIso_t ;
     TH2D* h_nHadIso_t ;
     TH2D* h_photIso_t ;
+    TH2D* h_gPt_time ;
 
-    TH2D* h_photIso_sMaj ;
+    TH2D* h_sMaj_sMin ;
+    TH2D* h_sMaj_sMin_late ;
     TH2D* h_photIso_nXtl ;
     TH2D* h_photIso_nBC ;
 
@@ -105,11 +119,18 @@ struct hSet {
     TH1D* h_Eta        ;
     TH1D* h_g1Pt       ;
     TH1D* h_met        ;
-    TH1D* h_gen1Pt     ; 
     TH1D* h_genMET     ; 
     TH1D* h_METRes     ; 
     TH1D* h_METdPhi    ; 
     TH1D* h_gen1RecoPt ;
+    TH2D* h_XBR ;
+    TH2D* m_nPhot ;
+    TH2D* m2_nPhot ;
+    TH2D* m1_nPhot ;
+    TH2D* m0_nPhot ;
+    TH2D* nPhot_g_r ;
+    TH1D* failGen_Eta        ;
+    TH1D* failGen_Pt       ;
 
     TH1D* h_nVtx       ;
     TH1D* h_nPhotons   ;
@@ -118,9 +139,6 @@ struct hSet {
     TH1D* h_nMuons     ;
     TH1D* h_nElectrons ;
 
-    TH2D* Gh_rho_dT ;
-    TH2D* Gh_rho_Time ;
-    TH2D* Gh_Phi_Time ;
     TH2D* Gh_Eta_Time ;
     TH2D* Gh_Eta_Time1 ;
     TH2D* h_Eta_Time ;
@@ -141,18 +159,11 @@ struct hSet {
 
     TH1D* m_RecoPt ;
     TH1D* m_GenPt ;
-    TH2D* m_sigIeta_time ;
     TH2D* m_sMaj_sMin ;
-    TH2D* m_sMaj_time ;
-    TH2D* m_sMin_time ;
-    TH2D* m_cHadIso_time ;
-    TH2D* m_nHadIso_time ;
-    TH2D* m_photIso_time ;
 
     TH1D* dR_GenReco ;
     TH2D* dR_Time ;
     TH2D* dR_XTime ;
-    TH2D* dR_sigIeta ;
     TH2D* dR_sMaj ;
     TH2D* dR_sMin ;
     TH2D* dR_photIso ;

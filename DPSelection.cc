@@ -490,7 +490,7 @@ bool DPSelection::ElectronFilter() {
          }
          if ( dR_ej < electronCuts[3] ) continue ;
 
-         eleV.push_back( make_pair( j, eP4.Pt()) ) ;
+         eleV.push_back( make_pair( j, eP4 ) ) ;
      }
      if ( eleV.size() < 1 ) pass = false ;
      return pass = false ;
@@ -515,7 +515,7 @@ bool DPSelection::MuonFilter() {
          }
          if ( dR_mj < muonCuts[3] ) continue ;
 
-         muV.push_back( make_pair( j, mP4.Pt() ) ) ;
+         muV.push_back( make_pair( j, mP4 ) ) ;
      }
      if ( muV.size() < 1 ) pass = false ;
      return pass ;
@@ -634,7 +634,7 @@ void DPSelection::PrintCutFlow() {
 
      printf(" Input: %d,  trig: %d,  vtx: %d,  photon: %d,  jetMET: %d \n"
            , counter[0], counter[1], counter[2], counter[3], counter[4]) ;
-     printf(" Photon Input: %d,   Pt: %d ,  Eta: %d,    H/E: %d,     sMin: %d,  dR_trk: %d,    Iso: %d, sigmaIeta: %d, maxPt: %d \n"
+     printf(" Photon Input: %d,   Pt: %d ,  Eta: %d,    H/E: %d,     sMin: %d,  dR_trk: %d,    tChi2: %d, sigmaIeta: %d, maxPt: %d \n"
                  , gCounter[0], gCounter[1], gCounter[2], gCounter[3], gCounter[4], gCounter[5], gCounter[6],   gCounter[7], gCounter[8] );
 
 }

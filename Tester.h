@@ -40,6 +40,7 @@ public:
    int  TrigRecoMatch(  TLorentzVector trgP4, vector<objID> objV, double& match_dR, double dR_cut = 0.5 )  ;
 
    void Plot() ;
+   void PlotOnly() ;
    void HistoInit() ;
    void HistoWrite() ;
    void HistoOpen();

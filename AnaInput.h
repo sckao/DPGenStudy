@@ -57,15 +57,15 @@ public:
 
    TTree* GetTree( string fName, TString treeName, TFile* file = NULL );
 
-   vector<double> NormalizeComponents( string cfgFile = "" );
-   
    void GetParameters( string paraName, int* thePara, string cfgFile = "" );
    void GetParameters( string paraName, double* thePara, string cfgFile ="" );
    void GetParameters( string paraName, string* thePara, string cfgFile ="" );
    void GetParameters( string paraName, vector<double>* thePara, string cfgFile = "" );
    void GetParameters( string paraName, vector<string>* thePara, string cfgFile = "" );
    void GetParameters( string paraName, vector<int>* thePara, string cfgFile = "" );
-
+   
+   vector<double> NormalizeComponents( string cfgFile = "" );
+   double RecoWeight( double pT, double ct, int error = 0 ) ;
 
 private:
 

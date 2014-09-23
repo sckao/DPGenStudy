@@ -23,6 +23,7 @@
 #include "Systematic.h"
 #include "Output.h"
 #include "Tester.h"
+#include "GenAna.h"
 //#include "mtest.h"
 
 using namespace std; 
@@ -103,6 +104,11 @@ int main( int argc, const char* argv[] ) {
      out->ProduceMC() ;
      delete out ;
   }
+  if ( module == 12 ) {
+     Output* out = new Output( datacardfile ) ;
+     out->ProduceGen() ;
+     delete out ;
+  }
   if ( module == 7 ||  module == 8 || module == 9 || module == 10 ) {
      
      BackgroundStudy * bgS = new BackgroundStudy( datacardfile ) ;
@@ -131,10 +137,20 @@ int main( int argc, const char* argv[] ) {
 
      delete bgS ;
   }
+  if ( module == 13 ) {
+     GenAna   *genA  = new GenAna( datacardfile ) ;
+     genA->ReadTree( dataFileNames );
+     delete genA ;
+  }
 
   if ( module == 20 ) {
      Tester   *tt  = new Tester( datacardfile ) ;
      tt->ReadTree( dataFileNames );
+     delete tt ;
+  }
+  if ( module == 21 ) {
+     Tester   *tt  = new Tester( datacardfile ) ;
+     tt->PlotOnly();
      delete tt ;
   }
 

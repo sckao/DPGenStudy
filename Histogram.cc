@@ -26,14 +26,14 @@ void Histogram::Init( hSet& hS ) {
 
    hS.seedTime_Chi2  = new TH2D("seedTime_Chi2", "Seed Time vs Chi2 ", 160,  -14.5, 25.5, 50, 0, 100);
 
-   hS.h_matchRecoTime = new TH1D("h_matchRecoTime", "Matched Reco Photon Time", 60,  -5, 25);
-   hS.h_matchGenTime  = new TH1D("h_matchGenTime", "Matched Gen Photon Time",  60,  -5, 25);
-   hS.h_matchTime     = new TH1D("h_matchTime", "Time Matched Gen Photon Time", 60,  -5, 25);
+   hS.h_matchRecoTime = new TH1D("h_matchRecoTime", "Matched Reco Photon Time", 160,  -14.5, 25.5);
+   hS.h_matchGenTime  = new TH1D("h_matchGenTime", "Matched Gen Photon Time",  160,  -14.5, 25.5);
+   hS.h_matchTime     = new TH1D("h_matchTime", "Time Matched Gen Photon Time", 160,  -14.5, 25.5);
 
    hS.h_genTime       = new TH1D("h_genTime",   "Photon Time ", 160,  -14.5, 25.5);
    hS.h_TimeRes1   = new TH1D("h_TimeRes1", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_TimeRes2   = new TH1D("h_TimeRes2", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
-   hS.h_TimeRes3   = new TH1D("h_TimeRes3", "Seed Photon Time Resolution",  50,  -2.5, 2.5 );
+   hS.h_TimeRes3   = new TH1D("h_TimeRes3", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_PtRes      = new TH1D("h_PtRes",   " Photon Pt Resolution", 200,  -1., 1.);
 
    hS.ctbg_RZ0  = new TH2D("ctbg_RZ0","Decay length in R vs Z ",  100, -500, 500, 80, 0, 400 );
@@ -46,11 +46,11 @@ void Histogram::Init( hSet& hS ) {
 
    hS.dt1_dt2   = new TH2D("dt1_dt2", "dt1 vs dt2 ", 60, -2, 13, 60, -2, 13 ) ;
    hS.dt1_dt2_late = new TH2D("dt1_dt2_late", "dt1 vs dt2 ", 60, -2, 13, 60, -2, 13 ) ;
-   hS.ctbg_t_r  = new TH2D("ctbg_t_r", "(c*t*beta*gamma) for #chi_{0}", 80,  0, 4000, 80, 0, 4000);
    hS.ctbgT_dPt = new TH2D("ctbgT_dPt", " decay length in lab vs dPt ", 80,  0, 4000, 40, -100, 100 ) ;
    hS.h_HoverE  = new TH1D("h_HoverE", " H/E  ", 100,  0., 0.5 ) ;
    hS.h_sigIeta = new TH1D("h_sigIeta", " Sigma Ieta Ieta ", 100,  0., 0.1 ) ;
    hS.h_Time    = new TH1D("h_Time", "Expected Photon Time", 160,  -14.5, 25.5);
+   hS.simTime   = new TH1D("simTime", "Expected Photon Time", 160,  -14.5, 25.5);
    hS.h_nChi2   = new TH1D("h_nChi2", "normalized chi2 of seed xtals", 100,  0, 50.0);
    hS.h_ctau    = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
    hS.sel_ctau = new TH1D("sel_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
@@ -60,24 +60,38 @@ void Histogram::Init( hSet& hS ) {
    hS.acc_ctbg = new TH1D("acc_ctbg", "(c*t*beta*gamma) for t > 3", 80,  0, 4000);
    hS.h_ctbgT   = new TH1D("h_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
    hS.obs_ctbgT = new TH1D("obs_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
+   hS.reco_ctbgT = new TH1D("reco_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
+   hS.late_ctbgT = new TH1D("late_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
+   hS.lateR_ctbgT = new TH1D("lateR_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
    hS.sel_ctbgT = new TH1D("sel_ctbgT", "(c*t*beta*gamma) on transverse plane for selected #chi_{0}", 80,  0, 4000);
    hS.acc_ctbgT = new TH1D("acc_ctbgT", "(c*t*beta*gamma) on transverse plane for t > 3", 80,  0, 4000);
    hS.h_xbeta   = new TH1D("h_xbeta", "Beta of Neutrlino ", 55,  0, 1.1);
-   hS.h_lateXbeta   = new TH1D("h_lateXbeta", "Beta of Neutrlino for late photon", 55,  0, 1.1);
+   hS.reco_xbeta = new TH1D("reco_xbeta", "beta for #chi_{0}", 11,  0, 1.1);
+   hS.sel_xbeta  = new TH1D("sel_xbeta", "beta for #chi_{0}", 11,  0, 1.1);
+   hS.h_lateXbeta = new TH1D("h_lateXbeta", "Beta of Neutralino for late photon", 55,  0, 1.1);
+   hS.h_lateXctau = new TH1D("h_lateXctau", "ctau of Neutralino for late photon", 80,  0, 4000);
    hS.h_XPt     = new TH1D("h_XPt", "Pt of Neutrlino", 50,  0, 500);
+   hS.reco_xPt    = new TH1D("reco_xPt", "Pt of Neutralino", 50,  0, 500);
+   hS.sel_xPt     = new TH1D("sel_xPt", "Pt of Neutralino", 50,  0, 500);
+   hS.reco_xPt_ctbgT = new TH2D("reco_xPt_ctbgT", "Pt of Neutralino vs decay length", 20,  0, 500, 40,  0, 4000);
+   hS.sel_xPt_ctbgT  = new TH2D("sel_xPt_ctbgT", "Pt of Neutralino vs decay length", 20,  0, 500, 40,  0, 4000);
+   hS.reco_gPt    = new TH1D("reco_gPt", "Pt of photon from neutralino", 50,  0, 500);
+   hS.sel_gPt     = new TH1D("sel_gPt", "Pt of photon from neutralino", 50,  0, 500);
    hS.h_lateXPt     = new TH1D("h_lateXPt", "Pt of Neutrlino for late photon", 50,  0, 500);
    hS.h_TrkIsoR  = new TH1D("h_TrkIsoR", " Track Isolation Ratio", 110, 0, 1.1 );
    hS.h_HcalIsoR = new TH1D("h_HcalIsoR", " HCAL Isolation Ratio", 110, 0, 1.1 );
    hS.h_EcalIsoR = new TH1D("h_EcalIsoR", " ECAL Isolation Ratio", 110, 0, 1.1 );
-   
+
    hS.h_cHadIso = new TH1D("h_cHadIso", " Charged Hadronic IsoDeposit ", 100, 0, 10. );
    hS.h_nHadIso = new TH1D("h_nHadIso", " Neutral Hadronic IsoDeposit ", 100, 0, 10. );
    hS.h_photIso = new TH1D("h_photIso", " Photon IsoDeposit ", 100, 0, 10. );
    hS.h_cHadIso_t = new TH2D("h_cHadIso_t", " Charged Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
    hS.h_nHadIso_t = new TH2D("h_nHadIso_t", " Neutral Hadronic IsoDeposit vs time", 100, 0, 10., 120, -15, 15 );
    hS.h_photIso_t = new TH2D("h_photIso_t", " Photon IsoDeposit vs time",           100, 0, 10., 120, -15, 15 );
+   hS.h_gPt_time  = new TH2D("h_gPt_time", " Photon Pt vs time",           100, 0, 500., 120, -5, 25 );
 
-   hS.h_photIso_sMaj = new TH2D("h_photIso_sMaj", " Photon IsoDeposit vs sMajor", 100, 0, 10., 100, 0, 2. );
+   hS.h_sMaj_sMin      = new TH2D("h_sMaj_sMin", "sMajor vs sMinor",      100, 0, 2., 60, 0.1, 0.4 );
+   hS.h_sMaj_sMin_late = new TH2D("h_sMaj_sMin_late", "sMajor vs sMinor", 100, 0, 2., 60, 0.1, 0.4 );
    hS.h_photIso_nXtl = new TH2D("h_photIso_nXtl", " Photon IsoDeposit vs nXtl",   100, 0, 10.,  50, 0, 50 );
    hS.h_photIso_nBC  = new TH2D("h_photIso_nBC", " Photon IsoDeposit vs nBCs",    100, 0, 10.,  12, 0, 12 );
 
@@ -89,11 +103,18 @@ void Histogram::Init( hSet& hS ) {
    hS.h_Eta      = new TH1D("h_Eta",  "#eta distribution ", 51,  -2.5, 2.5);
    hS.h_g1Pt     = new TH1D("h_g1Pt", "Leading Photon Pt ", 50,  0, 500);
    hS.h_met      = new TH1D("h_met",  "MET distribution ", 50,  0, 500);
-   hS.h_gen1Pt     = new TH1D("h_gen1Pt", "Leading GenPhoton Pt ", 50,  0, 500);
    hS.h_genMET     = new TH1D("h_genMET", "gen MET(MET from gravitino)  ", 50,  0, 500);
    hS.h_METRes     = new TH1D("h_METRes", "gen MET - reco MET  ", 100,  -200, 200);
    hS.h_METdPhi    = new TH1D("h_METdPhi", "#Delta#Phi(gen MET,reco MET)  ", 64,  0., 3.2);
    hS.h_gen1RecoPt = new TH1D("h_gen1RecoPt", "Leading GenPhoton Reco Pt ", 50,  0, 500);
+   hS.h_XBR      = new TH2D("h_XBR", "BR for neutralino", 5,  0, 5, 5, 0, 5);
+   hS.m_nPhot    = new TH2D("m_nPhot", "N reco photon vs N matched gen photon", 5,  0, 5, 5, 0, 5);
+   hS.m2_nPhot   = new TH2D("m2_nPhot", "N reco photon vs N matched gen photon", 5,  0, 5, 5, 0, 5);
+   hS.m1_nPhot   = new TH2D("m1_nPhot", "N reco photon vs N matched gen photon", 5,  0, 5, 5, 0, 5);
+   hS.m0_nPhot   = new TH2D("m0_nPhot", "N reco photon vs N matched gen photon", 5,  0, 5, 5, 0, 5);
+   hS.nPhot_g_r  = new TH2D("nPhot_g_r", "N gen photon vs N reco photon", 5,  0, 5, 5, 0, 5);
+   hS.failGen_Eta  = new TH1D("failGen_Eta",  "#eta distribution for not-reco gen photon", 51,  -2.5, 2.5);
+   hS.failGen_Pt   = new TH1D("failGen_Pt",   "Pt for not-reco gen photon", 50,  0, 500);
 
    hS.h_nVtx       = new TH1D("h_nVtx",    "N of vertices", 51,  -0.5, 50.5 );
    hS.h_nPhotons   = new TH1D("h_nPhotons", "N of Photons  ", 10,  -0.5, 9.5);
@@ -102,9 +123,6 @@ void Histogram::Init( hSet& hS ) {
    hS.h_nMuons     = new TH1D("h_nMuons", "N of Muons  ", 10,  -0.5, 9.5);
    hS.h_nElectrons = new TH1D("h_nElectrons", "N of Electrons  ", 10,  -0.5, 9.5);
 
-   hS.Gh_rho_Time  = new TH2D( "Gh_rho_Time", " #rho vs Ecal time", 65, 0., 160.55, 200, -25, 25 ) ;
-   hS.Gh_rho_dT    = new TH2D( "Gh_rho_dT",    " #rho vs dT ", 65, 0., 160.55, 200, -7.5, 7.5 ) ;
-   hS.Gh_Phi_Time  = new TH2D( "Gh_Phi_Time", " #phi vs Ecal time", 63, -3.15, 3.15, 200, -25, 25 ) ;
    hS.Gh_Eta_Time  = new TH2D( "Gh_Eta_Time", " #eta vs Ecal time", 51, -2.5, 2.5, 200, -25, 25 ) ;
    hS.Gh_Eta_Time1 = new TH2D( "Gh_Eta_Time1", " #eta vs Ecal time", 51, -2.5, 2.5, 200, -25, 25 ) ;
    hS.h_Pt_Eta    = new TH2D( "h_Pt_Eta",   " Pt vs. #eta ", 50, 0., 500 , 51, -2.5, 2.5  ) ;
@@ -121,17 +139,10 @@ void Histogram::Init( hSet& hS ) {
 
    hS.m_RecoPt       = new TH1D("m_RecoPt", " Photon Pt ", 50,  0, 500);
    hS.m_GenPt        = new TH1D("m_GenPt", " Photon Pt ", 50,  0, 500);
-   hS.m_sigIeta_time = new TH2D("m_sigIeta_time", "#sigma_{i#eta} vs time", 80, 0, 0.08, 100, -5, 20 ) ;
    hS.m_sMaj_sMin    = new TH2D("m_sMaj_sMin",    "sMaj vs sMin", 100, 0, 2, 60, 0.1, 0.4 ) ;
-   hS.m_sMaj_time    = new TH2D("m_sMaj_time",    "sMaj vs Ecal time", 100, 0, 2, 100, -5, 20 ) ;
-   hS.m_sMin_time    = new TH2D("m_sMin_time",    "sMin vs. Ecal time ", 100, 0., 0.5 , 100, -5, 20  ) ;
-   hS.m_cHadIso_time = new TH2D("m_cHadIso_time", "Charged Hadronic IsoDeposit vs time", 100, 0, 10., 100, -5, 20 );
-   hS.m_nHadIso_time = new TH2D("m_nHadIso_time", "Neutral Hadronic IsoDeposit vs time", 100, 0, 10., 100, -5, 20 );
-   hS.m_photIso_time = new TH2D("m_photIso_time", "Photon IsoDeposit vs time",           100, 0, 10., 100, -5, 20 );
    hS.dR_GenReco     = new TH1D("dR_GenReco",    "dR(gen,Reco) ", 100, 0, 5 ) ;
    hS.dR_Time        = new TH2D("dR_Time",    "dR(gen,Reco), time", 100, 0, 5, 100, -5, 20  ) ;
-   hS.dR_XTime       = new TH2D("dR_XTime",    "dR(gen,Reco), neutralino's lifetime", 100, 0, 5, 100, 0, 5000.  ) ;
-   hS.dR_sigIeta     = new TH2D("dR_sigIeta", "dR(gen,Reco), sig_Ieta", 100, 0, 5, 80, 0, 0.08  ) ;
+   hS.dR_XTime       = new TH2D("dR_XTime",    "dR(gen,Reco), neutralino's lifetime", 100, 0, 5, 100, 0, 2000.  ) ;
    hS.dR_sMaj        = new TH2D("dR_sMaj",    "dR(gen,Reco), sMajor", 100, 0, 5, 100, 0, 2. ) ;
    hS.dR_sMin        = new TH2D("dR_sMin",    "dR(gen,Reco), sMinor", 100, 0, 5, 100, 0, 0.5  ) ;
    hS.dR_photIso     = new TH2D("dR_photIso", "dR(gen,Reco), PhotonIso", 100, 0, 5, 100, 0, 10 ) ;
@@ -185,11 +196,11 @@ void Histogram::Open() {
 
      h.dt1_dt2    = (TH2D*) hFile->Get("dt1_dt2")   ;
      h.dt1_dt2_late = (TH2D*) hFile->Get("dt1_dt2_late")   ;
-     h.ctbg_t_r   = (TH2D*) hFile->Get("ctbg_t_r")   ;
      h.ctbgT_dPt  = (TH2D*) hFile->Get("ctbgT_dPt")   ;
      h.h_HoverE   = (TH1D*) hFile->Get("h_HoverE")   ;
      h.h_sigIeta  = (TH1D*) hFile->Get("h_sigIeta")   ;
      h.h_Time   = (TH1D*) hFile->Get("h_Time")   ;
+     h.simTime  = (TH1D*) hFile->Get("simTime")   ;
      h.h_nChi2  = (TH1D*) hFile->Get("h_nChi2")  ;
      h.h_ctau   = (TH1D*) hFile->Get("h_ctau")   ;
      h.sel_ctau   = (TH1D*) hFile->Get("sel_ctau")   ;
@@ -198,12 +209,24 @@ void Histogram::Open() {
      h.sel_ctbg = (TH1D*) hFile->Get("sel_ctbg")   ;
      h.acc_ctbg = (TH1D*) hFile->Get("acc_ctbg")   ;
      h.h_ctbgT   = (TH1D*) hFile->Get("h_ctbgT")   ;
+     h.reco_ctbgT = (TH1D*) hFile->Get("reco_ctbgT") ;
+     h.late_ctbgT = (TH1D*) hFile->Get("late_ctbgT") ;
+     h.lateR_ctbgT = (TH1D*) hFile->Get("lateR_ctbgT") ;
      h.obs_ctbgT = (TH1D*) hFile->Get("obs_ctbgT")   ;
      h.sel_ctbgT = (TH1D*) hFile->Get("sel_ctbgT")   ;
      h.acc_ctbgT = (TH1D*) hFile->Get("acc_ctbgT")   ;
      h.h_xbeta  = (TH1D*) hFile->Get("h_xbeta")  ;
+     h.reco_xbeta = (TH1D*) hFile->Get("reco_xbeta") ;
+     h.sel_xbeta  = (TH1D*) hFile->Get("sel_xbeta") ;
      h.h_lateXbeta  = (TH1D*) hFile->Get("h_lateXbeta")  ;
+     h.h_lateXctau  = (TH1D*) hFile->Get("h_lateXctau")  ;
      h.h_lateXPt    = (TH1D*) hFile->Get("h_lateXPt")  ;
+     h.reco_xPt     = (TH1D*) hFile->Get("reco_xPt")  ;
+     h.sel_xPt      = (TH1D*) hFile->Get("sel_xPt")  ;
+     h.reco_xPt_ctbgT = (TH2D*) hFile->Get("reco_xPt_ctbgT")  ;
+     h.sel_xPt_ctbgT  = (TH2D*) hFile->Get("sel_xPt_ctbgT")  ;
+     h.reco_gPt     = (TH1D*) hFile->Get("reco_gPt")  ;
+     h.sel_gPt      = (TH1D*) hFile->Get("sel_gPt")  ;
      h.h_XPt     = (TH1D*) hFile->Get("h_XPt")  ;
      h.h_TrkIsoR = (TH1D*) hFile->Get("h_TrkIsoR")  ;
      h.h_HcalIsoR = (TH1D*) hFile->Get("h_HcalIsoR") ;
@@ -215,8 +238,10 @@ void Histogram::Open() {
      h.h_cHadIso_t = (TH2D*) hFile->Get("h_cHadIso_t") ;
      h.h_nHadIso_t = (TH2D*) hFile->Get("h_nHadIso_t") ;
      h.h_photIso_t = (TH2D*) hFile->Get("h_photIso_t") ;
+     h.h_gPt_time  = (TH2D*) hFile->Get("h_gPt_time") ;
 
-     h.h_photIso_sMaj = (TH2D*) hFile->Get("h_photIso_sMaj") ;
+     h.h_sMaj_sMin = (TH2D*) hFile->Get("h_sMaj_sMin") ;
+     h.h_sMaj_sMin_late = (TH2D*) hFile->Get("h_sMaj_sMin_late") ;
      h.h_photIso_nXtl = (TH2D*) hFile->Get("h_photIso_nXtl") ;
      h.h_photIso_nBC  = (TH2D*) hFile->Get("h_photIso_nBC") ;
 
@@ -228,11 +253,18 @@ void Histogram::Open() {
      h.h_Eta    = (TH1D*) hFile->Get("h_Eta")        ;
      h.h_g1Pt   = (TH1D*) hFile->Get("h_g1Pt")       ;
      h.h_met = (TH1D*) hFile->Get("h_met")        ;
-     h.h_gen1Pt = (TH1D*) hFile->Get("h_gen1Pt")     ;
      h.h_genMET = (TH1D*) hFile->Get("h_genMET")     ;
      h.h_METRes = (TH1D*) hFile->Get("h_METRes")     ;
      h.h_METdPhi = (TH1D*) hFile->Get("h_METdPhi")     ;
      h.h_gen1RecoPt = (TH1D*) hFile->Get("h_gen1RecoPt") ;
+     h.h_XBR   = (TH2D*) hFile->Get("h_XBR") ;
+     h.m_nPhot = (TH2D*) hFile->Get("m_nPhot") ;
+     h.m2_nPhot = (TH2D*) hFile->Get("m2_nPhot") ;
+     h.m1_nPhot = (TH2D*) hFile->Get("m1_nPhot") ;
+     h.m0_nPhot = (TH2D*) hFile->Get("m0_nPhot") ;
+     h.nPhot_g_r = (TH2D*) hFile->Get("nPhot_g_r") ;
+     h.failGen_Eta  = (TH1D*) hFile->Get("failGen_Eta")        ;
+     h.failGen_Pt   = (TH1D*) hFile->Get("failGen_Pt")       ;
 
      h.h_nVtx        = (TH1D*) hFile->Get("h_nVtx")       ;
      h.h_nPhotons    = (TH1D*) hFile->Get("h_nPhotons")   ;
@@ -241,9 +273,6 @@ void Histogram::Open() {
      h.h_nMuons      = (TH1D*) hFile->Get("h_nMuons")     ;
      h.h_nElectrons  = (TH1D*) hFile->Get("h_nElectrons") ;
 
-     h.Gh_rho_Time  = (TH2D*) hFile->Get("Gh_rho_Time")  ;
-     h.Gh_rho_dT    = (TH2D*) hFile->Get("Gh_rho_dT")  ;
-     h.Gh_Phi_Time  = (TH2D*) hFile->Get("Gh_Phi_Time")  ;
      h.Gh_Eta_Time  = (TH2D*) hFile->Get("Gh_Eta_Time")  ;
      h.Gh_Eta_Time1  = (TH2D*) hFile->Get("Gh_Eta_Time1")  ;
      h.h_Pt_Eta    = (TH2D*) hFile->Get("h_Pt_Eta")  ;
@@ -260,17 +289,10 @@ void Histogram::Open() {
 
      h.m_RecoPt       = (TH1D*) hFile->Get("m_RecoPt")       ;
      h.m_GenPt        = (TH1D*) hFile->Get("m_GenPt")       ;
-     h.m_sigIeta_time = (TH2D*) hFile->Get("m_sigIeta_time")  ;
      h.m_sMaj_sMin    = (TH2D*) hFile->Get("m_sMaj_sMin")  ;
-     h.m_sMaj_time    = (TH2D*) hFile->Get("m_sMaj_time")  ;
-     h.m_sMin_time    = (TH2D*) hFile->Get("m_sMin_time") ;
-     h.m_cHadIso_time = (TH2D*) hFile->Get("m_cHadIso_time")  ;
-     h.m_nHadIso_time = (TH2D*) hFile->Get("m_nHadIso_time") ;
-     h.m_photIso_time = (TH2D*) hFile->Get("m_photIso_time") ;
      h.dR_GenReco     = (TH1D*) hFile->Get("dR_GenReco")     ;
      h.dR_Time        = (TH2D*) hFile->Get("dR_Time")     ;
      h.dR_XTime       = (TH2D*) hFile->Get("dR_XTime")     ;
-     h.dR_sigIeta      = (TH2D*) hFile->Get("dR_sigIeta")     ;
      h.dR_sMaj         = (TH2D*) hFile->Get("dR_sMaj")     ;
      h.dR_sMin         = (TH2D*) hFile->Get("dR_sMin")     ;
      h.dR_photIso      = (TH2D*) hFile->Get("dR_photIso")     ;
@@ -314,8 +336,8 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_HoverE->Write()   ;
      h.h_sigIeta->Write()   ;
      h.h_Time->Write()   ;
+     h.simTime->Write()   ;
      h.h_nChi2->Write()  ;
-     h.ctbg_t_r->Write()   ;
      h.ctbgT_dPt->Write()   ;
      h.h_ctau->Write()   ;
      h.sel_ctau->Write()   ;
@@ -324,13 +346,25 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.sel_ctbg->Write()   ;
      h.acc_ctbg->Write()   ;
      h.h_ctbgT->Write()   ;
+     h.reco_ctbgT->Write()   ;
+     h.late_ctbgT->Write()   ;
+     h.lateR_ctbgT->Write()   ;
      h.obs_ctbgT->Write()   ;
      h.sel_ctbgT->Write()   ;
      h.acc_ctbgT->Write()   ;
      h.h_xbeta->Write()  ;
+     h.reco_xbeta->Write()   ;
+     h.sel_xbeta->Write()   ;
      h.h_lateXbeta->Write()  ;
+     h.h_lateXctau->Write()  ;
      h.h_lateXPt->Write()  ;
+     h.reco_xPt->Write()  ;
+     h.sel_xPt->Write()  ;
      h.h_XPt->Write()  ;
+     h.reco_xPt_ctbgT->Write()  ;
+     h.sel_xPt_ctbgT->Write()  ;
+     h.reco_gPt->Write()  ;
+     h.sel_gPt->Write()  ;
      h.h_TrkIsoR->Write()  ;
      h.h_HcalIsoR->Write() ;
      h.h_EcalIsoR->Write() ;
@@ -341,8 +375,10 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_cHadIso_t->Write() ;
      h.h_nHadIso_t->Write() ;
      h.h_photIso_t->Write() ;
+     h.h_gPt_time->Write() ;
 
-     h.h_photIso_sMaj->Write() ;
+     h.h_sMaj_sMin->Write() ;
+     h.h_sMaj_sMin_late->Write() ;
      h.h_photIso_nXtl->Write() ;
      h.h_photIso_nBC->Write() ;
 
@@ -354,11 +390,18 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_Eta->Write()        ;
      h.h_g1Pt->Write()       ;
      h.h_met->Write()        ;
-     h.h_gen1Pt->Write()     ;
      h.h_genMET->Write()     ;
      h.h_METRes->Write()     ;
      h.h_METdPhi->Write()     ;
      h.h_gen1RecoPt->Write() ;
+     h.h_XBR->Write() ;
+     h.m_nPhot->Write() ;
+     h.m2_nPhot->Write() ;
+     h.m1_nPhot->Write() ;
+     h.m0_nPhot->Write() ;
+     h.nPhot_g_r->Write() ;
+     h.failGen_Eta->Write()    ;
+     h.failGen_Pt->Write()     ;
 
      h.h_nVtx->Write()       ;
      h.h_nPhotons->Write()   ;
@@ -367,9 +410,6 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_nMuons->Write()     ;
      h.h_nElectrons->Write() ;
 
-     h.Gh_rho_Time->Write() ;
-     h.Gh_rho_dT->Write() ;
-     h.Gh_Phi_Time->Write() ;
      h.Gh_Eta_Time->Write() ;
      h.Gh_Eta_Time1->Write() ;
      h.h_Pt_Eta->Write() ;
@@ -386,17 +426,10 @@ void Histogram::Write( string theFolder , TFile* file  ) {
 
      h.m_RecoPt->Write()      ;
      h.m_GenPt->Write()       ;
-     h.m_sigIeta_time->Write() ;
-     h.m_sMaj_time->Write() ;
      h.m_sMaj_sMin->Write() ;
-     h.m_sMin_time->Write() ;
-     h.m_nHadIso_time->Write() ;
-     h.m_cHadIso_time->Write() ;
-     h.m_photIso_time->Write() ;
      h.dR_GenReco->Write() ; 
      h.dR_Time->Write() ; 
      h.dR_XTime->Write() ; 
-     h.dR_sigIeta->Write() ; 
      h.dR_sMaj->Write() ; 
      h.dR_sMin->Write() ; 
      h.dR_photIso->Write() ; 
@@ -503,16 +536,11 @@ void Histogram::DrawHistograms() {
          h.h_met->SetLineWidth(2);
          leg2->AddEntry( h.h_genMET, "GEN",  "L");
          leg2->AddEntry( h.h_met,    "RECO",  "L");
-	 h_draw->Draw(       h.h_genMET,  "", "MET", "", "logY", 0.95, 2 ) ;
-	 h_draw->DrawAppend( h.h_met,     "MET",  0.75, 4 , 1, leg2 ) ;
+	 h_draw->Draw(       h.h_genMET,  "", "MET", "", "logY", 0.95, 4 ) ;
+	 h_draw->DrawAppend( h.h_met,     "MET",                 0.75, 2 , 1, leg2 ) ;
 
-         leg2->Clear();
          h.h_gen1RecoPt->SetLineWidth(2);
-         h.h_g1Pt->SetLineWidth(2);
-         leg2->AddEntry( h.h_gen1RecoPt,  "GEN",  "L");
-         leg2->AddEntry( h.h_g1Pt,        "RECO",  "L");
-	 h_draw->Draw(       h.h_gen1RecoPt,  "", "Leading Photon Pt", "", "logY", 0.95, 2 ) ;
-	 h_draw->DrawAppend( h.h_g1Pt,            "LeadingPhotonPt",  0.75, 4 , 1, leg2 ) ;
+	 h_draw->Draw(       h.h_gen1RecoPt,  "LeadingPhotonPt", "Leading Photon Pt", "", "logY", 0.95, 2 ) ;
 
          leg2->Clear();
          h.m_RecoPt->SetLineWidth(2);
@@ -544,10 +572,9 @@ void Histogram::DrawHistograms() {
          h_draw->FitNDraw( h.sel_ctau, "SelCTau", " ctau (mm)", " ", "logY", 0.95, 1 );
          // more gen information
 	 h_draw->CreateNxM( "GenInfo", 2,2 );
-	 h_draw->DrawNxM( 1, h.h_gen1Pt,        "Leading GenPhoton Pt (GeV/c)",      "", "logY", 1, false );
-	 h_draw->DrawNxM( 2, h.h_gen1RecoPt,    "Leading GenPhoton Reco Pt (GeV/c)", "", "logY", 1, false );
-	 h_draw->DrawNxM( 3, h.h_nGenPhotons,   "N of GenPhotons",   "", "logY", 1, false );
-	 h_draw->DrawNxM( 4, h.h_xbeta,         " #{beta} ",         "", "logY", 1, true ) ;
+	 h_draw->DrawNxM( 1, h.h_gen1RecoPt,    "Leading GenPhoton Reco Pt (GeV/c)", "", "logY", 1, false );
+	 h_draw->DrawNxM( 2, h.h_nGenPhotons,   "N of GenPhotons",   "", "logY", 1, false );
+	 h_draw->DrawNxM( 3, h.h_xbeta,         " #{beta} ",         "", "logY", 1, true ) ;
 
          gStyle->SetOptStat("meou");
 	 h_draw->Draw(       h.h_METRes,  "METRes", "gen MET - reco MET", "", "", 0.95, 1 ) ;
@@ -572,7 +599,6 @@ void Histogram::DrawHistograms() {
       h_draw->SetHistoAtt("Y", 0, 0, 0, 0 ) ;
       h_draw->Draw2D( h.dR_Time, "dR_Time", " dR(Gen,Reco)", "EcalTime", "logZ", 8 ) ;
       h_draw->Draw2D( h.dR_XTime, "dR_XTime", " dR(Gen,Reco)", " #chi_{0} lifetime", "logZ", 8 ) ;
-      h_draw->Draw2D( h.dR_sigIeta, "dR_sigIeta", " dR(Gen,Reco)", "#sigma_{i#eta}", "logZ", 8 ) ;
       h_draw->Draw2D( h.dR_sMaj, "dR_sMaj",       " dR(Gen,Reco)", "s_{Major}", "logZ", 8 ) ;
       h_draw->Draw2D( h.dR_sMin, "dR_sMin",       " dR(Gen,Reco)", "s_{Minor}", "logZ", 8 ) ;
       h_draw->Draw2D( h.dR_photIso, "dR_photIso", " dR(Gen,Reco)", "PF photIso", "logZ", 8 ) ;
@@ -642,7 +668,8 @@ void Histogram::DrawHistograms() {
    h_draw->Draw2D( h.h_nHadIso_t,   "h_nHadIso_t",   " Neutral Hadronic Iso", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_photIso_t,   "h_photIso_t",   " Photon Iso", "EcalTime (ns)", "logZ" , 8 ) ;
 
-   h_draw->Draw2D( h.h_photIso_sMaj, "h_photIso_sMaj",   " Photon Iso", "sMajor", "logZ" , 8 ) ;
+   h_draw->Draw2D( h.h_sMaj_sMin,      "h_sMaj_sMin",   "sMajor", "sMinor", "logZ" , 8 ) ;
+   h_draw->Draw2D( h.h_sMaj_sMin_late, "h_sMaj_sMin_late",   "sMajor", "sMinor", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_photIso_nXtl, "h_photIso_nXtl",   " Photon Iso", "nXtl", "logZ" , 8 ) ;
    h_draw->Draw2D( h.h_photIso_nBC,  "h_photIso_nBC",    " Photon Iso", "nBC ", "logZ" , 8 ) ;
 
@@ -650,18 +677,8 @@ void Histogram::DrawHistograms() {
    h_draw->DrawAppend( h.pureTime,   "", 0.75, 2, 1  ) ;
    h_draw->DrawAppend( h.ghostTime,  "h_TimeTag", 0.55, 4, 1  ) ;
 
-   h_draw->Draw2D( h.m_sigIeta_time,   "m_sigIeta_time","#sigma_{i#eta i#eta}", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( h.m_sMaj_sMin,      "m_sMaj_sMin",   "sMaj", "sMin",  "logZ"  ) ;
-   h_draw->Draw2D( h.m_sMaj_time,      "m_sMaj_time",   "sMaj", "EcalTime (ns)",  "logZ"  ) ;
-   h_draw->Draw2D( h.m_sMin_time,      "m_sMin_time",   "sMin", "EcalTime (ns)",  "logZ"  ) ;
-   h_draw->Draw2D( h.m_cHadIso_time,   "m_cHadIso_time",   " Charged Hadronic Iso", "EcalTime (ns)", "logZ" , 8 ) ;
-   h_draw->Draw2D( h.m_nHadIso_time,   "m_nHadIso_time",   " Neutral Hadronic Iso", "EcalTime (ns)", "logZ" , 8 ) ;
-   h_draw->Draw2D( h.m_photIso_time,   "m_photIso_time",   " Photon Iso", "EcalTime (ns)", "logZ" , 8 ) ;
-
    h_draw->Draw2D( h.Gh_Eta_Time1,   "Gh_Eta_Time1",    "#phi (cm)", "EcalTime (ns)",  "logZ"  ) ;
-   h_draw->Draw2D( h.Gh_Phi_Time,   "Gh_Phi_Time",    "#phi (cm)", "EcalTime (ns)",  "logZ"  ) ;
-   h_draw->Draw2D( h.Gh_rho_Time,   "Gh_rho_Time",    "#rho (cm)", "EcalTime (ns)",  "logZ"  ) ;
-   h_draw->Draw2D( h.Gh_rho_dT,   "Gh_rho_dT",      "#rho (cm)", " #Delta T (ns)",  "logZ"  ) ;
 
    TCanvas* c_1 = new TCanvas("c_1","", 800, 700);
    c_1->SetFillColor(10);
