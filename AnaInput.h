@@ -65,7 +65,7 @@ public:
    void GetParameters( string paraName, vector<int>* thePara, string cfgFile = "" );
    
    vector<double> NormalizeComponents( string cfgFile = "" );
-   double RecoWeight( double pT, double ct, int error = 0 ) ;
+   double RecoWeight( double pT, double ct ) ;
 
 private:
 

@@ -58,7 +58,7 @@ public:
    TestGen( string datacardfile = "DataCard.txt");     
    ~TestGen();     
    
-   void ReadTree( string dataName = "0", double weight = 1. ) ;
+   void ReadTree( string dataName = "0", double weight = 1., string fNamePattern = "" ) ;
    bool Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
    bool Propagator1( TLorentzVector v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
 
@@ -80,6 +80,7 @@ private:
    int isData ;
    double TCut ;
    double FitCtau ;
+   int systType ;
 
    float genPx[MAXGEN], genPy[MAXGEN], genPz[MAXGEN], genE[MAXGEN] ;
    float genVx[MAXGEN], genVy[MAXGEN], genVz[MAXGEN], genT[MAXGEN] ;
@@ -114,6 +115,7 @@ private:
    vector<TLorentzVector> genXPs ;
  
    vector<double> photonCuts ;
+   vector<double> photonPFIso ;
    vector<double> jetCuts ;
    vector<double> timeCalib ;
 

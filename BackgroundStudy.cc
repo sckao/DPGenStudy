@@ -32,7 +32,8 @@ BackgroundStudy::BackgroundStudy( string datacardfile ) {
   Input->GetParameters("JetCuts",       &jetCuts ) ; 
   Input->GetParameters("HFileName",     &hfileName ) ; 
   Input->GetParameters("Path",          &hfolder ) ; 
-  Input->GetParameters( "SystType",     &systType ) ;
+  Input->GetParameters("SystType",      &systType ) ;
+  Input->GetParameters("TCut",          &TCut ) ;
 
   h_draw_ = new hDraw( hfolder, plotType ) ;
   newMET  = TLorentzVector( 0., 0., 0., 0. )  ;
@@ -879,12 +880,17 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
            bool passCollSelection = ( newMET.E() < jetCuts[4] && rt.timeChi2[k] < 4 && selectPho[0].second.Pt() > photonCuts[8] ) ; 
   	   int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
            int nj = ( selectJets.size() > 2 ) ? 2 : (int)selectJets.size() ;
+           // This is Only for closure test
+           if ( selectPho[0].second.Pt() < photonCuts[8] && newMET.E() > jetCuts[4] && rt.timeChi2[k] < 4  ) {
+              passABCDSelection = true ; 
+              nj = 0 ;
+           }
            // Region E , |t| < 2 ns  
            if ( fabs(rt.seedTime[k]) < 2. && passABCDSelection ) {
               if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj,  weight );
               if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj,  weight );
            }
-	   if ( rt.seedTime[k] < -3. && rt.seedTime[k] > -10. && passABCDSelection ) {
+	   if ( rt.seedTime[k] < -1.*TCut[0] && rt.seedTime[k] > -10. && passABCDSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -905,7 +911,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   // ******************
 	   //   Region C and D
 	   // ******************
-           if ( rt.seedTime[k] > 3.0 && rt.seedTime[k] < 10.0 && passABCDSelection ) {
+           if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] < TCut[1] && passABCDSelection ) {
               // Region D
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -929,7 +935,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
               if ( noPhotMET.E() > jetCuts[4] ) hCol_F->Fill( ih, 0.5, nj,  weight );
               if ( noPhotMET.E() < jetCuts[4] ) hCol_E->Fill( ih, 0.5, nj,  weight );
            }
-	   if ( rt.seedTime[k] < -3. && rt.seedTime[k] > -10. && passCollSelection ) {
+	   if ( rt.seedTime[k] < -1.*TCut[0] && rt.seedTime[k] > -1.*TCut[1] && passCollSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -950,7 +956,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   // ******************
 	   //   Region C and D
 	   // ******************
-           if ( rt.seedTime[k] > 3.0 && rt.seedTime[k] < 10.0 && passCollSelection ) {
+           if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] < TCut[1] && passCollSelection ) {
               // Region D
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -1279,10 +1285,10 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    gPad->SetGridx() ;
    leg2->Clear() ;
    leg2->AddEntry( obsTime,     "All" , "L" ) ;
-   leg2->AddEntry( pure_Time,   "NoBackgroud" , "L" ) ;
-   leg2->AddEntry( haloS->halo_Time,   "HaloTagged" , "L" ) ;
-   leg2->AddEntry( spikeS->spike_Time,  "SpikeTagged" , "L" ) ;
-   leg2->AddEntry( cosmicS->cosmic_Time, "CosmicTagged" , "L" ) ;
+   leg2->AddEntry( pure_Time,   "Final" , "L" ) ;
+   leg2->AddEntry( haloS->halo_Time,   "TaggedHalo" , "L" ) ;
+   leg2->AddEntry( spikeS->spike_Time,  "TaggedSpike" , "L" ) ;
+   leg2->AddEntry( cosmicS->cosmic_Time, "TaggedCosmic" , "L" ) ;
    h_draw->Draw(       obsTime,    "", "Ecal Time (ns)", "", "logY", 0.95, 1 ) ;
    h_draw->DrawAppend( pure_Time,  "", 0.85, 2, 1  ) ;
    h_draw->DrawAppend( haloS->halo_Time,  "", 0.75, 4, 1  ) ;

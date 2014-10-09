@@ -257,7 +257,7 @@ bool DPSelection::L1Filter() {
 bool DPSelection::PhotonFilter() { 
 
        bool pass =  true ;
-       int nG[9] = { 0. } ;
+       int nG[9] = { 0 } ;
 
        // 0. photon cuts
        phoV.clear() ;

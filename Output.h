@@ -50,8 +50,6 @@ public:
    void WriteDataHisto() ;
    void WriteMcHisto() ;
 
-   double RecoWeight( double pT, double ct ) ;
-
 private:
 
    AnaInput*     Input;
@@ -63,13 +61,13 @@ private:
    // Root File for Rootuple or histograms
    TFile *theFile ;
    string hfName ;
-   string systType ;
+   int systType ;
 
    vector<double> normV ;
    vector<double> timeCalib ;
    vector<double> jetCuts ;
    vector<double> photonCuts ;
-
+   vector<double> TCut ;
    vector<objID> selectJets ;
    vector<objID> selectPho ;
 

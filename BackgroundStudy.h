@@ -271,6 +271,7 @@ private:
    vector<double> photonPFIso ;
    vector<double> jetCuts ;
    vector<double> timeCalib ;
+   vector<double> TCut ;
 
    // Root File for Rootuple or histograms
    TFile *theFile ;

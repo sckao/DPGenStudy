@@ -21,8 +21,11 @@ void Histogram::Init( hSet& hS ) {
 
    hS.obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -14.5, 25.5);
    hS.aveObsTime  = new TH1D("aveObsTime", "Photon Time from clusters", 160,  -14.5, 25.5);
-   hS.aveObsTime1 = new TH1D("aveObsTime1", "Photon Time from clusters chi2 < 5", 160,  -14.5, 25.5);
+   hS.aveObsTime1 = new TH1D("aveObsTime1", "Photon Time ", 100,  -2.5, 2.5);
    hS.aveObsTime2 = new TH1D("aveObsTime2", "Photon Time from seed with cluster chi2 < 5", 160,  -14.5, 25.5);
+   hS.isoTime     = new TH1D("isoTime", "Time from isolated good photons", 100,  -2.5, 2.5);
+   hS.obsTime1    = new TH1D("obsTime1", "Time from isolated good photons", 100,  -2.5, 2.5);
+   hS.obsTime2    = new TH1D("obsTime2", "Time from isolated good photons", 100,  -2.5, 2.5);
 
    hS.seedTime_Chi2  = new TH2D("seedTime_Chi2", "Seed Time vs Chi2 ", 160,  -14.5, 25.5, 50, 0, 100);
 
@@ -31,6 +34,7 @@ void Histogram::Init( hSet& hS ) {
    hS.h_matchTime     = new TH1D("h_matchTime", "Time Matched Gen Photon Time", 160,  -14.5, 25.5);
 
    hS.h_genTime       = new TH1D("h_genTime",   "Photon Time ", 160,  -14.5, 25.5);
+   hS.h_TimeRes0   = new TH1D("h_TimeRes0", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_TimeRes1   = new TH1D("h_TimeRes1", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_TimeRes2   = new TH1D("h_TimeRes2", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_TimeRes3   = new TH1D("h_TimeRes3", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
@@ -50,6 +54,7 @@ void Histogram::Init( hSet& hS ) {
    hS.h_HoverE  = new TH1D("h_HoverE", " H/E  ", 100,  0., 0.5 ) ;
    hS.h_sigIeta = new TH1D("h_sigIeta", " Sigma Ieta Ieta ", 100,  0., 0.1 ) ;
    hS.h_Time    = new TH1D("h_Time", "Expected Photon Time", 160,  -14.5, 25.5);
+   hS.h_dT0     = new TH1D("h_dT0", "Expected Photon Time", 160,  -14.5, 25.5);
    hS.simTime   = new TH1D("simTime", "Expected Photon Time", 160,  -14.5, 25.5);
    hS.h_nChi2   = new TH1D("h_nChi2", "normalized chi2 of seed xtals", 100,  0, 50.0);
    hS.h_ctau    = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
@@ -103,6 +108,8 @@ void Histogram::Init( hSet& hS ) {
    hS.h_Eta      = new TH1D("h_Eta",  "#eta distribution ", 51,  -2.5, 2.5);
    hS.h_g1Pt     = new TH1D("h_g1Pt", "Leading Photon Pt ", 50,  0, 500);
    hS.h_met      = new TH1D("h_met",  "MET distribution ", 50,  0, 500);
+   hS.h_met1     = new TH1D("h_met1",  "no Photon MET distribution ", 50,  0, 500);
+   hS.h_met2     = new TH1D("h_met2",  "new MET distribution ", 50,  0, 500);
    hS.h_genMET     = new TH1D("h_genMET", "gen MET(MET from gravitino)  ", 50,  0, 500);
    hS.h_METRes     = new TH1D("h_METRes", "gen MET - reco MET  ", 100,  -200, 200);
    hS.h_METdPhi    = new TH1D("h_METdPhi", "#Delta#Phi(gen MET,reco MET)  ", 64,  0., 3.2);
@@ -172,6 +179,9 @@ void Histogram::Open() {
      cout<<" file opened ! "<<endl ;
 
      h.obsTime     = (TH1D*) hFile->Get("obsTime")     ;
+     h.isoTime     = (TH1D*) hFile->Get("isoTime")     ;
+     h.obsTime1    = (TH1D*) hFile->Get("obsTime1")     ;
+     h.obsTime2    = (TH1D*) hFile->Get("obsTime2")     ;
      h.aveObsTime  = (TH1D*) hFile->Get("aveObsTime") ;
      h.aveObsTime1 = (TH1D*) hFile->Get("aveObsTime1") ;
      h.aveObsTime2 = (TH1D*) hFile->Get("aveObsTime2") ;
@@ -184,6 +194,7 @@ void Histogram::Open() {
      h.h_matchGenTime = (TH1D*) hFile->Get("h_matchGenTime")  ;
      h.h_matchTime = (TH1D*) hFile->Get("h_matchTime")     ;
      h.h_genTime = (TH1D*) hFile->Get("h_genTime")       ;
+     h.h_TimeRes0 = (TH1D*) hFile->Get("h_TimeRes0")      ;
      h.h_TimeRes1 = (TH1D*) hFile->Get("h_TimeRes1")      ;
      h.h_TimeRes2 = (TH1D*) hFile->Get("h_TimeRes2")      ;
      h.h_TimeRes3 = (TH1D*) hFile->Get("h_TimeRes3")      ;
@@ -200,6 +211,7 @@ void Histogram::Open() {
      h.h_HoverE   = (TH1D*) hFile->Get("h_HoverE")   ;
      h.h_sigIeta  = (TH1D*) hFile->Get("h_sigIeta")   ;
      h.h_Time   = (TH1D*) hFile->Get("h_Time")   ;
+     h.h_dT0    = (TH1D*) hFile->Get("h_dT0")   ;
      h.simTime  = (TH1D*) hFile->Get("simTime")   ;
      h.h_nChi2  = (TH1D*) hFile->Get("h_nChi2")  ;
      h.h_ctau   = (TH1D*) hFile->Get("h_ctau")   ;
@@ -253,6 +265,8 @@ void Histogram::Open() {
      h.h_Eta    = (TH1D*) hFile->Get("h_Eta")        ;
      h.h_g1Pt   = (TH1D*) hFile->Get("h_g1Pt")       ;
      h.h_met = (TH1D*) hFile->Get("h_met")        ;
+     h.h_met1 = (TH1D*) hFile->Get("h_met1")        ;
+     h.h_met2 = (TH1D*) hFile->Get("h_met2")        ;
      h.h_genMET = (TH1D*) hFile->Get("h_genMET")     ;
      h.h_METRes = (TH1D*) hFile->Get("h_METRes")     ;
      h.h_METdPhi = (TH1D*) hFile->Get("h_METdPhi")     ;
@@ -309,6 +323,9 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      if ( theFolder.size() > 0 ) file->cd( theFolder.c_str() );
 
      h.obsTime->Write()     ;
+     h.isoTime->Write()     ;
+     h.obsTime1->Write()     ;
+     h.obsTime2->Write()     ;
      h.aveObsTime->Write() ;
      h.aveObsTime1->Write() ;
      h.aveObsTime2->Write() ;
@@ -326,6 +343,7 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_matchGenTime->Write()  ;
      h.h_matchTime->Write()     ;
      h.h_genTime->Write()       ;
+     h.h_TimeRes0->Write()      ;
      h.h_TimeRes1->Write()      ;
      h.h_TimeRes2->Write()      ;
      h.h_TimeRes3->Write()      ;
@@ -336,6 +354,7 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_HoverE->Write()   ;
      h.h_sigIeta->Write()   ;
      h.h_Time->Write()   ;
+     h.h_dT0->Write()   ;
      h.simTime->Write()   ;
      h.h_nChi2->Write()  ;
      h.ctbgT_dPt->Write()   ;
@@ -390,6 +409,8 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_Eta->Write()        ;
      h.h_g1Pt->Write()       ;
      h.h_met->Write()        ;
+     h.h_met1->Write()        ;
+     h.h_met2->Write()        ;
      h.h_genMET->Write()     ;
      h.h_METRes->Write()     ;
      h.h_METdPhi->Write()     ;
@@ -458,7 +479,7 @@ void Histogram::DrawHistograms() {
    leg1->Clear();
    leg1->SetTextSize(0.03) ;
    // calculate the number events later than "TCut"
-   int bin_tcut = static_cast<int>( (TCut + 14.5) / 0.25 ) ;
+   int bin_tcut = static_cast<int>( (TCut[0] + 14.5) / 0.25 ) ;
    /// seed time
    Int_t nu1  = h.obsTime->Integral(bin_tcut,160);
    Int_t nu1a = h.obsTime->Integral(1,160);

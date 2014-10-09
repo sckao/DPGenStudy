@@ -68,16 +68,21 @@ int main( int argc, const char* argv[] ) {
   }
   if ( module == 3 ) {
      TestGen   *tgen  = new TestGen( datacardfile ) ;
-     vector<double >normV = Input->NormalizeComponents( datacardfile );
+     //vector<double >normV = Input->NormalizeComponents( datacardfile );
 
+     //string fNamePattern[7] = { "_250", "_500", "_1000", "_2000", "_3000", "_4000", "_6000" } ;
+     vector<string> mcIdx ;
+     Input->GetParameters( "mcIndex",   &mcIdx );
+     
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) { 
-         tgen->ReadTree( mcFileNames[i] , normV[i] );
+         //tgen->ReadTree( mcFileNames[i] , normV[i] );
+         tgen->ReadTree( mcFileNames[i], 1., mcIdx[i] );
      }
      delete tgen ;
 
-     Histogram *histo = new Histogram( ) ;
-     histo->DrawHistograms();
-     delete histo ;
+     //Histogram *histo = new Histogram( ) ;
+     //histo->DrawHistograms();
+     //delete histo ;
   }
   if ( module == 4 ) {
      Output* out = new Output( datacardfile ) ;
@@ -138,8 +143,16 @@ int main( int argc, const char* argv[] ) {
      delete bgS ;
   }
   if ( module == 13 ) {
+
      GenAna   *genA  = new GenAna( datacardfile ) ;
-     genA->ReadTree( dataFileNames );
+     //genA->ReadTree( dataFileNames );
+
+     vector<string> mcIdx ;
+     Input->GetParameters( "mcIndex",   &mcIdx );
+     
+     for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) { 
+          genA->ReadTree( mcFileNames[i], 1., mcIdx[i] );
+     }
      delete genA ;
   }
 

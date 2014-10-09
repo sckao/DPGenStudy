@@ -6,7 +6,6 @@ TestGen::TestGen( string datacardfile ) {
 
   Input = AnaInput::Instance() ;
   select = new DPSelection( datacardfile ) ;
-  Hist   = new Histogram( ) ;
 
   SkipEvents = 0 ;
   Input->GetParameters("ProcessEvents", &ProcessEvents ) ; 
@@ -18,47 +17,45 @@ TestGen::TestGen( string datacardfile ) {
   Input->GetParameters("TCut",          &TCut ) ; 
   Input->GetParameters("FitCtau",       &FitCtau) ; 
   Input->GetParameters("PhotonCuts",    &photonCuts ) ; 
+  Input->GetParameters( "PhotonPFIso",  &photonPFIso ) ;
   Input->GetParameters("JetCuts",       &jetCuts ) ; 
   Input->GetParameters("TimeCalib",     &timeCalib ) ;
+  Input->GetParameters("SystType",      &systType ) ;
 
   //if ( isData == 0 ) Input->GetParameters("DecayR",  &decayR ) ; 
 
   gSystem->mkdir( hfolder.c_str() );
 
-  TString Path_fName = hfolder + hfName + ".root" ; 
-  theFile = new TFile( Path_fName, "RECREATE" );
-  theFile->cd() ;
-
-  // initial histograms  
-  Hist->Init( h ) ;
-
 }
 
 TestGen::~TestGen(){
 
-  theFile->cd() ;
-  Hist->Write( "", theFile ) ;
-  cout<<" Output historams written ! "<<endl ;
-  theFile->Close() ;
-  cout<<" File closed ! "<<endl ;
-
   delete select ;
   //delete Input ;
-  delete Hist ;
   cout<<" done ! "<<endl ;
 }
 
 // analysis template
-void TestGen::ReadTree( string dataName, double weight ) { 
+void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) { 
 
+  // Read the file
    string dataFileNames ;
-   if ( dataName.size() < 2 ) {
+   if ( dataName.size() > 2 ) {
       dataFileNames = dataName ;   
    } else {
       Input->GetParameters( "TheData", &dataFileNames );
    }
    printf(" Data File Names : %s \n", dataFileNames.c_str() ) ;
    
+   // Open file
+   TString Path_fName = ( fNamePattern != "") ? hfolder + hfName + fNamePattern + ".root" : hfolder + hfName + ".root"; 
+   theFile = new TFile( Path_fName, "RECREATE" );
+   theFile->cd() ;
+   printf(" Histo File name : %s%s \n", hfName.c_str(), fNamePattern.c_str() ) ; 
+ 
+   // Initial histograms  
+   Hist   = new Histogram( ) ;
+   Hist->Init( h ) ;
 
    TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
    cout<<" Get the tree ! "<<endl ;
@@ -177,6 +174,8 @@ void TestGen::ReadTree( string dataName, double weight ) {
        h.h_nMuons->Fill( nMuons , weight ) ;
        h.h_nElectrons->Fill( nElectrons , weight ) ;
        h.h_met->Fill( met.Pt() , weight );
+       h.h_met1->Fill( noPhotMET.E() , weight );
+       h.h_met2->Fill( newMET.E() , weight );
 
        // use for efficiency estimation
        if ( pass_hlt ) {
@@ -219,14 +218,23 @@ void TestGen::ReadTree( string dataName, double weight ) {
               }
 
               // collect good reco photons
-
 	      h.h_sMin->Fill( sMinPho[k] , weight ) ;
 
 	      h.h_seedSwiss->Fill( seedSwissX[k] , weight );
 	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
 
-	      if ( passMET && !ghostTag ) h.obsTime->Fill( seedTime[k], weight );
-	      if ( passMET && !ghostTag ) h.aveObsTime->Fill( aveTime[k], weight );
+              h.obsTime1->Fill( seedTime[k], weight );
+	      if ( passMET && !ghostTag ) { 
+                 // timing correction : central shift = 0.1211 ,  sigma = 0.4
+		 float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
+		 float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
+		 if ( systType == 10 ) tShift = 0. ;
+		 float tCorr = ( systType == 8 ) ? ( seedTime[k]- tShift ) : tRan->Gaus(seedTime[k], tRes ) - tShift ;
+                
+                 h.obsTime->Fill( tCorr, weight );
+	         h.aveObsTime->Fill( aveTime[k], weight );
+                 h.obsTime2->Fill( seedTime[k], weight );
+              }
 
 	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] , weight );
 	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] , weight );
@@ -250,6 +258,12 @@ void TestGen::ReadTree( string dataName, double weight ) {
 	      h.h_nHadIso_t->Fill( nHIso , seedTime[k] , weight ) ;
 	      h.h_photIso_t->Fill( phIso , seedTime[k] , weight ) ;
               h.h_sMaj_sMin->Fill( sMajPho[k] , sMinPho[k], weight ) ;
+              bool isIso =  (cHadIso[k] < photonPFIso[0]) && (nHIso < photonPFIso[1]) && (phIso < photonPFIso[2])  ;
+              // Only exclude possible halo, keep all kinds of collision backgrounds
+	      if ( isIso && !ghostTag ) { 
+                 h.isoTime->Fill( seedTime[k], weight );
+              }
+
 	      if ( seedTime[k]  > 3. ) { 
                  h.h_sMaj_sMin_late->Fill( sMajPho[k] , sMinPho[k], weight ) ;
                  h.h_photIso_nXtl->Fill( phIso , nXtals[k] , weight ) ;
@@ -384,7 +398,18 @@ void TestGen::ReadTree( string dataName, double weight ) {
            double d_r = sqrt( (d_x*d_x) + (d_y*d_y) + (d_z*d_z) ); 
            double t0  = d_r /30. ; // t0 -> ecaltime assuming photon is from original
            // This is the measured ECAL time for gen photons including smearing
-           double dT = tRan->Gaus( EcalTime - t0 , 0.354 ) - 0.162 ;
+           double dT0 = EcalTime - t0 ;
+           h.h_dT0->Fill( dT0 ) ;
+           // shift data - gen = -0.0322 ,sigma = 0.4358
+           float tRes   = 0.4356 ;
+           float tShift = 0.0322 ;
+           if ( systType == 7 )  tRes   = sqrt( (0.4356*0.4356) + (timeCalib[1]*timeCalib[1]) )  ;
+           if ( systType == 8 )  tRes   = sqrt( (0.4356*0.4356) - (timeCalib[1]*timeCalib[1]) ) ;
+           if ( systType == 9 )  tShift = tShift + timeCalib[0] ;
+           if ( systType == 10)  tShift = tShift - timeCalib[0] ;
+           //printf(" syst = %d tRes = %.4f \n", systType, tRes) ;
+           double dT = tRan->Gaus( EcalTime - t0 , tRes ) - tShift ;
+
 
            // Build the P4 for gen photon from reconstruction point of view 
            TLorentzVector genRecoP4 = TLorentzVector( d_x, d_y, d_z, d_r ) ;
@@ -395,17 +420,17 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
            if ( dT > 3. ) h.late_ctbgT->Fill( ctbgT*10. ) ;
 
-           if (genRecoP4.Pt() > 1. && fabs( genRecoP4.Eta()) < 1.47 ) {
-              h.reco_ctbgT->Fill( ctbgT*10. ) ;
-              h.reco_xbeta->Fill( xP4.Beta() ) ;
-              h.reco_xPt->Fill( xP4.Pt() ) ;
-              h.reco_gPt->Fill( genRecoP4.Pt() ) ;
-              h.h_Time->Fill( dT ) ;
+           if ( genRecoP4.Pt() > 1. && fabs( genRecoP4.Eta()) < 1.47 ) {
+               h.reco_ctbgT->Fill( ctbgT*10. ) ;
+               h.reco_xbeta->Fill( xP4.Beta() ) ;
+               h.reco_xPt->Fill( xP4.Pt() ) ;
+               h.reco_gPt->Fill( genRecoP4.Pt() ) ;
+               h.h_Time->Fill( dT ) ;
 
-              double ctT = ( ctbgT*10./(xP4.Beta()*xP4.Gamma()) >= 4000. ) ? 3999. : ctbgT*10./(xP4.Beta()*xP4.Gamma()) ;
-              h.reco_xPt_ctbgT->Fill( xP4.Pt(), ctT ) ;
-              h.simTime->Fill( dT , Input->RecoWeight( xP4.Pt() , ctbgT*10./(xP4.Beta()*xP4.Gamma()) ) ) ;
-              if ( dT > 3. ) h.lateR_ctbgT->Fill( ctbgT*10. ) ;
+               double ctT = ( ctbgT*10./(xP4.Beta()*xP4.Gamma()) >= 4000. ) ? 3999. : ctbgT*10./(xP4.Beta()*xP4.Gamma()) ;
+               h.reco_xPt_ctbgT->Fill( xP4.Pt(), ctT ) ;
+               h.simTime->Fill( dT , Input->RecoWeight( xP4.Pt() , ctT ) ) ;
+               if ( dT > 3. ) h.lateR_ctbgT->Fill( ctbgT*10. ) ;
            }
 
            // Collections for matching
@@ -425,7 +450,11 @@ void TestGen::ReadTree( string dataName, double weight ) {
                double dR_gR = rP4.DeltaR( genRecoP4 ) ;
                if ( dR_gR < 0.3 ) {
                   found_Reco = true ;
-                  match_recoTime = seedTime[ kj ] ;
+		  float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
+		  float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
+		  if ( systType == 10 ) tShift = 0. ;
+		  float tCorr = ( systType == 8 ) ? ( seedTime[kj]- tShift ) : tRan->Gaus(seedTime[kj], tRes ) - tShift ;
+                  match_recoTime = tCorr ;
                }
            }
 
@@ -441,6 +470,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
            double dt2 = t1_c + t2_c - t3_c ;  // time delay from deviation of photon path
            h.dt1_dt2->Fill( dt1, dt2 ) ;
            if ( dT > 3. ) h.dt1_dt2_late->Fill( dt1, dt2 ) ;
+           if ( found_Reco )  h.h_TimeRes0->Fill( match_recoTime - dT0 ) ;
 
            if ( pass && pass_hlt && nNonGhost > 0 && passMET && found_Reco ) {
               h.sel_ctbg->Fill(  ctbg*10. ) ;
@@ -525,6 +555,7 @@ void TestGen::ReadTree( string dataName, double weight ) {
            // time resolution
            if ( fabs(mlist[k].dPt) > 0.25 ) continue ;
            //if ( fabs( recoTime - genTime + timeCalib[0] ) < 1. ) h.h_matchTime->Fill( genTime ) ;
+           //if (  genTime < 2                  ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
            if (  genTime > 3                  ) h.h_TimeRes1->Fill( recoTime - genTime ) ;
            if ( recoTime > 3. && genTime < 3. ) h.h_TimeRes2->Fill( recoTime - genTime ) ;
            if ( recoTime < 3. && genTime > 3. ) h.h_TimeRes3->Fill( recoTime - genTime ) ;
@@ -561,6 +592,13 @@ void TestGen::ReadTree( string dataName, double weight ) {
 
    printf("     Event Eff : %f  Phot/nEvt = %f \n", (double)nPass/(double)nEvt, (double)nPassPhot/(double)nEvt ) ;
    printf(" Gen Event Eff : %f  Phot/nEvt = %f \n", (double)nPassGen/(double)nEvt, (double)nPassGenPhot/(double)nEvt ) ;
+
+   theFile->cd() ;
+   Hist->Write( "", theFile ) ;
+   cout<<" Output historams written ! "<<endl ;
+   theFile->Close() ;
+   cout<<" File closed ! "<<endl ;
+   delete Hist ;
 
 }  
 

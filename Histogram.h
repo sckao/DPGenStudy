@@ -32,6 +32,9 @@ using namespace std;
 struct hSet {
 
     TH1D* obsTime     ;
+    TH1D* isoTime     ;
+    TH1D* obsTime1    ;
+    TH1D* obsTime2    ;
     TH1D* aveObsTime  ;
     TH1D* aveObsTime1 ;
     TH1D* aveObsTime2 ;
@@ -49,6 +52,7 @@ struct hSet {
     TH1D* h_matchGenTime  ;
     TH1D* h_matchTime     ;
     TH1D* h_genTime       ;
+    TH1D* h_TimeRes0      ;
     TH1D* h_TimeRes1      ;
     TH1D* h_TimeRes2      ;
     TH1D* h_TimeRes3      ;
@@ -58,6 +62,7 @@ struct hSet {
     TH1D* h_sigIeta;
     TH1D* h_sigEta;
     TH1D* h_Time   ;
+    TH1D* h_dT0   ;
     TH1D* simTime   ;
     TH1D* h_nChi2  ;
     TH1D* h_ctau   ;
@@ -119,6 +124,8 @@ struct hSet {
     TH1D* h_Eta        ;
     TH1D* h_g1Pt       ;
     TH1D* h_met        ;
+    TH1D* h_met1       ;
+    TH1D* h_met2       ;
     TH1D* h_genMET     ; 
     TH1D* h_METRes     ; 
     TH1D* h_METdPhi    ; 
@@ -206,7 +213,7 @@ class Histogram {
     string plotType ;
     string hfName ;
     int isData ;
-    double TCut ;
+    vector<double> TCut ;
     double FitCtau ;
     vector<double> fitRange ;
 

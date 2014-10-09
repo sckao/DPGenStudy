@@ -13,12 +13,20 @@ GenAna::GenAna( string datacardfile ) {
   Input->GetParameters("Path",          &hfolder ) ; 
   Input->GetParameters("HFileName",     &hfName ) ; 
   Input->GetParameters("TimeCalib",     &timeCalib ) ;
+  Input->GetParameters("SystType",      &systType ) ;
 
   gSystem->mkdir( hfolder.c_str() );
+  InitHisto();
 
-  TString Path_fName = hfolder + hfName + ".root" ; 
-  theFile = new TFile( Path_fName, "RECREATE" );
-  theFile->cd() ;
+}
+
+GenAna::~GenAna(){
+
+
+  cout<<" done ! "<<endl ;
+}
+
+void GenAna::InitHisto() {
 
   // initial histograms  
   h_ctbg   = new TH1D("h_ctbg", "(c*t*beta*gamma) for #chi_{0}", 80,  0, 4000);
@@ -31,6 +39,7 @@ GenAna::GenAna( string datacardfile ) {
   h_XEta   = new TH1D("h_XEta", "#eta of Neutrlino", 51,  -2.55, 2.55);
   hTime_Xbeta = new TH2D("hTime_Xbeta", "Beta of Neutrlino vs Time", 55,  0, 1.1, 160,  -14.5, 25.5);
   hTime_ctbgT = new TH2D("hTime_ctbgT", "Transverse (c*t*beta*gamma) for #chi_{0} vs Time", 80,  0, 4000, 160,  -14.5, 25.5);
+  xPt_ctbgT = new TH2D("xPt_ctbgT", "Pt of Neutralino vs decay length", 20,  0, 500, 40,  0, 4000);
 
   reco_ctbgT  = new TH1D("reco_ctbgT", "Transverse (c*t*beta*gamma) for #chi_{0}", 80,  0, 4000);
   acc_ctbgT  = new TH1D("acc_ctbgT", "Transverse (c*t*beta*gamma) for #chi_{0}", 80,  0, 4000);
@@ -67,27 +76,25 @@ GenAna::GenAna( string datacardfile ) {
   h_j1Pt     = new TH1D("h_j1Pt",     "Leading jet Pt ", 50,  0, 500);
 }
 
-GenAna::~GenAna(){
-
-  theFile->cd() ;
-  cout<<" Output historams written ! "<<endl ;
-  theFile->Close() ;
-  cout<<" File closed ! "<<endl ;
-
-  cout<<" done ! "<<endl ;
-}
-
 // analysis template
-void GenAna::ReadTree( string dataName, double weight ) { 
+void GenAna::ReadTree( string dataName, double weight, string fNamePattern ) { 
 
    string dataFileNames ;
-   if ( dataName.size() < 2 ) {
+   if ( dataName.size() > 2 ) {
       dataFileNames = dataName ;   
    } else {
       Input->GetParameters( "TheData", &dataFileNames );
    }
    printf(" Data File Names : %s \n", dataFileNames.c_str() ) ;
    
+   // Open file for saving historms
+   TString Path_fName = ( fNamePattern != "") ? hfolder + hfName + fNamePattern + ".root" : hfolder + hfName + ".root";
+   theFile = new TFile( Path_fName, "RECREATE" );
+   theFile->cd() ;
+   printf(" Histo File name : %s%s \n", hfName.c_str(), fNamePattern.c_str() ) ;
+   // Init histograms
+   ResetHisto() ;
+ 
 
    TTree* tr   = Input->GetTree( dataFileNames, "DPGenAnalysis" );
    cout<<" Get the tree ! "<<endl ;
@@ -203,7 +210,14 @@ void GenAna::ReadTree( string dataName, double weight ) {
            double t0  = d_r /30. ; // t0 -> ecaltime assuming photon is from original
            // This is the measured ECAL time for gen photons
            //double dT = tRan->Gaus( EcalTime - t0 , timeCalib[1] ) - timeCalib[0] ;
-           double dT = tRan->Gaus( EcalTime - t0 , 0.354 ) - 0.162 ;
+           float tRes   = 0.4356 ;
+           float tShift = 0.0322 ;
+           if ( systType == 7 )  tRes   = sqrt( (0.4356*0.4356) + (timeCalib[1]*timeCalib[1]) )  ;
+           if ( systType == 8 )  tRes   = sqrt( (0.4356*0.4356) - (timeCalib[1]*timeCalib[1]) ) ;
+           if ( systType == 9 )  tShift = tShift + timeCalib[0] ;
+           if ( systType == 10)  tShift = tShift - timeCalib[0] ;
+           //printf(" syst = %d tRes = %.4f \n", systType, tRes) ;
+           double dT = tRan->Gaus( EcalTime - t0 , tRes ) - tShift ;
 
 
            // Build the P4 for gen photon from reconstruction point of view 
@@ -223,6 +237,8 @@ void GenAna::ReadTree( string dataName, double weight ) {
 
            // reweight sim to reco like 
            if (genRecoP4.Pt() > 1. && fabs( genRecoP4.Eta()) < 1.47 ) {
+              xPt_ctbgT->Fill( xP4.Pt(), ctbgT*10./(xP4.Beta()*xP4.Gamma()) ) ;
+
               selTime->Fill( dT, Input->RecoWeight( xP4.Pt() , ctbgT*10./(xP4.Beta()*xP4.Gamma()) ) ) ;
            }
 
@@ -302,8 +318,12 @@ void GenAna::ReadTree( string dataName, double weight ) {
 
    } // end of event looping
 
-   WriteHisto() ;
 
+   theFile->cd() ;
+   WriteHisto() ;
+   cout<<" Output historams written ! "<<endl ;
+   theFile->Close() ;
+   cout<<" File closed ! "<<endl ;
 
 }  
 
@@ -384,6 +404,7 @@ void GenAna::WriteHisto() {
      h_XEta->Write() ;
      hTime_Xbeta->Write() ;
      hTime_ctbgT->Write() ;
+     xPt_ctbgT->Write() ;
 
      sel_XEta->Write() ;
      sel_ctbgT->Write() ;
@@ -434,6 +455,7 @@ void GenAna::OpenHisto() {
      h_XEta  = (TH1D*) theFile->Get("h_XEta")  ;
      hTime_Xbeta = (TH2D*) theFile->Get("hTime_Xbeta")  ;
      hTime_ctbgT = (TH2D*) theFile->Get("hTime_ctbgT")  ;
+     xPt_ctbgT = (TH2D*) theFile->Get("xPt_ctbgT")  ;
 
      sel_XEta   = (TH1D*) theFile->Get("sel_XEta")  ;
      sel_ctbgT  = (TH1D*) theFile->Get("sel_ctbgT")  ;
@@ -471,3 +493,52 @@ void GenAna::OpenHisto() {
 
 }
 
+void GenAna::ResetHisto() {
+
+     h_ctbg->Reset()    ;
+     h_ctbgT->Reset()   ;
+     h_ctau->Reset()   ;
+     h_Time->Reset()   ;
+     selTime->Reset()  ;
+     h_Xbeta->Reset()  ;
+     h_XPt->Reset()    ;
+     h_XEta->Reset()   ;
+     hTime_Xbeta->Reset() ;
+     hTime_ctbgT->Reset() ;
+     xPt_ctbgT->Reset() ;
+
+     sel_XEta->Reset()   ;
+     sel_ctbgT->Reset()  ;
+     acc_ctbgT->Reset()  ;
+     reco_ctbgT->Reset() ;
+     acc_ctbgT0->Reset() ;
+     acc_ctbgT1->Reset() ;
+     acc_ctbgT2->Reset() ;
+     xPt_T1->Reset()     ;
+     xPt_T2->Reset()     ;
+     xCtau_T1->Reset()   ;
+     xCtau_T2->Reset()   ;
+     xBeta_T1->Reset()   ;
+     xBeta_T2->Reset()   ;
+
+     h_ctbg_RZ->Reset()    ;
+     dt1_dt2->Reset()      ;
+     dt1_dt2_late->Reset() ;
+
+     h_lateXctau->Reset()  ;
+     h_lateXctbgT->Reset() ;
+     h_lateXbeta->Reset()  ;
+     h_lateXPt->Reset()    ;
+
+     h_GMET->Reset()     ;
+     h_genMET->Reset()   ;
+     h_METRes->Reset()   ;
+     h_METdPhi->Reset()  ;
+
+     h_gen1RecoPt->Reset() ;
+     h_gen1Pt->Reset() ;    
+
+     h_nJet->Reset()  ; 
+     h_j1Pt->Reset()  ;  
+
+} 

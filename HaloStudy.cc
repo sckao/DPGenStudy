@@ -724,7 +724,7 @@ bool HaloStudy::HaloTag( Rtuple& rt, int k ) {
 
      TLorentzVector gP4_ = TLorentzVector( rt.phoPx[k], rt.phoPy[k], rt.phoPz[k], rt.phoE[k] ) ;
      bool haloTag  = ( rt.cscdPhi[k] < 0.05 ) ? true : false  ;
-     if ( rt.sMajPho[k] > 0.8 && rt.sMajPho[k] < 1.65 && rt.sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
+     //if ( rt.sMajPho[k] > 0.8 && rt.sMajPho[k] < 1.65 && rt.sMinPho[k] < 0.2 && fabs( gP4_.Eta() ) < 1.47 ) haloTag = true;
      return haloTag ;
 }
 

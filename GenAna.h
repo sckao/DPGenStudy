@@ -46,9 +46,11 @@ public:
    GenAna( string datacardfile = "DataCard.txt");     
    ~GenAna();     
    
-   void ReadTree( string dataName = "0", double weight = 1. ) ;
+   void ReadTree( string dataName = "0", double weight = 1., string fNamePattern = "" ) ;
    bool Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
 
+   void InitHisto() ;
+   void ResetHisto() ;
    void WriteHisto() ;
    void OpenHisto() ;
 
@@ -79,6 +81,7 @@ private:
  
    vector<double> timeCalib ;
 
+   int systType ;
    // Root File for Rootuple or histograms
    TFile *theFile ;
    string hfName ;
@@ -89,11 +92,14 @@ private:
    TH1D* h_ctau ;
    TH1D* h_Time ;
    TH1D* selTime ;
+   TH1D* selTime1 ;
+   TH1D* selTime2 ;
    TH1D* h_Xbeta ;
    TH1D* h_XPt ;
    TH1D* h_XEta ;
    TH2D* hTime_Xbeta ;
    TH2D* hTime_ctbgT ;
+   TH2D* xPt_ctbgT ;
 
    TH1D* sel_ctbgT ;
    TH1D* acc_ctbgT ;

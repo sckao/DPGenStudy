@@ -35,7 +35,7 @@ pair<double, double> MathTools::EffError( double N_all, double N_pass ) {
            IntEff += (pR*step*(N_all+1) ) ;
            //cout<<" ("<< xR[0] <<") --> R : "<< IntEff <<"  pR = "<< pR <<endl ;
         }
-        if ( !skipL && xL[0] > 0 ) {
+        if ( !skipL && xL[0] > 0 && xL[0] > step ) {
            xL[0] -=  step ;
            pL = BinomialErr( xL, par ) ;
            IntEff += (pL*step*(N_all+1) ) ;
