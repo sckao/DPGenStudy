@@ -57,9 +57,9 @@ void Histogram::Init( hSet& hS ) {
    hS.h_dT0     = new TH1D("h_dT0", "Expected Photon Time", 160,  -14.5, 25.5);
    hS.simTime   = new TH1D("simTime", "Expected Photon Time", 160,  -14.5, 25.5);
    hS.h_nChi2   = new TH1D("h_nChi2", "normalized chi2 of seed xtals", 100,  0, 50.0);
-   hS.h_ctau    = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
-   hS.sel_ctau = new TH1D("sel_ctau", "gen #chi_{0} lifetime (ctau)", 80,  0, 4000);
-   hS.acc_ctau = new TH1D("acc_ctau", "gen #chi_{0} lifetime (ctau) for t > 3ns", 80,  0, 4000);
+   hS.h_ctau    = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 160,  0, 8000);
+   hS.sel_ctau = new TH1D("sel_ctau", "gen #chi_{0} lifetime (ctau)",160,  0, 8000);
+   hS.acc_ctau = new TH1D("acc_ctau", "gen #chi_{0} lifetime (ctau) for t > 3ns", 160,  0, 8000);
    hS.h_ctbg   = new TH1D("h_ctbg", "(c*t*beta*gamma) for #chi_{0}", 80,  0, 4000);
    hS.sel_ctbg = new TH1D("sel_ctbg", "(c*t*beta*gamma) for #chi_{0} pass selection", 80,  0, 4000);
    hS.acc_ctbg = new TH1D("acc_ctbg", "(c*t*beta*gamma) for t > 3", 80,  0, 4000);
@@ -479,7 +479,7 @@ void Histogram::DrawHistograms() {
    leg1->Clear();
    leg1->SetTextSize(0.03) ;
    // calculate the number events later than "TCut"
-   int bin_tcut = static_cast<int>( (TCut[0] + 14.5) / 0.25 ) ;
+   int bin_tcut = static_cast<int>( (TCut[2] + 14.5) / 0.25 ) ;
    /// seed time
    Int_t nu1  = h.obsTime->Integral(bin_tcut,160);
    Int_t nu1a = h.obsTime->Integral(1,160);

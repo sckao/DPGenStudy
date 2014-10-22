@@ -195,6 +195,8 @@ public:
    TH2D* abcd_MET2_Time ;
    TH2D* abcd_MET1_Time_sMET2 ;
    TH2D* abcd_MET1_Time_bMET2 ;
+   TH2D* abcd_MET1_Time_closure1 ;
+   TH2D* abcd_MET1_Time_closure2 ;
    TH2D* abcd_NJet_Time ;
 
    TH1D* nJets_center ;

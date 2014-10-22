@@ -197,6 +197,8 @@ void BackgroundStudy::Write() {
   abcd_MET1_Time_bMET2->Write() ;
   abcd_MET2_Time->Write() ;
   abcd_NJet_Time->Write() ;
+  abcd_MET1_Time_closure1->Write() ;
+  abcd_MET1_Time_closure2->Write() ;
 
   sideband_dPhi_MET_csc->Write() ;
   sideband_dPhi_MET_Jet1->Write() ;
@@ -379,6 +381,8 @@ void BackgroundStudy::Create() {
   abcd_MET_Time  = new TH2D( "abcd_MET_Time",  " MET vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET1_Time_sMET2 = new TH2D( "abcd_MET1_Time_sMET2", "MET1 vs Ecal time (MET2 < 60)", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET1_Time_bMET2 = new TH2D( "abcd_MET1_Time_bMET2", "MET1 vs Ecal time (MET2 > 60)", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_Time_closure1 = new TH2D( "abcd_MET1_Time_closure1", "MET1 vs Ecal time,  1-jet closure", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_Time_closure2 = new TH2D( "abcd_MET1_Time_closure2", "MET1 vs Ecal time, >1-jet closure", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET2_Time  = new TH2D( "abcd_MET2_Time", "newMET vs Ecal time, newMET < MET for |t|>3", 50, 0, 500, 200, -25, 25 ) ;
   abcd_NJet_Time = new TH2D( "abcd_NJet_Time",  " NJet vs Ecal time", 10, 0, 10, 200, -25, 25 ) ;
 
@@ -586,6 +590,8 @@ void BackgroundStudy::Open( TFile* hFile ) {
      abcd_MET_Time = (TH2D*) theFile->Get("abcd_MET_Time");
      abcd_MET1_Time_sMET2 = (TH2D*) theFile->Get("abcd_MET1_Time_sMET2");
      abcd_MET1_Time_bMET2 = (TH2D*) theFile->Get("abcd_MET1_Time_bMET2");
+     abcd_MET1_Time_closure1 = (TH2D*) theFile->Get("abcd_MET1_Time_closure1");
+     abcd_MET1_Time_closure2 = (TH2D*) theFile->Get("abcd_MET1_Time_closure2");
      abcd_MET2_Time = (TH2D*) theFile->Get("abcd_MET2_Time");
      abcd_NJet_Time = (TH2D*) theFile->Get("abcd_NJet_Time");
 
@@ -858,19 +864,9 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
            
            // Test for ABCD region
-           if ( !ghostTag && rt.timeChi2[k] < 4. ) {
-              if ( met.E() > jetCuts[4] && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] )           
-                 abcd_Pt_Time->Fill( gP4_.Pt() , rt.seedTime[k], weight) ;
-
-	      if ( selectPho[0].second.Pt() > photonCuts[8] && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3]) {
+           if ( !ghostTag && rt.timeChi2[k] < 4. && selectPho[0].second.Pt() > photonCuts[8] && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3]) {
                  abcd_MET_Time->Fill( met.E(), rt.seedTime[k], weight);
 		 abcd_MET2_Time->Fill( newMET.E(), rt.seedTime[k], weight);
-                 if ( newMET.E() < jetCuts[4] ) abcd_MET1_Time_sMET2->Fill( noPhotMET.E(), rt.seedTime[k], weight );
-                 if ( newMET.E() > jetCuts[4] ) abcd_MET1_Time_bMET2->Fill( noPhotMET.E(), rt.seedTime[k], weight );
-              }
-
-	      if ( met.E() > jetCuts[4] && selectPho[0].second.Pt() > 80. ) 
-                 abcd_NJet_Time->Fill( selectJets.size(), rt.seedTime[k], weight);
            }
 
            // ******************
@@ -878,19 +874,27 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   // ******************
            bool passABCDSelection = ( newMET.E() > jetCuts[4] && rt.timeChi2[k] < 4 && selectPho[0].second.Pt() > photonCuts[8] ) ; 
            bool passCollSelection = ( newMET.E() < jetCuts[4] && rt.timeChi2[k] < 4 && selectPho[0].second.Pt() > photonCuts[8] ) ; 
-  	   int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 :  ( fabs(gP4_.Eta()) / 0.28 ) ;
-           int nj = ( selectJets.size() > 2 ) ? 2 : (int)selectJets.size() ;
-           // This is Only for closure test
-           if ( selectPho[0].second.Pt() < photonCuts[8] && newMET.E() > jetCuts[4] && rt.timeChi2[k] < 4  ) {
-              passABCDSelection = true ; 
-              nj = 0 ;
+  	   int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 : ( fabs(gP4_.Eta()) / 0.28 ) ;
+           int nj = ( selectJets.size() > 2 )   ? 2 : (int)selectJets.size() ;
+
+           if ( selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3] ) {
+              if ( passABCDSelection && !ghostTag )  abcd_MET1_Time_bMET2->Fill( noPhotMET.E(), rt.seedTime[k], weight );
+              if ( passCollSelection && !ghostTag )  abcd_MET1_Time_sMET2->Fill( noPhotMET.E(), rt.seedTime[k], weight );
+              if ( passABCDSelection && !ghostTag )  abcd_Pt_Time->Fill( gP4_.Pt() , rt.seedTime[k], weight) ;
            }
+           if ( passABCDSelection && !ghostTag )  abcd_NJet_Time->Fill( selectJets.size(), rt.seedTime[k], weight);
+           // Another closure selection -- test of closure test !!!
+           if ( newMET.E() > jetCuts[4] && rt.timeChi2[k] < 4 && selectPho[0].second.Pt() < photonCuts[8] ) {
+              if ( selectJets.size() == 1 )  abcd_MET1_Time_closure1->Fill( noPhotMET.E(), rt.seedTime[k], weight ) ;
+              if ( selectJets.size()  > 1 )  abcd_MET1_Time_closure2->Fill( noPhotMET.E(), rt.seedTime[k], weight ) ;
+           } 
+
            // Region E , |t| < 2 ns  
            if ( fabs(rt.seedTime[k]) < 2. && passABCDSelection ) {
               if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj,  weight );
               if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj,  weight );
            }
-	   if ( rt.seedTime[k] < -1.*TCut[0] && rt.seedTime[k] > -10. && passABCDSelection ) {
+	   if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] > TCut[1] && passABCDSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -911,7 +915,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   // ******************
 	   //   Region C and D
 	   // ******************
-           if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] < TCut[1] && passABCDSelection ) {
+           if ( rt.seedTime[k] > TCut[2] && rt.seedTime[k] < TCut[3] && passABCDSelection ) {
               // Region D
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -935,7 +939,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
               if ( noPhotMET.E() > jetCuts[4] ) hCol_F->Fill( ih, 0.5, nj,  weight );
               if ( noPhotMET.E() < jetCuts[4] ) hCol_E->Fill( ih, 0.5, nj,  weight );
            }
-	   if ( rt.seedTime[k] < -1.*TCut[0] && rt.seedTime[k] > -1.*TCut[1] && passCollSelection ) {
+	   if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] < TCut[1] && passCollSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -956,7 +960,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   // ******************
 	   //   Region C and D
 	   // ******************
-           if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] < TCut[1] && passCollSelection ) {
+           if ( rt.seedTime[k] > TCut[2] && rt.seedTime[k] < TCut[3] && passCollSelection ) {
               // Region D
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -1241,6 +1245,8 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( abcd_MET_Time,  "abcd_MET_Time", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET1_Time_sMET2,  "abcd_MET1_Time_sMET2", "MET1 ( MET2 < 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET1_Time_bMET2,  "abcd_MET1_Time_bMET2", "MET1 ( MET2 > 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_Time_closure1,  "abcd_MET1_Time_closure1", "MET1 ( 1-jet closure )", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_Time_closure2,  "abcd_MET1_Time_closure2", "MET1 ( 2-jet closure )", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET2_Time,  "abcd_MET2_Time", "MET2", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_NJet_Time, "abcd_NJet_Time", "NJet", "EcalTime (ns)", "logZ" , 8 ) ;
 

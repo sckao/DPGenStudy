@@ -101,6 +101,7 @@ void GenAna::ReadTree( string dataName, double weight, string fNamePattern ) {
 
    // clone the tree for event selection
 
+   tr->SetBranchAddress("evtId",       &eventId);
    tr->SetBranchAddress("nJets",       &nJets);
    tr->SetBranchAddress("nGen",        &nGen);
    
@@ -140,7 +141,7 @@ void GenAna::ReadTree( string dataName, double weight, string fNamePattern ) {
        tr->GetEntry( i );
        if ( i % 10000 == 0 && i > 9999 ) printf(" ----- processed %8d Events \n", i ) ;
        nEvt++; 
- 
+
        double maxGenPt = 0 ;
        double genMETP4[4] = {0,0,0,0};
        bool hasGravitino = false ;
@@ -151,6 +152,7 @@ void GenAna::ReadTree( string dataName, double weight, string fNamePattern ) {
        v_time.clear() ; 
        v_ctbgT.clear() ;
    
+       printf(" ============================== \n" ) ; 
        for ( int k=0; k< nGen ; k++) {
            //printf("===========%d============ \n", k ) ;
             

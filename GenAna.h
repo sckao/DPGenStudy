@@ -71,7 +71,7 @@ private:
    float jetPx[10], jetPy[10], jetPz[10], jetE[10] ;
 
    float metPx, metPy, metE ;
-   int   nGen, nJets ;
+   int   nGen, nJets, eventId ;
 
 
    vector<objID> genPho ;

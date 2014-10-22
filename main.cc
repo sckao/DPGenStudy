@@ -70,12 +70,11 @@ int main( int argc, const char* argv[] ) {
      TestGen   *tgen  = new TestGen( datacardfile ) ;
      //vector<double >normV = Input->NormalizeComponents( datacardfile );
 
-     //string fNamePattern[7] = { "_250", "_500", "_1000", "_2000", "_3000", "_4000", "_6000" } ;
      vector<string> mcIdx ;
      Input->GetParameters( "mcIndex",   &mcIdx );
      
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) { 
-         //tgen->ReadTree( mcFileNames[i] , normV[i] );
+         //if ( i!= 4 && i!= 5 && i!= 6 && i!=1 ) continue ;
          tgen->ReadTree( mcFileNames[i], 1., mcIdx[i] );
      }
      delete tgen ;
@@ -145,14 +144,16 @@ int main( int argc, const char* argv[] ) {
   if ( module == 13 ) {
 
      GenAna   *genA  = new GenAna( datacardfile ) ;
-     //genA->ReadTree( dataFileNames );
+     genA->ReadTree( dataFileNames );
 
+     /*
      vector<string> mcIdx ;
      Input->GetParameters( "mcIndex",   &mcIdx );
      
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) { 
           genA->ReadTree( mcFileNames[i], 1., mcIdx[i] );
      }
+     */
      delete genA ;
   }
 

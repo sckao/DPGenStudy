@@ -33,8 +33,8 @@ Output::Output( string datacardfile ) {
 
   // Define time scope
   n_t_bin  = 48 ;
-  t_low = TCut[0] ;
-  t_up  = TCut[1] ;
+  t_low = TCut[2] ;
+  t_up  = TCut[3] ;
 
   h_dataTimeBFD= new TH1D("h_dataTimeBFD",   "Photon Seed Time from data - Full Range",   100, -9.5, 15.5);
   h_dataTimeAEC= new TH1D("h_dataTimeAEC",   "Photon Seed Time from data - Full Range",   100, -9.5, 15.5);
@@ -101,10 +101,12 @@ void Output::ProduceMC() {
 
      vector<string> mcFileNames ;
      Input->GetParameters( "TheMC",   &mcFileNames );
-     string ctau_Id[7] = { "93", "185", "368", "733", "1076", "1444", "2161" } ;
+     vector<string> mcIdx ;
+     Input->GetParameters( "mcIndex",   &mcIdx );
 
+     //string ctau_Id[7] = { "93", "185", "368", "733", "1076", "1444", "2161" } ;
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
-         RunMC( mcFileNames[i], ctau_Id[i], normV[i] ) ;
+         RunMC( mcFileNames[i], mcIdx[i], normV[i] ) ;
      }
 }
 
@@ -238,7 +240,7 @@ void Output::RunData( string dataName ) {
 
            // Background template
            // A and B region
-           if ( seedTime[k] < (-1.*t_low) && seedTime[k] > (-1.*t_up) && passABCDSelection ) {
+           if ( seedTime[k] > TCut[0] && seedTime[k] < TCut[1] && passABCDSelection ) {
 
               // Region A 
               if (  noPhotMET.E() < jetCuts[4] ) {
@@ -297,7 +299,7 @@ void Output::RunData( string dataName ) {
               if ( noPhotMET.E() > jetCuts[4] ) hCol_F->Fill( ih, 0.5, nj );
               if ( noPhotMET.E() < jetCuts[4] ) hCol_E->Fill( ih, 0.5, nj );
            }
-           if ( seedTime[k] < (-1.*t_low) && seedTime[k] > (-1.*t_up) && passCollSelection ) {
+           if ( seedTime[k] > TCut[0] && seedTime[k] < TCut[1] && passABCDSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 

@@ -553,6 +553,16 @@ double AnaInput::RecoWeight( double pT, double ct ) {
 }
 
 /*
+
+// uncertainty for 180
+ model 250  +1.74 -1.04 
+ model 500  +2.67 -2.33 
+ model 1000  +6.63 -6.24 
+ model 2000  +13.90 -13.21 
+ model 3000  +18.19 -17.26 
+ model 4000  +19.24 -18.22 
+ model 6000  +22.16 -20.78 
+
 // uncertainty for 140
  model  250   +1.31  -1.28
  model 1000   +5.28  -4.71 
@@ -576,5 +586,6 @@ double AnaInput::RecoWeight( double pT, double ct ) {
  model 2000  +5.77 -4.56 
  model 4000  +5.81 -4.41 
  model 6000  +5.09 -3.76 
+
 */
 

@@ -11,18 +11,18 @@
 // Draw the generator information for a particular ctau model
 void GenInfo1() {
 
-    TString hfolder  = "TCuts_GMSB_L180/" ;
-    TString fileName = "TCuts_GMSB_L180/GMSB100_6000" ;
+    TString hfolder  = "TCuts_GMSB_L100/" ;
+    TString fileName = "TCuts_GMSB_L100/GMSB100_2J_2000" ;
 
     TString plotname  = "xPhot_pt.png" ;
     TString plotname1 = "ctbgT_Eff.png" ;
-    TString plotname2 = "ctbgT_Acc.png" ;
+    TString plotname2 = "ctbgT_EffxAcc.png" ;
+    TString plotname3 = "LeadingPt.png" ;
+    TString plotname4 = "ctbgT_Acc.png" ;
 
     TString names[4] = { "ct < 30 ","30 ~ 60 ","60 ~ 90", " > 90 " } ;
     string hName[4] = { "xPhot_pt1", "xPhot_pt2", "xPhot_pt3", "xPhot_pt4" } ;
-
     string hName1[3] = { "h_ctbgT", "sel_ctbgT", "acc_ctbgT" } ;
-
 
     int color[5]     = {     1,    2,     4,    6,  8 } ;
      
@@ -95,11 +95,14 @@ void GenInfo1() {
     eff_x->BayesDivide( sel_dl, gen_dl );
     TGraphAsymmErrors* acc_x = new TGraphAsymmErrors();
     acc_x->BayesDivide( acc_dl, gen_dl );
+    TGraphAsymmErrors* acp_x = new TGraphAsymmErrors();
+    acp_x->BayesDivide( acc_dl, sel_dl );
+
     c0->cd();
     c0->SetLogy(0);
 
     eff_x->SetTitle(" Reco_Efficiency ") ;
-    eff_x->SetMaximum( 0.4 );
+    eff_x->SetMaximum( 0.2 );
     eff_x->SetMinimum( 0.0 );
     eff_x->SetMarkerColor(4);
     eff_x->SetMarkerStyle(22);
@@ -116,7 +119,7 @@ void GenInfo1() {
     c0->Print( hfolder + plotname1 );
 
     acc_x->SetTitle(" Efficiency*Acceptance ") ;
-    acc_x->SetMaximum( 0.2 );
+    acc_x->SetMaximum( 0.02 );
     acc_x->SetMinimum( 0.0 );
     acc_x->SetMarkerColor(4);
     acc_x->SetMarkerStyle(22);
@@ -124,13 +127,30 @@ void GenInfo1() {
     acc_x->SetLineColor(1);
     acc_x->SetLineWidth(2);
     acc_x->GetXaxis()->SetTitleOffset(1.34);
-    acc_x->GetYaxis()->SetTitleOffset(1.41);
+    acc_x->GetYaxis()->SetTitleOffset(1.5);
 
     acc_x->GetXaxis()->SetTitle(" Transverse Neutralino Decay length in lab frame (mm) " ) ;
-    acc_x->GetYaxis()->SetTitle(" Reco_Efficiency*Time_Acceptance ") ;
+    acc_x->GetYaxis()->SetTitle(" Efficiency*Acceptance ") ;
     acc_x->Draw("AP");
     c0->Update();
     c0->Print( hfolder + plotname2 );
+
+    acp_x->SetTitle(" Acceptance ") ;
+    acp_x->SetMaximum( 0.2 );
+    acp_x->SetMinimum( 0.0 );
+    acp_x->SetMarkerColor(4);
+    acp_x->SetMarkerStyle(22);
+    acp_x->SetMarkerSize(1);
+    acp_x->SetLineColor(1);
+    acp_x->SetLineWidth(2);
+    acp_x->GetXaxis()->SetTitleOffset(1.34);
+    acp_x->GetYaxis()->SetTitleOffset(1.5);
+
+    acp_x->GetXaxis()->SetTitle(" Transverse Neutralino Decay length in lab frame (mm) " ) ;
+    acp_x->GetYaxis()->SetTitle(" Acceptance ") ;
+    acp_x->Draw("AP");
+    c0->Update();
+    c0->Print( hfolder + plotname4 );
 
 
     delete c0 ;

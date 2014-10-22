@@ -11,8 +11,8 @@
 // define the generator's information across different ctau models
 void GenInfo() {
 
-    TString hfolder  = "TCuts_GMSB_L180/" ;
-    TString fileName = "TCuts_GMSB_L180/GMSB180_2J_" ;
+    TString hfolder  = "TCuts_GMSB_L160/" ;
+    TString fileName = "TCuts_GMSB_L160/GMSB160_2J_" ;
 
     TString plotname0 = "ctbg_All.png" ;
     TString plotname1 = "ctau_All.png" ;
@@ -69,14 +69,32 @@ void GenInfo() {
     TString names[5] = { "250","500", "2000", "4000", "6000" } ;
     int color[5]     = {     1,    2,      4,      6,     8  } ;
     const int nModel = 5;
+
+    double nGen[9]   = { 50000, 50000, 50000, 50000,  50000,  50000, 50000,  50000,   50000  } ;
+    TString names[9] = { "185", "370", "730","1075", "1445", "2160", "4000", "6000", "12000" } ;
+    int color[9]     = {     1,     2,     3,     4,      5,      6,      7,      8,     9   } ;
+    const int nModel = 9;
+
+    // Lambda 140
+    double nGen[10]   = { 50000, 50000, 50000, 50000,  50000,  50000,  50000,  50000,  50000,  50000  } ;
+    TString names[10] = {  "185", "370", "730","1075", "1445", "2160", "3000", "4000", "6000", "12000" } ;
+    int color[10]     = {     1,     2,     3,     4,      5,      6,      7,      8,     9 ,     10  } ;
+    const int nModel = 10;
+
+    // Lambda 100
+    double nGen[9]   = { 50000, 50000, 50000,   50000,  50000,  50000,  50000,  50000,  50000  } ;
+    TString names[9] = {  "95", "185",  "730", "1445", "2160", "3000", "4000", "6000", "12000" } ;
+    int color[9]     = {     1,     2,     3,     4,      5,      6,      7,      8,     9   } ;
+    const int nModel = 9;
     */
-     
-    double nGen[7]   = { 50112, 50112, 50112,  50112,  50112,  46944,  50112 } ;
-    TString names[7] = { "250", "500","1000", "2000", "3000", "4000", "6000" } ;
-    int color[7]     = {     1,     2,     4,      5,      6,      7,      8 } ;
-    const int nModel = 7;
+    // Lambda 160
+    double nGen[8]   = { 50112,  50000,  50000,  50000,  50000,  50000,  50000,   50000 } ;
+    TString names[8] = { "250",  "500", "1000", "2000", "3000", "4000", "6000", "12000" } ;
+    int color[8]     = {     1,      2,      3,      4,      5,      6,      7,      8  } ;
+    const int nModel = 8 ;
+
+
     
-   
 
     TFile* hfile[ nModel ] ;
     TH1D*  hctbg[ nModel ] ;
@@ -172,9 +190,12 @@ void GenInfo() {
         hCtau[i]->SetLineColor( color[i] ) ;
         n_late =  hCtau[i]->Integral() ;
         hCtau[i]->Rebin(2) ;
+        hCtau[i]->Fit("expo", "N") ;
+        double fit_ct =  -1. / expo->GetParameter(1) ;
+
         if ( i ==0 )  hCtau[i]->Draw() ;
         else          hCtau[i]->Draw("SAMES") ;
-        sprintf( legStr,  ":  %.0f  ", n_late  ) ;
+        sprintf( legStr,  ":  %.0f  ", fit_ct  ) ;
         leg1->AddEntry( hCtau[i], names[i] + legStr,  "L");
         c0->Update() ;  
     }
@@ -745,7 +766,7 @@ void GenInfo() {
     leg3->Clear() ;
 
     //int nBin2 = RctbgT[0]->GetNbinsX() ;
-    TH1D* hLate1    = new TH1D("hLate1", " ",  nBin1,  0, 4000. );
+    TH1D* hLate1    = new TH1D("hLate1",  " ",  nBin1,  0, 4000. );
     TH1D* hFinal1   = new TH1D("hFinal1", " ",  nBin1,  0, 4000. );
     for ( int i=1; i< nModel; i++ ) {
 

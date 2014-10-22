@@ -56,6 +56,7 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
    // Initial histograms  
    Hist   = new Histogram( ) ;
    Hist->Init( h ) ;
+   cout<<" Init Histograms ! "<<endl ;
 
    TTree* tr   = Input->GetTree( dataFileNames, "DPAnalysis" );
    cout<<" Get the tree ! "<<endl ;
@@ -63,6 +64,7 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
    // clone the tree for event selection
    TChain* tr1 = (TChain*) tr->Clone() ;
 
+   tr->SetBranchAddress("eventId",     &eventId);
    tr->SetBranchAddress("nPhotons",    &nPhotons);
    tr->SetBranchAddress("nJets",       &nJets);
    tr->SetBranchAddress("nMuons",      &nMuons);

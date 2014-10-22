@@ -98,7 +98,7 @@ private:
    float vtxZ[MAXVTX] ;
 
    float metPx, metPy, metE ;
-   int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx ;
+   int   nGen, nPhotons, nJets, nMuons, nElectrons, triggered, nVertices, totalNVtx, eventId ;
 
    TLorentzVector newMET ;
    TLorentzVector noPhotMET ;

@@ -16,26 +16,30 @@ PlotType = png
 #HFileName = hStats_BCD_0923
 # bgRunBCD_MET2_GT60_s : new spike tag without nXtal cut
 #HFileName = Test_QCD_2J_test
-HFileName = bgRunBCD_1004_2
+HFileName = bgRunBCD_1004
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Draw 3: TestGen for MC
 #        4: Stats Output 5: Systematic, 6: Trigger Histogram Draw 7: Halo Study 8: MC Halo Study 9: Halo Drawer
 #       11: MC Stats Output  
 ######################################
-Module = 7
+Module = 9
 
 # MC = 0 , Data = 1
 IsData = 1
 # Files , '+' is the flag for TChain,  
 
 TheData = ( data+ )
-dataChain = ( run2012d_0324_1, run2012d_0324_2, run2012d_0324_3, run2012c_0324_1, run2012c_0324_2, run2012c_0324_3, run2012b_0324_1, run2012b_0324_2 )
+dataChain = ( run2012d_0324_1, run2012d_0324_2, run2012d_0324_3 )
+#dataChain = ( run2012d_0324_1, run2012d_0324_2, run2012d_0324_3, run2012c_0324_1, run2012c_0324_2, run2012c_0324_3, run2012b_0324_1, run2012b_0324_2 )
 #dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3, run2012c_1024_3, run2012c_1024_2, run2012c_1024_1, run2012b_1024_1, run2012b_1024_2 )
-#dataChain = ( gjet_80-120, gjet_120-170, gjet_170-300, gjet_300-470, gjet_470-800, gjet_50-80  )
 
 # for use of Output class,
-TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gmsb180_4000, gmsb180_6000 ) 
+#TheMC = ( gmsb180_250, gmsb180_500, gmsb180_1000, gmsb180_2000, gmsb180_3000, gmsb180_4000, gmsb180_6000 ) 
+TheMC = ( gmsb140_250, gmsb140_1000, gmsb140_2000, gmsb140_3000, gmsb140_4000, gmsb140_6000 ) 
+#TheMC = ( gmsb120_250, gmsb120_500, gmsb120_1000, gmsb120_2000, gmsb120_3000, gmsb120_4000, gmsb120_6000 ) 
+#TheMC = ( gmsb100_250, gmsb100_500, gmsb100_2000, gmsb100_4000, gmsb100_6000 ) 
+
 #TheMC = ( gjet_50-80, gjet_80-120, gjet_120-170, gjet_170-300, gjet_300-470, gjet_470-800 )
 #TheMC = ( mc+ )
 #mcChain = ( gjet_120-170, gjet_80-120, gjet_170-300, gjet_300-470, gjet_470-800 )
@@ -74,7 +78,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        1,       99,   60,  0.3)
+JetCuts = (   35., 2.4,        0,       1,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
@@ -85,7 +89,7 @@ MuonCuts = ( 25, 2.4,  0.15,  0.3 )
 #  MC Block
 ######################################
 FitCtau =-1
-TCut = ( 3 , 15 )
+TCut = ( -10, -3,  3, 13 )
 
 # RunCD = 15121 /pb , RunB = 5042 /pb
 Lumi = 19100

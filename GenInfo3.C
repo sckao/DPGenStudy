@@ -21,6 +21,7 @@ void GenInfo3() {
     TString plotname4 = "Eff2D_xPt_ct" ;
     TString plotname5 = "pass_xPt_ct.png" ;
     TString plotname6 = "reco_xPt_ct.png" ;
+    TString plotname7 = "Eff_diff.png" ;
 
     string hName0 = "reco_xbeta" ;
     string hName1 = "sel_xbeta" ;
@@ -32,19 +33,25 @@ void GenInfo3() {
     string hName7 = "sel_gPt" ;
     string hName8 = "reco_xPt_ctbgT" ;
     string hName9 = "sel_xPt_ctbgT" ;
+    string hName10 = "m_nPhot" ;
 
-    /*
-    double nGen[5] = { 50112, 50112, 50112, 50112, 50112 } ;
-    TString names[5] = { "250","500", "2000", "4000", "6000" } ;
-    int color[5]     = {     1,    2,      4,      6,     8  } ;
-    const int nModel = 5;
+    
+    /* 
+    double nGen[5]   = { 50112,  50112,  50112,   50112, 50112  } ;
+    TString names[5] = { "250",  "500", "2000",  "4000", "6000" } ;
+    int color[5]     = {     1,      2,      4,       6,     8  } ;
+    const int nModel = 5 ;
+    
+    double nGen[6]   = { 50112,  50112,  50112,  50112,  50112, 50112  } ;
+    TString names[6] = { "250", "1000", "2000", "3000", "4000", "6000" } ;
+    int color[6]     = {     1,      2,      4,      5,      6,     8  } ;
+    const int nModel = 6;
     */
-     
+
     double nGen[7]   = { 50112, 50112, 50112,  50112,  50112,  46944,  50112 } ;
     TString names[7] = { "250", "500","1000", "2000", "3000", "4000", "6000" } ;
     int color[7]     = {     1,     2,     4,      5,      6,      7,      8 } ;
     const int nModel = 7;
-    
 
     TFile* hfile[ nModel ] ;
 
@@ -58,6 +65,7 @@ void GenInfo3() {
     TH1D*  reco_gPt[ nModel ] ;
     TH2D*  sel_xPt_ct[ nModel ] ;
     TH2D*  reco_xPt_ct[ nModel ] ;
+    TH2D*  nPhot[ nModel ] ;
 
     for ( int i=0 ; i< nModel ; i++ ) {
         hfile[i]  = TFile::Open( fileName+names[i]+".root" );
@@ -72,6 +80,7 @@ void GenInfo3() {
         sel_gPt[i]     = (TH1D *) hfile[i]->Get( hName7.c_str() )  ;
         reco_xPt_ct[i] = (TH2D *) hfile[i]->Get( hName8.c_str() )  ;
         sel_xPt_ct[i]  = (TH2D *) hfile[i]->Get( hName9.c_str() )  ;
+        nPhot[i]       = (TH2D *) hfile[i]->Get( hName10.c_str() )  ;
     }
 
     gStyle->SetOptStat("");
@@ -281,7 +290,7 @@ void GenInfo3() {
 
         c1->cd(i);
  
-        hEff->SetMaximum(1.0) ;
+        hEff->SetMaximum(0.5) ;
         gStyle->SetNumberContours( 10 );
         hEff->Draw("COLZ") ;
 
@@ -289,9 +298,10 @@ void GenInfo3() {
     }
     c1->Print( hfolder + plotname4 + ".png" );
 
-
     // Over all efficiency
     TH2D* hEff_All = (TH2D*) sel_All->Clone("hEff_All") ;
+    hEff_All->Sumw2() ;
+    rec_All->Sumw2() ;
     hEff_All->Divide( rec_All ) ;
     c0->cd() ;
     hEff_All->SetMaximum(0.5) ;
@@ -301,21 +311,29 @@ void GenInfo3() {
     c0->Print( hfolder + plotname4 + "_all.png" ) ;
 
     //for ( int j= hEff_All->GetNbinsY(); j>=1; j-- ) {
+    double aErr_u[300] = {0.} ;
+    double aErr_d[300] = {0.} ;
+    double Eff_a[300] = {0.} ;
     for ( int j= 1 ; j <= hEff_All->GetNbinsY();  j++ ) {
         for ( int i=1; i<= hEff_All->GetNbinsX(); i++ ) {
             if ( i == 16 ) printf("\n" ) ;
             if ( i >= 16 ) continue ;
 
             // error calculation
-            
             double nA =  rec_All->GetBinContent(i,j)  ;
             double nP =  sel_All->GetBinContent(i,j)  ;
-            // if ( i > 0) printf(" %.f/%.f=", nP,nA ) ;
-            double errs =  EffError( nA, nP, false ) ;
-            if ( i > 0 ) printf(" %.5f,", errs ) ;
-            
+            //if ( i > 0) printf(" %.f/%.f=", nP,nA ) ;
+            double errs_u =  EffError( nA, nP, true ) ;
+            double errs_d =  EffError( nA, nP, false ) ;
+            int k = ((j-1)*15) + (i-1) ;
+            aErr_u[k] = errs_u ;
+            aErr_d[k] = errs_d ;
+            Eff_a[k] = hEff_All->GetBinContent(i,j) ;
+            // Efficiency errors
+            //if ( i > 0 ) printf(" %.5f,", errs ) ;
+            //if ( i > 0 ) printf(" %.5f,", hEff_All->GetBinErrorLow(i,j) ) ;
             // Efficiency 
-            //if ( i > 0 ) printf(" %.5f,", hEff_All->GetBinContent(i,j) ) ;
+            if ( i > 0 ) printf(" %.5f,", hEff_All->GetBinContent(i,j) ) ;
         }
         for ( int i=1; i<= hEff_All->GetNbinsX(); i++ ) {
             if ( i == 16 && j == hEff_All->GetNbinsY() ) printf("\n" ) ;
@@ -325,7 +343,73 @@ void GenInfo3() {
             //if ( i== hEff_All->GetNbinsX() )  printf("\n" ) ;
         }
     }
+    
+    for ( int m=0; m< nModel; m++ ) {
+        double sumErr_u = 0. ;
+        double sumErr_d = 0. ;
+        for ( int j= 1 ; j <= reco_xPt_ct[m]->GetNbinsY();  j++ ) {
+            for ( int i=1; i<= reco_xPt_ct[m]->GetNbinsX(); i++ ) {
+                if ( i >= 16 ) continue ;
 
+                double ib = reco_xPt_ct[m]->GetBinContent(i,j) ;
+                int k = ((j-1)*15) + (i-1) ;
+                sumErr_u += ( (ib*aErr_u[k]*ib*aErr_u[k]) + (ib*Eff_a[k]*Eff_a[k]) ) ; 
+                sumErr_d += ( (ib*aErr_d[k]*ib*aErr_d[k]) + (ib*Eff_a[k]*Eff_a[k]) ) ; 
+            }
+        }
+        sumErr_u = sqrt( sumErr_u ) ;
+        sumErr_d = sqrt( sumErr_d ) ;
+        string model_name = names[m] ;
+        printf(" model %s  +%.2f -%.2f \n", model_name.c_str(), sumErr_u, sumErr_d ) ;
+    } 
+
+    // Plot7
+    c1->Clear() ;
+    c1->Divide(2, 3) ;
+    //TLegend* leg0  = new TLegend(.70, .65, .95, .90 );
+    //char legStr[50] ;
+
+    for ( int i=1; i< nModel; i++ ) {
+
+        TH2D* hEff_dff = (TH2D*) sel_xPt_ct[i]->Clone("hEff") ;
+        TH2D* hEff_sum = (TH2D*) sel_xPt_ct[i]->Clone("hEff") ;
+
+        hEff_dff->Divide( reco_xPt_ct[i] ) ;
+        hEff_sum->Divide( reco_xPt_ct[i] ) ;
+
+        hEff_dff->Add( hEff_All , -1. ) ;
+
+        hEff_sum->Add( hEff_All ,  1. ) ;
+        hEff_sum->Scale( 0.5 ) ;
+        hEff_dff->Divide( hEff_sum ) ;
+
+
+        TH1D* h_diff = new TH1D("h_diff", "", 20, -0.5, 0.5 ) ;
+        for ( int j= 1 ; j <= hEff_dff->GetNbinsY();  j++ ) {
+            for ( int k=1; k<= hEff_dff->GetNbinsX(); k++ ) {
+                if ( k >= 16 ) continue ;
+                if ( hEff_sum->GetBinContent(j,k) > 0. ) h_diff->Fill( hEff_dff->GetBinContent(j, k) ) ; 
+            }
+        }
+
+        //leg0->Clear() ;
+        //sprintf( legStr,  "[%d]: %.4f", i, h_diff->GetMean() ) ;
+        //leg0->AddEntry( h_diff, legStr ,  "L");
+        printf(" mean [%d]: %.4f \n", i, h_diff->GetMean() ) ;
+        
+
+        c1->cd(i);
+        /*
+        hEff_dff->SetMaximum(2.5) ;
+        hEff_dff->SetMinimum(-2.5) ;
+        gStyle->SetNumberContours( 20 );
+        hEff_dff->Draw("COLZ") ;
+        */
+        h_diff->Draw() ;
+	c1->Update();
+        //delete h_diff ;
+    }
+    c1->Print( hfolder + plotname7 + ".png" );
     /*
     printf(" Error for Efficiency \n") ;
     for ( int j= 1 ; j <= hEff_All->GetNbinsY();  j++ ) {
@@ -367,6 +451,22 @@ void GenInfo3() {
     delete c0 ;
     delete c1 ;
 
+    // Matching Efficiency
+    int nu(0), de(0) ;
+    for ( int i=1; i< nModel; i++ ) {
+        for ( int y=1; y <4; y++ ) {      // number of matched gen photon,  y-1 
+            for ( int x=2; x <4; x++ ) {  // number of reco photon, x-1
+                int Nxy = nPhot[i]->GetBinContent(x,y) ;
+                if ( x > 2 ) Nxy = Nxy*2 ;
+
+                if ( y == 2 && x > 2 ) nu += Nxy/2 ;
+                if ( y == 1          ) nu += Nxy ;
+                de += Nxy ;
+            }
+        } 
+    }
+    double eff_matched = (double)nu / (double)de ;
+    printf("\n Gen-RECO mis-matching efficiency (%d/%d) =  %.4f \n\n", nu, de, eff_matched ) ;
 }
 
 //pair<double, double> EffError( double N_all, double N_pass ) {
@@ -377,12 +477,12 @@ double EffError( double N_all, double N_pass, bool isUp ) {
     }
 
     double eff0 = N_pass / N_all ;
-    if ( eff0 > 1 ) {
+    if ( eff0 > 1. || eff0 < 0. ) {
        return 0. ;
     }
     //cout<<" N_All: "<<N_all <<"  N_pass: "<< N_pass << endl;
     int nStep = 1000 ;
-    double step = 1. / nStep ;
+    double step = 1. / (double)nStep ;
     //cout<<" step = "<< step <<endl;
     Double_t par[3] = { 1, N_all, N_pass } ;
     Double_t xL[1] = { eff0 } ;
@@ -399,13 +499,13 @@ double EffError( double N_all, double N_pass, bool isUp ) {
            xR[0] +=  step ;
            pR = BinomialErr( xR, par ) ;
            IntEff += (pR*step*(N_all+1) ) ;
-           //cout<<" ("<< xR[0] <<") --> R : "<< IntEff <<"  pR = "<< pR <<endl ;
+           //if ( pR == 0 ) cout<<" ("<< xR[0] <<") --> R : "<< IntEff <<"  pR = "<< pR <<" eff0 = "<< eff0 <<endl ;
         }
-        if ( !skipL && xL[0] > 0. ) {
+        if ( !skipL && xL[0] > 0. && xL[0] > step ) {
            xL[0] -=  step ;
            pL = BinomialErr( xL, par ) ;
            IntEff += (pL*step*(N_all+1) ) ;
-           //cout<<" ("<< xL[0] <<") <-- L : "<< IntEff <<"  pL = "<< pL <<endl;
+           //if ( pL == 0 ) cout<<" ("<< xL[0] <<") <-- L : "<< IntEff <<"  pL = "<< pL <<endl;
         }
         //cout<<" ------ "<<endl; 
         skipR = ( pL > pR ) ? true : false ;
@@ -436,7 +536,6 @@ Double_t BinomialErr( Double_t* x, Double_t* par ) {
   //cout<< " Beta(x,y) = "<< Bxy <<endl ;
   //Double_t Cnk = pow(x[0], N_pass ) * pow( (1-x[0]) , (N_all - N_pass) ) ;
   //Double_t prob = par[0]*Cnk / ( Bxy * (N_all + 1. ) );
-
   double betaPDF = TMath::BetaDist( x[0],  (N_pass + 1) , (N_all - N_pass + 1) ) ;
   Double_t prob = (par[0] / (N_all + 1.) ) * betaPDF ;
 
@@ -445,4 +544,6 @@ Double_t BinomialErr( Double_t* x, Double_t* par ) {
   return prob ;
 
 }
+
+
 
