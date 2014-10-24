@@ -28,7 +28,9 @@ public:
 
    Output( string datacardfile = "DataCard.txt");     
    ~Output();     
-   
+ 
+   void CreateHisto() ;  
+   void ReadHisto( TFile* hFile = NULL ) ;  
    void RunData( string dataName ) ;
    void RunMC( string mcName, string ctau_Id, double weight = -1 ) ;
    void RunGenOnly( string mcName, string ctau_Id, double weight = -1, double scale = 1. ) ;
@@ -37,7 +39,6 @@ public:
    void ProduceGen() ;
    bool Propagator( TLorentzVector& v, double& x, double& y, double& z, double& t, double ctaugamma = 99999999. ) ;
 
-   TH1D* RebinHistogram( TH1D* h1, string newHistoName, pair<int, int> cw[] ) ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, double minBC ) ;
    TH1D* RebinHistogram( TH1D* h1, string newHistoName, double lowX, double upX ) ;
 

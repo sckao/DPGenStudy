@@ -25,16 +25,31 @@ Output::Output( string datacardfile ) {
   Input->GetParameters("SystType",      &systType ) ;
   Input->GetParameters("TCut",          &TCut ) ;
 
+  // Define time scope
+  n_t_bin  = 48 ;
+  t_low = TCut[2] ;
+  t_up  = TCut[3] ;
+  printf(" Observe time window: %f ~ %f \n", t_low, t_up ) ;
+
+}
+
+Output::~Output(){
+
+  theFile->Close() ;
+  cout<<" File closed ! "<<endl ;
+
+  delete select ;
+  //delete Input ;
+  cout<<" done ! "<<endl ;
+}
+
+void Output::CreateHisto() {
+
   gSystem->mkdir( hfolder.c_str() );
 
   TString Path_fName = hfolder + hfName + ".root" ; 
   theFile = new TFile( Path_fName, "RECREATE" );
   theFile->cd() ;
-
-  // Define time scope
-  n_t_bin  = 48 ;
-  t_low = TCut[2] ;
-  t_up  = TCut[3] ;
 
   h_dataTimeBFD= new TH1D("h_dataTimeBFD",   "Photon Seed Time from data - Full Range",   100, -9.5, 15.5);
   h_dataTimeAEC= new TH1D("h_dataTimeAEC",   "Photon Seed Time from data - Full Range",   100, -9.5, 15.5);
@@ -72,17 +87,9 @@ Output::Output( string datacardfile ) {
   theFile->cd() ;
 }
 
-Output::~Output(){
-
-  theFile->Close() ;
-  cout<<" File closed ! "<<endl ;
-
-  delete select ;
-  //delete Input ;
-  cout<<" done ! "<<endl ;
-}
-
 void Output::Produce() {
+
+     CreateHisto() ;
 
      string dataFileNames ;
      Input->GetParameters( "TheData", &dataFileNames );
@@ -233,7 +240,7 @@ void Output::RunData( string dataName ) {
            }
 
            // Region E,F  |t| < 2 ns  
-           if ( fabs( seedTime[k]) < 2. && passCollSelection ) {
+           if ( fabs( seedTime[k]) < 2. && passABCDSelection ) {
               if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj );
               if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj );
            }
@@ -299,7 +306,7 @@ void Output::RunData( string dataName ) {
               if ( noPhotMET.E() > jetCuts[4] ) hCol_F->Fill( ih, 0.5, nj );
               if ( noPhotMET.E() < jetCuts[4] ) hCol_E->Fill( ih, 0.5, nj );
            }
-           if ( seedTime[k] > TCut[0] && seedTime[k] < TCut[1] && passABCDSelection ) {
+           if ( seedTime[k] > TCut[0] && seedTime[k] < TCut[1] && passCollSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -764,58 +771,6 @@ void Output::ShiftPeak( TH1D* h1 , TH1D* h2 ) {
 
 } 
 
-// Rebin with 3 variable bin sizes
-TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName,  pair<int, int> cw[] ) {
-
-   double b[3] = { cw[0].first,  cw[1].first,  cw[2].first } ;
-   double r[3] = { cw[0].second, cw[1].second, cw[2].second } ;
-   double c[4] , w[3] ; 
- 
-   // c: start bin, w: bin width
-   c[0] = h1->GetBinCenter( b[0] ) - ( h1->GetBinWidth( b[0] )/2 ) ;
-   w[0] = h1->GetBinWidth(  b[0] )*r[0]  ;
-
-   c[1] = h1->GetBinCenter( b[1] ) - ( h1->GetBinWidth( b[1] )/2 ) ;
-   w[1] = h1->GetBinWidth(  b[1] )*r[1] ;
-
-   c[2] = h1->GetBinCenter( b[2] ) - ( h1->GetBinWidth( b[2] )/2 ) ;
-   w[2] = h1->GetBinWidth(  b[2] )*r[2]  ;
-
-   int lastBin = h1->GetNbinsX() ;
-   c[3] = h1->GetBinCenter( lastBin ) - (h1->GetBinWidth( lastBin )/2) ;
-
-
-   vector<double> cutV ;
-   for ( int i=0 ; i < 3 ; i++) {
-       printf(" c: %.2f  w: %.2f \n", c[i], w[i] ) ;
-       int j = 0 ;
-       bool fill = true ;
-       while ( fill ) {
-          double edge = c[i] + (w[i]*j);
-          if ( edge < c[i+1] ) {
-             cutV.push_back( edge )  ;
-             printf( " edge %d-%d: %.2f \n", i, j, edge ) ;
-          } else {
-            fill = false ;
-          }
-          j++ ;
-       }  ;
-   }
-   cutV.push_back( c[3] + h1->GetBinWidth( lastBin ) ) ;
-
-   const int nBin = cutV.size() - 1 ;
-   Double_t xbins[ nBin + 1 ] ;
-
-   printf(" nbin: %d , size: %d \n", nBin, (int)cutV.size() ) ;
-   for ( size_t i=0; i< cutV.size() ; i++ ) {
-       xbins[i] = cutV[i] ;
-       printf( " cut %d : %.2f \n", (int)i, cutV[i] ) ;
-   }
-
-   TH1D* h1_new = (TH1D*) h1->Rebin( nBin, newHistoName.c_str(), xbins );
-   return h1_new ;
-}
-
 // Rebin two-side tails - Current used method
 //TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName, double center, double width ) {
 TH1D* Output::RebinHistogram( TH1D* h1, string newHistoName, double lowX, double upX ) {
@@ -957,6 +912,58 @@ void Output::WriteMcHisto() {
      rh_sgTimeAEC->Write() ;
 
 }
+
+void Output::ReadHisto( TFile* hFile ) { 
+
+
+     if ( hFile == NULL ) {
+        TString Path_fName = hfolder + hfName + ".root" ;
+	theFile = new TFile( Path_fName, "UPDATE" );
+	cout<<" file opened ! "<<endl ;
+     } else {
+	     theFile = hFile ;
+     }
+
+     /*
+     h_dataTime    = (TH1D*) theFile->Get("h_dataTime") ; 
+     h_dataTimeA   = (TH1D*) theFile->Get("h_dataTimeA") ; 
+     h_dataTimeBFD = (TH1D*) theFile->Get("h_dataTimeBFD") ; 
+     h_dataTimeAEC = (TH1D*) theFile->Get("h_dataTimeAEC") ; 
+     h_bgTime      = (TH1D*) theFile->Get("h_bgTime") ;
+     h_bgTimeA     = (TH1D*) theFile->Get("h_bgTimeA") ;
+
+     rh_dataTime    = (TH1D*) theFile->Get("rh_dataTime") ; 
+     rh_dataTimeA   = (TH1D*) theFile->Get("rh_dataTimeA") ; 
+     rh_dataTimeBFD = (TH1D*) theFile->Get("rh_dataTimeBFD") ; 
+     rh_dataTimeAEC = (TH1D*) theFile->Get("rh_dataTimeAEC") ; 
+     rh_bgTime      = (TH1D*) theFile->Get("rh_bgTime") ;
+     rh_bgTimeA     = (TH1D*) theFile->Get("rh_bgTimeA") ;
+     */
+
+     hBg_A = (TH3D*) theFile->Get("hBg_A") ;
+     hBg_B = (TH3D*) theFile->Get("hBg_B") ;
+     hBg_C = (TH3D*) theFile->Get("hBg_C") ;
+     hBg_D = (TH3D*) theFile->Get("hBg_D") ;
+     hBg_E = (TH3D*) theFile->Get("hBg_E") ;
+     hBg_F = (TH3D*) theFile->Get("hBg_F") ;
+
+     hCol_A = (TH3D*) theFile->Get("hCol_A") ;
+     hCol_B = (TH3D*) theFile->Get("hCol_B") ;
+     hCol_C = (TH3D*) theFile->Get("hCol_C") ;
+     hCol_D = (TH3D*) theFile->Get("hCol_D") ;
+     hCol_E = (TH3D*) theFile->Get("hCol_E") ;
+     hCol_F = (TH3D*) theFile->Get("hCol_F") ;
+
+
+     TH3D* ACols[] = { hCol_A, hCol_B, hCol_C, hCol_D, hCol_E, hCol_F } ;
+     vector<TH3D*> hColls( ACols, ACols+6 ) ;
+     TH3D* AMIBs[] = { hBg_A, hBg_B, hBg_C, hBg_D, hBg_E, hBg_F } ;
+     vector<TH3D*> hMIBs( AMIBs, AMIBs+6 ) ;
+
+     vector<double> predictBG = select->ABCD_ABCD( hColls, hMIBs ) ;
+
+}
+
 
 // propagator with backward propagation
 // ECal Dimension : R:( 129 ~ 155 cm , Z(one-side) : 317 ~345 )
