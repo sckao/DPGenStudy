@@ -556,15 +556,15 @@ uint32_t DPSelection::EventIdentification() {
        passMET = CorrectMET() ;
 
        // Define event types
-       if ( passVtx  && passPho && passJet && passMET )               eventType |= (1 <<0) ;   // 0001
-       if ( passVtx  && phoV.size() > 0       )                       eventType |= (1 <<1) ;   // 0010
-       if ( passVtx  && phoV.size() > 0 && jetV.size() > 0 )          eventType |= (1 <<2) ;   // 0100
-       if ( passVtx  && phoV.size() > 0 && theMET.Et() > jetCuts[4] ) eventType |= (1 <<3) ;   // 1000
+       if ( passVtx  && passPho && passJet && passMET )          eventType |= (1 <<0) ;   // 0001
+       if ( passVtx  && passPho                       )          eventType |= (1 <<1) ;   // 0010
+       if ( passVtx  && phoV.size() > 0               )          eventType |= (1 <<2) ;   // 0100
+       if ( passVtx  && passPho && passJet > 0        )          eventType |= (1 <<3) ;   // 1000
        if ( passTrigger && passVtx && passPho && passJet && passMET ) {
-                                                                       eventType |= (1 <<4) ;  //10000
-                                                                       counter[4]++ ;
+                                                                 eventType |= (1 <<4) ;  //10000
+                                                                 counter[4]++ ;
        }
-       if ( passHLT )                                                 eventType |= (1 <<5) ; // 100000
+       if ( passHLT )                                            eventType |= (1 <<5) ; // 100000
 
        ResetCuts() ;  // reset cuts from Datacard
        return eventType ;      
@@ -758,7 +758,7 @@ vector<double> DPSelection::ABCD_ABCD( vector<TH3D*>& hColls, vector<TH3D*>& hMI
      printf("\n ####### Q_B ########## \n") ;
      vector<double> colB    = ABCD_Collision( hColls[5], hMIBs[5], hColls[1], hMIBs[1] ) ;
 
-     double predict = ( abcdef[1] > colB[0] ) ?  (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] : colD[0] ;
+     double predict = ( abcdef[1] > colB[0] || abcdef[0] < 0.0001 ) ? (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] : colD[0] ;
 
      pair<double,double> errB     = MathTools::ErrApnB( abcdef[1] , colB[0] , -1, -1, colB[1], colB[2] ) ;
      pair<double,double> errCovA  = MathTools::ErrAovB( abcdef[2], abcdef[0]) ;
@@ -884,13 +884,13 @@ double DPSelection::GetEstimation( TH3D* hCount, bool getQCD ) {
        double nS = 0 ;
        double nC = 0 ;
        // 3 jet multiplicity
-       for ( int j=1; j<4; j++ ) {
+       for ( int j=0; j<3; j++ ) {
 
-           if ( j-1 < jetCuts[2] || j-1 > jetCuts[3] ) continue ;
-           nB += hCount->GetBinContent( i+1, 1, j ) ; // total number in control region 
-           nH += hCount->GetBinContent( i+1, 2, j ) ; // number of halo tagged in control region
-           nS += hCount->GetBinContent( i+1, 3, j ) ; // number of spike tagged in control region
-           nC += hCount->GetBinContent( i+1, 4, j ) ; // number of cosmic tagged in control region
+           if ( j < jetCuts[2] || j > jetCuts[3] ) continue ;
+           nB += hCount->GetBinContent( i+1, 1, j+1 ) ; // total number in control region 
+           nH += hCount->GetBinContent( i+1, 2, j+1 ) ; // number of halo tagged in control region
+           nS += hCount->GetBinContent( i+1, 3, j+1 ) ; // number of spike tagged in control region
+           nC += hCount->GetBinContent( i+1, 4, j+1 ) ; // number of cosmic tagged in control region
        }
 
        vector<double> bgV = GetComponent( i, nB, nH, nS, nC ) ;

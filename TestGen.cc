@@ -151,9 +151,9 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
        select->ResetCuts() ;
        select->ResetCollection() ;
 
-       // Type = 2 : Control sample , at least one photon pt > 45 GeV
+       // event type : pass vtx, photon, jet selection
        uint32_t evtType = select->EventIdentification();
-       bool pass     = ( (evtType >> 0) & 1  ) ;
+       bool pass     = ( (evtType >> 3) & 1  ) ;
        bool pass_hlt = ( (evtType >> 5) & 1  ) ;
 
        selectJets.clear() ;
