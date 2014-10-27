@@ -89,9 +89,9 @@ int main( int argc, const char* argv[] ) {
      delete out ;
   }
   if ( module == 5 ) {
-     Systematic* syst  = new Systematic( datacardfile ) ;
-     syst->McDataCompare() ;
-     delete syst ;
+     Output* out = new Output( datacardfile ) ;
+     out->ReadHisto() ;
+     delete out ;
   }
   if ( module == 6 ) {
      //Background * bg = new Background( datacardfile ) ;
@@ -113,7 +113,7 @@ int main( int argc, const char* argv[] ) {
      out->ProduceGen() ;
      delete out ;
   }
-  if ( module == 7 ||  module == 8 || module == 9 || module == 10 ) {
+  if ( module == 7 ||  module == 8 || module == 9  ) {
      
      BackgroundStudy * bgS = new BackgroundStudy( datacardfile ) ;
      if ( module == 7 ) {
@@ -140,6 +140,11 @@ int main( int argc, const char* argv[] ) {
      }
 
      delete bgS ;
+  }
+  if ( module == 10 ) {
+     Systematic* syst  = new Systematic( datacardfile ) ;
+     syst->McDataCompare() ;
+     delete syst ;
   }
   if ( module == 13 ) {
 

@@ -193,8 +193,10 @@ void BackgroundStudy::Write() {
 
   abcd_Pt_Time->Write() ;
   abcd_MET_Time->Write() ;
-  abcd_MET1_Time_sMET2->Write() ;
-  abcd_MET1_Time_bMET2->Write() ;
+  abcd_MET1_T_sMET2_1J->Write() ;
+  abcd_MET1_T_bMET2_1J->Write() ;
+  abcd_MET1_T_sMET2_2J->Write() ;
+  abcd_MET1_T_bMET2_2J->Write() ;
   abcd_MET2_Time->Write() ;
   abcd_NJet_Time->Write() ;
   abcd_MET1_Time_closure1->Write() ;
@@ -379,8 +381,10 @@ void BackgroundStudy::Create() {
 
   abcd_Pt_Time   = new TH2D( "abcd_Pt_Time",  " Pt vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET_Time  = new TH2D( "abcd_MET_Time",  " MET vs Ecal time", 50, 0, 500, 200, -25, 25 ) ;
-  abcd_MET1_Time_sMET2 = new TH2D( "abcd_MET1_Time_sMET2", "MET1 vs Ecal time (MET2 < 60)", 50, 0, 500, 200, -25, 25 ) ;
-  abcd_MET1_Time_bMET2 = new TH2D( "abcd_MET1_Time_bMET2", "MET1 vs Ecal time (MET2 > 60)", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_T_sMET2_1J = new TH2D( "abcd_MET1_T_sMET2_1J", "MET1 vs Ecal time (MET2 < 60)", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_T_bMET2_1J = new TH2D( "abcd_MET1_T_bMET2_1J", "MET1 vs Ecal time (MET2 > 60)", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_T_sMET2_2J = new TH2D( "abcd_MET1_T_sMET2_2J", "MET1 vs Ecal time (MET2 < 60)", 50, 0, 500, 200, -25, 25 ) ;
+  abcd_MET1_T_bMET2_2J = new TH2D( "abcd_MET1_T_bMET2_2J", "MET1 vs Ecal time (MET2 > 60)", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET1_Time_closure1 = new TH2D( "abcd_MET1_Time_closure1", "MET1 vs Ecal time,  1-jet closure", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET1_Time_closure2 = new TH2D( "abcd_MET1_Time_closure2", "MET1 vs Ecal time, >1-jet closure", 50, 0, 500, 200, -25, 25 ) ;
   abcd_MET2_Time  = new TH2D( "abcd_MET2_Time", "newMET vs Ecal time, newMET < MET for |t|>3", 50, 0, 500, 200, -25, 25 ) ;
@@ -588,8 +592,10 @@ void BackgroundStudy::Open( TFile* hFile ) {
 
      abcd_Pt_Time = (TH2D*) theFile->Get("abcd_Pt_Time");
      abcd_MET_Time = (TH2D*) theFile->Get("abcd_MET_Time");
-     abcd_MET1_Time_sMET2 = (TH2D*) theFile->Get("abcd_MET1_Time_sMET2");
-     abcd_MET1_Time_bMET2 = (TH2D*) theFile->Get("abcd_MET1_Time_bMET2");
+     abcd_MET1_T_sMET2_1J = (TH2D*) theFile->Get("abcd_MET1_T_sMET2_1J");
+     abcd_MET1_T_bMET2_1J = (TH2D*) theFile->Get("abcd_MET1_T_bMET2_1J");
+     abcd_MET1_T_sMET2_2J = (TH2D*) theFile->Get("abcd_MET1_T_sMET2_2J");
+     abcd_MET1_T_bMET2_2J = (TH2D*) theFile->Get("abcd_MET1_T_bMET2_2J");
      abcd_MET1_Time_closure1 = (TH2D*) theFile->Get("abcd_MET1_Time_closure1");
      abcd_MET1_Time_closure2 = (TH2D*) theFile->Get("abcd_MET1_Time_closure2");
      abcd_MET2_Time = (TH2D*) theFile->Get("abcd_MET2_Time");
@@ -877,12 +883,14 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
   	   int ih = ( fabs(gP4_.Eta()) >= 1.4 ) ? 4 : ( fabs(gP4_.Eta()) / 0.28 ) ;
            int nj = ( selectJets.size() > 2 )   ? 2 : (int)selectJets.size() ;
 
-           if ( selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3] ) {
-              if ( passABCDSelection && !ghostTag )  abcd_MET1_Time_bMET2->Fill( noPhotMET.E(), rt.seedTime[k], weight );
-              if ( passCollSelection && !ghostTag )  abcd_MET1_Time_sMET2->Fill( noPhotMET.E(), rt.seedTime[k], weight );
-              if ( passABCDSelection && !ghostTag )  abcd_Pt_Time->Fill( gP4_.Pt() , rt.seedTime[k], weight) ;
+           if ( !ghostTag ) {
+	      if (passABCDSelection && selectJets.size() == 1) abcd_MET1_T_bMET2_1J->Fill( noPhotMET.E(), rt.seedTime[k], weight );
+	      if (passCollSelection && selectJets.size() == 1) abcd_MET1_T_sMET2_1J->Fill( noPhotMET.E(), rt.seedTime[k], weight );
+	      if (passABCDSelection && selectJets.size()  > 1) abcd_MET1_T_bMET2_2J->Fill( noPhotMET.E(), rt.seedTime[k], weight );
+	      if (passCollSelection && selectJets.size()  > 1) abcd_MET1_T_sMET2_2J->Fill( noPhotMET.E(), rt.seedTime[k], weight );
+	      if (passABCDSelection && selectJets.size() >= 1) abcd_Pt_Time->Fill( gP4_.Pt() , rt.seedTime[k], weight) ;
+	      if ( passABCDSelection )  abcd_NJet_Time->Fill( selectJets.size(), rt.seedTime[k], weight);
            }
-           if ( passABCDSelection && !ghostTag )  abcd_NJet_Time->Fill( selectJets.size(), rt.seedTime[k], weight);
            // Another closure selection -- test of closure test !!!
            if ( newMET.E() > jetCuts[4] && rt.timeChi2[k] < 4 && selectPho[0].second.Pt() < photonCuts[8] ) {
               if ( selectJets.size() == 1 )  abcd_MET1_Time_closure1->Fill( noPhotMET.E(), rt.seedTime[k], weight ) ;
@@ -894,7 +902,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
               if ( noPhotMET.E() > jetCuts[4] ) hBg_F->Fill( ih, 0.5, nj,  weight );
               if ( noPhotMET.E() < jetCuts[4] ) hBg_E->Fill( ih, 0.5, nj,  weight );
            }
-	   if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] > TCut[1] && passABCDSelection ) {
+	   if ( rt.seedTime[k] > TCut[0] && rt.seedTime[k] < TCut[1] && passABCDSelection ) {
               // Region B
               if ( noPhotMET.E() > jetCuts[4] ) {
 
@@ -1243,8 +1251,10 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
 
    h_draw->Draw2D( abcd_Pt_Time,   "abcd_Pt_Time", "P_T", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET_Time,  "abcd_MET_Time", "MET", "EcalTime (ns)", "logZ" , 8 ) ;
-   h_draw->Draw2D( abcd_MET1_Time_sMET2,  "abcd_MET1_Time_sMET2", "MET1 ( MET2 < 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
-   h_draw->Draw2D( abcd_MET1_Time_bMET2,  "abcd_MET1_Time_bMET2", "MET1 ( MET2 > 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_T_sMET2_1J,  "abcd_MET1_T_sMET2_1J", "MET1 ( MET2 < 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_T_bMET2_1J,  "abcd_MET1_T_bMET2_1J", "MET1 ( MET2 > 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_T_sMET2_2J,  "abcd_MET1_T_sMET2_2J", "MET1 ( MET2 < 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
+   h_draw->Draw2D( abcd_MET1_T_bMET2_2J,  "abcd_MET1_T_bMET2_2J", "MET1 ( MET2 > 60 )", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET1_Time_closure1,  "abcd_MET1_Time_closure1", "MET1 ( 1-jet closure )", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET1_Time_closure2,  "abcd_MET1_Time_closure2", "MET1 ( 2-jet closure )", "EcalTime (ns)", "logZ" , 8 ) ;
    h_draw->Draw2D( abcd_MET2_Time,  "abcd_MET2_Time", "MET2", "EcalTime (ns)", "logZ" , 8 ) ;

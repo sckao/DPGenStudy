@@ -106,6 +106,8 @@ void Output::Produce() {
 
 void Output::ProduceMC() {
 
+     CreateHisto() ;
+
      vector<string> mcFileNames ;
      Input->GetParameters( "TheMC",   &mcFileNames );
      vector<string> mcIdx ;
@@ -118,6 +120,8 @@ void Output::ProduceMC() {
 }
 
 void Output::ProduceGen() {
+
+     CreateHisto() ;
 
      vector<string> mcFileNames ;
      Input->GetParameters( "TheMC",   &mcFileNames );
@@ -197,7 +201,7 @@ void Output::RunData( string dataName ) {
 
        uint32_t evtType = select->EventIdentification();
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
-       bool wanted  = ( (evtType >> 4) & 1  ) ;
+       bool wanted  = ( (evtType >> 1) & 1  ) ;
        bool passHLT = ( (evtType >> 5) & 1  ) ;     
        if ( !wanted || !passHLT ) continue ;
 
@@ -234,7 +238,7 @@ void Output::RunData( string dataName ) {
            // *************************
 
            // Overall time shape - This is for validation
-           if ( passABCDSelection && !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+           if ( passABCDSelection && !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3] ) {
               if ( noPhotMET.E() > jetCuts[4] ) h_dataTimeBFD->Fill( seedTime[k] ) ;
               if ( noPhotMET.E() < jetCuts[4] ) h_dataTimeAEC->Fill( seedTime[k] ) ;
            }
@@ -276,7 +280,7 @@ void Output::RunData( string dataName ) {
                  if ( cosmicTag )                           hBg_C->Fill( ih, 3.5, nj );
  
                  // Background shape selection - C region
-                 if ( !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+                 if ( !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3] ) {
 	            h_bgTime->Fill( seedTime[k] ) ; 
     	            h_bgTimeA->Fill( aveTime[k] ) ;
                  }
@@ -290,7 +294,7 @@ void Output::RunData( string dataName ) {
                  if ( cosmicTag )                           hBg_D->Fill( ih, 3.5, nj );
 
                  // Final signal sample - D region
-                 if ( !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() < jetCuts[3] ) {
+                 if ( !ghostTag && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3] ) {
       	            h_dataTime->Fill( seedTime[k] ) ;
  	            h_dataTimeA->Fill( aveTime[k] ) ;
                  }
@@ -478,7 +482,7 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
 
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
-       bool wanted  = ( (evtType >> 4) & 1  ) ;
+       bool wanted  = ( (evtType >> 1) & 1  ) ;
        bool passHLT = ( (evtType >> 5) & 1  ) ;     
        if ( !wanted || !passHLT ) continue ;
 
@@ -503,7 +507,7 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
            if ( ghostTag ) continue ;
 
            bool passABCDSelection = newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4]  ;
-           passBasic = (selectPho[0].second.Pt() > photonCuts[8]) && (selectJets.size() >= jetCuts[2]) && (selectJets.size() < jetCuts[3] ) ;
+           passBasic = (selectPho[0].second.Pt() > photonCuts[8]) && (selectJets.size() >= jetCuts[2]) && (selectJets.size() <= jetCuts[3] ) ;
 	   // timing correction : central shift = 0.1211 ,  sigma = 0.4
            float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
 	   float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
