@@ -442,11 +442,22 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
 }
 
 // Correct MET by taking late photon into account and systematic varies 
+// MET Uncertainty Twiki : https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription
 bool DPSelection::CorrectMET() { 
 
      bool pass = true ;
 
      //  set MET after sytematic variations
+     
+     // 10% for unclustered energy 
+     if (systType == 10 ) {
+        metPx = metPx*1.1 ; 
+        metPy = metPy*1.1 ; 
+     }
+     if (systType == 11 ) {
+        metPx = metPx*0.9 ; 
+        metPy = metPy*0.9 ; 
+     }
      metPx += metCorrX ;
      metPy += metCorrY ;
      double met_E  =  sqrt( (metPx*metPx) + (metPy*metPy) ) ;
