@@ -172,6 +172,12 @@ void Trigger::ReadTree( string dataName ) {
        TLorentzVector gP4_  = TLorentzVector( phoPx[0], phoPy[0], phoPz[0], phoE[0] ) ;
        h_trg_gPt->Fill( t_gP4.Pt() ) ;
        
+       // MET information
+       TLorentzVector t_met = TLorentzVector( t_metPx, t_metPy, 0., t_metE ) ;
+       TLorentzVector met( metPx, metPy, 0, metE)  ;
+       h_met->Fill( metE ) ;
+       h_trg_met->Fill( t_metE ) ;
+      
        // Denominator for reco-efficiency
        bool doRecoPt  = false ;
        bool doRecoEta = false ;
@@ -187,12 +193,6 @@ void Trigger::ReadTree( string dataName ) {
 	  h_Pt_Eta->Fill( gP4_.Pt(), gP4_.Eta()  ) ;
        }
 
-       // MET information
-       TLorentzVector t_met = TLorentzVector( t_metPx, t_metPy, 0., t_metE ) ;
-       TLorentzVector met( metPx, metPy, 0, metE)  ;
-       h_met->Fill( metE ) ;
-       h_trg_met->Fill( t_metE ) ;
-      
        // Trigger Matching dR 
        dR_TrgReco_Pho->Fill( t_phodR ) ;
        dR_TrgReco_Met->Fill( t_metdR ) ;
@@ -204,7 +204,8 @@ void Trigger::ReadTree( string dataName ) {
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
        bool passTrig   = select->HLTFilter() ;
-       bool passOffline = ( (evtType >> 1) & 1 ) ;
+       bool passOffline = ( (evtType >> 2) & 1 ) ;
+
        selectJets.clear() ;
        select->GetCollection("Jet", selectJets ) ;
        selectPho.clear() ;
@@ -220,11 +221,6 @@ void Trigger::ReadTree( string dataName ) {
               //int k = selectPho[kk].first ;
               int k = selectPho[itr1].first ;
 	      TLorentzVector gP4 = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
-
-	      //bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , gP4_.Eta() ) ;
-	      //bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], gP4_.Eta() ) ;
-	      //bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
-	      //bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
 
 	      //if ( !ghostTag && newMET.Et() > jetCuts[4] && noPhotMET.Et() > jetCuts[4] ) {
 	      if ( newMET.Et() > jetCuts[4] && noPhotMET.Et() > jetCuts[4] ) {
@@ -246,11 +242,12 @@ void Trigger::ReadTree( string dataName ) {
           }
        }
 
+       // set trigger bit to 1,3
        if ( !passTrig ) continue ;
-
-       // Find matched reco photon
+       // Require events with at least 1 jet and 1 photon
        if ( selectPho.size() < 1 || selectJets.size() < 1 ) continue;
 
+       // Find matched reco photon
        double match_dR ;
        int itr = TrigRecoMatch( t_gP4, selectPho, match_dR, 999.9 ) ;
        // Only use 1 photon events to evaluate photon trigger efficiency
@@ -261,16 +258,18 @@ void Trigger::ReadTree( string dataName ) {
           if ( selectPho[0].second.Pt() < 50 ) dR_Pho50->Fill( match_dR ) ;
 
           if ( itr < 0 && match_dR < 0.5 ) cout<<" bad event "<< match_dR << endl ;
-          if ( match_dR < 0.5  ) {
-             //if ( itr < 0 ) itr = 0 ;
-             h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
-	     h_gPt_trg->Fill( selectPho[0].second.Pt() )  ;
-	     //if ( selectPho[itr].second.Pt() < 50 ) {
-	     //   printf("(%d) trg pt: %.1f , reco: pt: %.1f , dR : %.2f , nPho: %d  sel: %d \n"
-	     //          , itr, t_gP4.Pt(), selectPho[itr].second.Pt(), t_phodR, nPhotons, selectPho.size() ) ;
-	     //}
-          } else {
-             h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
+          if ( fabs( seedTime[ selectPho[0].first ]) < 2. ) {
+             if ( match_dR < 0.5  ) {
+                //if ( itr < 0 ) itr = 0 ;
+		h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
+		h_gPt_trg->Fill( selectPho[0].second.Pt() )  ;
+		//if ( selectPho[itr].second.Pt() < 50 ) {
+		//   printf("(%d) trg pt: %.1f , reco: pt: %.1f , dR : %.2f , nPho: %d  sel: %d \n"
+		//          , itr, t_gP4.Pt(), selectPho[itr].second.Pt(), t_phodR, nPhotons, selectPho.size() ) ;
+		//}
+	     } else {
+		     h_gPt_sel->Fill( selectPho[0].second.Pt() )  ;
+             }
           }
        }
 
@@ -280,6 +279,7 @@ void Trigger::ReadTree( string dataName ) {
        if ( selectJets.size() > 0 && t_metE > 0.01 ) {
           h_met_sel->Fill( metE ) ;
           if (t_metE > 24.99 ) h_met_trg->Fill( metE ) ;
+          /*
           if ( metE > 130. && t_metE < 25. )  {
              int kk = selectPho[0].first ;
              printf(" gPt : %.2f , eta: %.2f , T: %.2f t_metE= %.2f , nJ= %d \n", 
@@ -287,6 +287,7 @@ void Trigger::ReadTree( string dataName ) {
              for ( int k=0 ; k < (int)selectJets.size() ; k++ ) 
                  printf("  jPt : %.2f , eta: %.2f \n", selectJets[k].second.Pt(), selectJets[k].second.Eta() ) ;
           }
+          */
             
           // This is a biased bad measurement -> In single photon dataset, events with PFMET trigger information
           // are more likely to be triggered by DisplacedPhotonTrigger 
@@ -298,10 +299,8 @@ void Trigger::ReadTree( string dataName ) {
 	     //     printf(" triggered = %d (%d - %d ) , gPt = %.2f , trgPt = %.2f dR: %.2f \n", 
       	     // 	     triggered , nPhotons, selectPho.size(), selectPho[itr].second.Pt(), t_gP4.Pt(), match_dR ) ;
 	     //}
-
           }
        }
-
       
 
    } // end of event looping
