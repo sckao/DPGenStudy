@@ -167,7 +167,7 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
        newMET    = select->newMET ;
        noPhotMET = select->noPhotMET ;
        bool passMET = newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4]  ;
-       TLorentzVector met( metPx, metPy, 0, metE)  ;
+       TLorentzVector met = select->theMET  ;
 
        // raw multiplicity information
        h.h_nVtx->Fill(  totalNVtx , weight ) ;
@@ -238,8 +238,8 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
                  h.obsTime2->Fill( seedTime[k], weight );
               }
 
-	      if ( timeChi2[k] < 5 )  h.aveObsTime1->Fill( aveTime1[k] , weight );
-	      if ( timeChi2[k] < 5 )  h.aveObsTime2->Fill( seedTime[k] , weight );
+	      if ( timeChi2[k] < 4. )  h.aveObsTime1->Fill( aveTime1[k] , weight );
+	      if ( timeChi2[k] < 4. )  h.aveObsTime2->Fill( seedTime[k] , weight );
 
               h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] , weight ) ;
 	      h.h_nChi2->Fill( timeChi2[k] , weight ) ;
@@ -496,6 +496,7 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
               h.h_lateXbeta->Fill( xP4.Beta() ) ;
               h.h_lateXctau->Fill( genT[mId]*300. / xP4.Gamma() ) ;
 	      h.h_lateXPt->Fill( xP4.Pt() ) ;
+	      h.h_lateGPt->Fill( xP4.Pt() ) ;
 
 	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctbgT->Fill( ctbgT*10. ) ;
 	      if (  pass && pass_hlt && nNonGhost > 0 && passMET ) h.acc_ctbg->Fill( ctbg*10. ) ;

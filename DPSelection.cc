@@ -340,9 +340,9 @@ bool DPSelection::PhotonFilter() {
            //    if ( phoP4.DeltaR( jetV[k].second ) < dR_gj )  dR_gj  = phoP4.DeltaR( jetV[k].second ) ;
            //}
            //if ( dR_gj < photonCuts[3] ) continue ;
-           if ( timeChi2[j] > 4. ) continue; 
+           if ( timeChi2[j] > photonCuts[9] ) continue; 
            nG[6]++ ;
-           if ( sigmaIeta[j] > photonCuts[9] ) continue ;
+           if ( sigmaIeta[j] > 0.99 ) continue ;
            nG[7]++ ; 
            
            maxPt = ( maxPt < phoP4.Pt() ) ? phoP4.Pt() : maxPt ;
@@ -450,16 +450,44 @@ bool DPSelection::CorrectMET() {
      //  set MET after sytematic variations
      
      // 10% for unclustered energy 
-     if (systType == 10 ) {
+     if (systType == 11 ) {
         metPx = metPx*1.1 ; 
         metPy = metPy*1.1 ; 
      }
-     if (systType == 11 ) {
+     if (systType == 12 ) {
         metPx = metPx*0.9 ; 
         metPy = metPy*0.9 ; 
      }
-     metPx += metCorrX ;
-     metPy += metCorrY ;
+
+     // Get the MET uncertainty from reco
+     if ( systType == 1 ) {
+        metPx += met_dx1 ;
+        metPy += met_dy1 ;
+     }
+     if ( systType == 2 ) {
+        metPx -= met_dx1 ;
+        metPy -= met_dy1 ;
+     }
+     if ( systType == 3 ) {
+        metPx += met_dx2 ;
+        metPy += met_dy2 ;
+     }
+     if ( systType == 4 ) {
+	metPx -= met_dx2 ;
+	metPy -= met_dy2 ;
+     }
+     if ( systType == 5 ) {
+        metPx += met_dx3 ;
+        metPy += met_dy3 ;
+     }
+     if ( systType == 6 ) {
+        metPx -= met_dx3 ;
+        metPy -= met_dy3 ;
+     }
+    
+     //metPx += metCorrX ;
+     //metPy += metCorrY ;
+      
      double met_E  =  sqrt( (metPx*metPx) + (metPy*metPy) ) ;
      theMET.SetPxPyPzE( metPx, metPy, 0., met_E ) ;
 
@@ -570,7 +598,7 @@ uint32_t DPSelection::EventIdentification() {
        if ( passVtx  && passPho && passJet && passMET )          eventType |= (1 <<0) ;   // 0001
        if ( passVtx  && passPho                       )          eventType |= (1 <<1) ;   // 0010
        if ( passVtx  && phoV.size() > 0               )          eventType |= (1 <<2) ;   // 0100
-       if ( passVtx  && passPho && passJet > 0        )          eventType |= (1 <<3) ;   // 1000
+       if ( passVtx  && passPho && passJet            )          eventType |= (1 <<3) ;   // 1000
        if ( passTrigger && passVtx && passPho && passJet && passMET ) {
                                                                  eventType |= (1 <<4) ;  //10000
                                                                  counter[4]++ ;

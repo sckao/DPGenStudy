@@ -91,6 +91,7 @@ struct hSet {
     TH1D* sel_gPt  ;
     TH1D* h_XPt  ;
     TH1D* h_lateXPt  ;
+    TH1D* h_lateGPt  ;
     TH2D* dt1_dt2 ;
     TH2D* dt1_dt2_late ;
     TH2D* ctbgT_dPt ;

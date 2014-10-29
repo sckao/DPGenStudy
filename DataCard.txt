@@ -8,29 +8,31 @@ RootFiles = rootfiles/
 
 # Folder to store results
 Path = TCuts_RunBCD_new/
+#Path = Phot50/
 
 # plot type : png / gif / eps / jpg / pdf 
 PlotType = png
 
 # Histogram files ; TestGen : analysis results , Output : StatsTool input
-#HFileName = hStats_BCD_0923
+#HFileName = hStats_BCD_2J_1021
 # bgRunBCD_MET2_GT60_s : new spike tag without nXtal cut
-#HFileName = Test_QCD_2J_test
-HFileName = bgRunBCD_1004
+HFileName = test_RunD
+#HFileName = bgRunBCD_1021_1J
 
 ######################################
 # Module 0: TestGen,     1: Trigger,    2: TestGen Histogram Draw 3: TestGen for MC
 #        4: Stats Output 5: Systematic, 6: Trigger Histogram Draw 7: Halo Study 8: MC Halo Study 9: Halo Drawer
 #       11: MC Stats Output  
 ######################################
-Module = 9
+Module = 2
 
 # MC = 0 , Data = 1
 IsData = 1
 # Files , '+' is the flag for TChain,  
 
 TheData = ( data+ )
-dataChain = ( run2012d_0324_1, run2012d_0324_2, run2012d_0324_3 )
+#dataChain = ( phot50_b, phot50_c )
+dataChain = ( run2012c_0324_1, run2012c_0324_2, run2012c_0324_3 )
 #dataChain = ( run2012d_0324_1, run2012d_0324_2, run2012d_0324_3, run2012c_0324_1, run2012c_0324_2, run2012c_0324_3, run2012b_0324_1, run2012b_0324_2 )
 #dataChain = ( run2012d_1024_1, run2012d_1024_2, run2012d_1024_3, run2012c_1024_3, run2012c_1024_2, run2012c_1024_1, run2012b_1024_1, run2012b_1024_2 )
 
@@ -57,8 +59,8 @@ SkipEvents = 0
 TriggerBits = ( 2, 3 )
 UseL1 = 0
 
-# Photon Cuts  Pt,  Eta, hoverE,  maxNPhot, minNPhot, sMinMin, sMinMax, dR_trk, leadingPt, sigmaIeta  
-PhotonCuts = ( 45,  1.47,  0.05,        99,        1,    0.12,    0.38,     0.6,      80.,    0.99  )
+# Photon Cuts  Pt,  Eta, hoverE,  maxNPhot, minNPhot, sMinMin, sMinMax, dR_trk, leadingPt,  chi2, 
+PhotonCuts = ( 45,  1.47,  0.05,        99,        1,    0.12,    0.38,     0.6,      80.,    99.  )
 
 # vertex cut   ndof,   z,  d0 
 VertexCuts = (    0,  24,   2 )
@@ -78,7 +80,7 @@ PhotonIso  = ( 0.2,     4.5,   0.1,    4.0,   0.1  )
 
 # MET < 0 : set a max value for the MET
 # Jet/MET     Pt,  Eta, MinNJets, MaxNJets,  MET, dR_gj  
-JetCuts = (   35., 2.4,        0,       1,   60,  0.3)
+JetCuts = (   35., 2.4,        0,      1,   60,  0.3)
 
 # electron       Pt  Eta  relIso  dRej
 ElectronCuts = ( 25, 2.4,  0.15,  0.3 )
@@ -122,7 +124,8 @@ SystType = 0
 # Calibration for MC
 #             Shift, Resol
 #TimeCalib = (  0.127, 0.32 ) 
-TimeCalib = (  -0.167, 0.26 ) 
+#TimeCalib = (  -0.167, 0.26 ) 
+TimeCalib = (  -0.111, 0.287 ) 
 
 # Background Tagging efficiency and fake rate
 # 0 : Use the value in this DataCard , 1: Calculate in flight

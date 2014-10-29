@@ -19,21 +19,21 @@ Histogram::Histogram() {
 
 void Histogram::Init( hSet& hS ) {
 
-   hS.obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -14.5, 25.5);
-   hS.aveObsTime  = new TH1D("aveObsTime", "Photon Time from clusters", 160,  -14.5, 25.5);
-   hS.aveObsTime1 = new TH1D("aveObsTime1", "Photon Time ", 100,  -2.5, 2.5);
-   hS.aveObsTime2 = new TH1D("aveObsTime2", "Photon Time from seed with cluster chi2 < 5", 160,  -14.5, 25.5);
-   hS.isoTime     = new TH1D("isoTime", "Time from isolated good photons", 100,  -2.5, 2.5);
-   hS.obsTime1    = new TH1D("obsTime1", "Time from isolated good photons", 100,  -2.5, 2.5);
+   hS.obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -20., 20.);
+   hS.aveObsTime  = new TH1D("aveObsTime", "Photon Time from clusters", 160,  -20., 20.);
+   hS.aveObsTime1 = new TH1D("aveObsTime1", "Photon Time ", 160,  -20., 20.);
+   hS.aveObsTime2 = new TH1D("aveObsTime2", "Photon Time from seed with cluster chi2 < 4", 160,  -20., 20.);
+   hS.isoTime     = new TH1D("isoTime", "Time from isolated good photons", 160,  -20., 20.);
+   hS.obsTime1    = new TH1D("obsTime1", "Time from photon seed crystal", 160,  -20., 20.);
    hS.obsTime2    = new TH1D("obsTime2", "Time from isolated good photons", 100,  -2.5, 2.5);
 
-   hS.seedTime_Chi2  = new TH2D("seedTime_Chi2", "Seed Time vs Chi2 ", 160,  -14.5, 25.5, 50, 0, 100);
+   hS.seedTime_Chi2  = new TH2D("seedTime_Chi2", "Seed Time vs Chi2 ", 160,  -20., 20., 100, 0, 100);
 
-   hS.h_matchRecoTime = new TH1D("h_matchRecoTime", "Matched Reco Photon Time", 160,  -14.5, 25.5);
-   hS.h_matchGenTime  = new TH1D("h_matchGenTime", "Matched Gen Photon Time",  160,  -14.5, 25.5);
-   hS.h_matchTime     = new TH1D("h_matchTime", "Time Matched Gen Photon Time", 160,  -14.5, 25.5);
+   hS.h_matchRecoTime = new TH1D("h_matchRecoTime", "Matched Reco Photon Time", 160,  -20., 20.);
+   hS.h_matchGenTime  = new TH1D("h_matchGenTime", "Matched Gen Photon Time",  160,  -20., 20.);
+   hS.h_matchTime     = new TH1D("h_matchTime", "Time Matched Gen Photon Time", 160,  -20., 20.);
 
-   hS.h_genTime       = new TH1D("h_genTime",   "Photon Time ", 160,  -14.5, 25.5);
+   hS.h_genTime       = new TH1D("h_genTime",   "Photon Time ", 160,  -20., 20.);
    hS.h_TimeRes0   = new TH1D("h_TimeRes0", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_TimeRes1   = new TH1D("h_TimeRes1", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
    hS.h_TimeRes2   = new TH1D("h_TimeRes2", "Seed Photon Time Resolution", 100,  -2.5, 2.5 );
@@ -53,9 +53,9 @@ void Histogram::Init( hSet& hS ) {
    hS.ctbgT_dPt = new TH2D("ctbgT_dPt", " decay length in lab vs dPt ", 80,  0, 4000, 40, -100, 100 ) ;
    hS.h_HoverE  = new TH1D("h_HoverE", " H/E  ", 100,  0., 0.5 ) ;
    hS.h_sigIeta = new TH1D("h_sigIeta", " Sigma Ieta Ieta ", 100,  0., 0.1 ) ;
-   hS.h_Time    = new TH1D("h_Time", "Expected Photon Time", 160,  -14.5, 25.5);
-   hS.h_dT0     = new TH1D("h_dT0", "Expected Photon Time", 160,  -14.5, 25.5);
-   hS.simTime   = new TH1D("simTime", "Expected Photon Time", 160,  -14.5, 25.5);
+   hS.h_Time    = new TH1D("h_Time", "Expected Photon Time", 160,  -20., 20.);
+   hS.h_dT0     = new TH1D("h_dT0", "Expected Photon Time", 160,  -20., 20.);
+   hS.simTime   = new TH1D("simTime", "Expected Photon Time", 160,  -20., 20.);
    hS.h_nChi2   = new TH1D("h_nChi2", "normalized chi2 of seed xtals", 100,  0, 50.0);
    hS.h_ctau    = new TH1D("h_ctau", "gen #chi_{0} lifetime (ctau)", 160,  0, 8000);
    hS.sel_ctau = new TH1D("sel_ctau", "gen #chi_{0} lifetime (ctau)",160,  0, 8000);
@@ -83,6 +83,7 @@ void Histogram::Init( hSet& hS ) {
    hS.reco_gPt    = new TH1D("reco_gPt", "Pt of photon from neutralino", 50,  0, 500);
    hS.sel_gPt     = new TH1D("sel_gPt", "Pt of photon from neutralino", 50,  0, 500);
    hS.h_lateXPt     = new TH1D("h_lateXPt", "Pt of Neutrlino for late photon", 50,  0, 500);
+   hS.h_lateGPt     = new TH1D("h_lateGPt", "Pt for late photon", 50,  0, 500);
    hS.h_TrkIsoR  = new TH1D("h_TrkIsoR", " Track Isolation Ratio", 110, 0, 1.1 );
    hS.h_HcalIsoR = new TH1D("h_HcalIsoR", " HCAL Isolation Ratio", 110, 0, 1.1 );
    hS.h_EcalIsoR = new TH1D("h_EcalIsoR", " ECAL Isolation Ratio", 110, 0, 1.1 );
@@ -141,8 +142,8 @@ void Histogram::Init( hSet& hS ) {
    hS.h_cscdPhi_Time  = new TH2D( "h_cscdPhi_Time", " d#Phi vs Ecal time", 64, 0, 3.2, 160, -20, 20 ) ;
    hS.h_sigIeta_Time  = new TH2D( "h_sigIeta_Time", " sigma_iEta vs Ecal time", 80, 0, 0.08, 120, -15, 15 ) ;
 
-   hS.pureTime     = new TH1D("pureTime", "Photon Time after ghost cleaning", 160,  -14.5, 25.5);
-   hS.ghostTime    = new TH1D("ghostTime", "Ghost Photon Time ", 160,  -14.5, 25.5);
+   hS.pureTime     = new TH1D("pureTime", "Photon Time after ghost cleaning", 160,  -20., 20.);
+   hS.ghostTime    = new TH1D("ghostTime", "Ghost Photon Time ", 160,  -20., 20.);
 
    hS.m_RecoPt       = new TH1D("m_RecoPt", " Photon Pt ", 50,  0, 500);
    hS.m_GenPt        = new TH1D("m_GenPt", " Photon Pt ", 50,  0, 500);
@@ -233,6 +234,7 @@ void Histogram::Open() {
      h.h_lateXbeta  = (TH1D*) hFile->Get("h_lateXbeta")  ;
      h.h_lateXctau  = (TH1D*) hFile->Get("h_lateXctau")  ;
      h.h_lateXPt    = (TH1D*) hFile->Get("h_lateXPt")  ;
+     h.h_lateGPt    = (TH1D*) hFile->Get("h_lateGPt")  ;
      h.reco_xPt     = (TH1D*) hFile->Get("reco_xPt")  ;
      h.sel_xPt      = (TH1D*) hFile->Get("sel_xPt")  ;
      h.reco_xPt_ctbgT = (TH2D*) hFile->Get("reco_xPt_ctbgT")  ;
@@ -377,6 +379,7 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.h_lateXbeta->Write()  ;
      h.h_lateXctau->Write()  ;
      h.h_lateXPt->Write()  ;
+     h.h_lateGPt->Write()  ;
      h.reco_xPt->Write()  ;
      h.sel_xPt->Write()  ;
      h.h_XPt->Write()  ;
@@ -473,35 +476,34 @@ void Histogram::DrawHistograms() {
    gStyle->SetOptStat("");
    //gStyle->SetOptStat("ermi");
 
-   TLegend* leg1  = new TLegend(.5, .7, .77, .9 );
+   TLegend* leg1  = new TLegend(.65, .7, .9, .9 );
    TLegend* leg2  = new TLegend(.65, .7, .9, .9 );
 
    leg1->Clear();
    leg1->SetTextSize(0.03) ;
    // calculate the number events later than "TCut"
-   int bin_tcut = static_cast<int>( (TCut[2] + 14.5) / 0.25 ) ;
    /// seed time
-   Int_t nu1  = h.obsTime->Integral(bin_tcut,160);
-   Int_t nu1a = h.obsTime->Integral(1,160);
+   Int_t nu1  = h.obsTime1->Integral(73, 88);
+   Int_t nu1a = h.obsTime1->Integral(1,160);
    char legStr1[35] ;
-   sprintf( legStr1,  "Seed: %d / %d", nu1, nu1a ) ;
-   leg1->AddEntry( h.obsTime, legStr1,  "L");
+   sprintf( legStr1,  "Seed: %d/%d", nu1, nu1a ) ;
+   leg1->AddEntry( h.obsTime1, legStr1,  "L");
    /// altered cluster time
-   Int_t nu2  = h.aveObsTime->Integral(bin_tcut,160);
-   Int_t nu2a = h.aveObsTime->Integral(1,160);
+   Int_t nu2  = h.aveObsTime1->Integral(73,88);
+   Int_t nu2a = h.aveObsTime1->Integral(1,160);
    char legStr2[35] ;
-   sprintf( legStr2,  "Cluster: %d / %d", nu2, nu2a  ) ;
-   leg1->AddEntry( h.aveObsTime, legStr2,  "L");
+   sprintf( legStr2,  "Cluster: %d/%d", nu2, nu2a  ) ;
+   leg1->AddEntry( h.aveObsTime1, legStr2,  "L");
 
    /// original cluster time with Chi2 cut
-   Int_t nu3  = h.aveObsTime1->Integral(bin_tcut,160);
-   Int_t nu3a = h.aveObsTime1->Integral(1,160);
+   Int_t nu3  = h.aveObsTime2->Integral(73,88);
+   Int_t nu3a = h.aveObsTime2->Integral(1,160);
    char legStr3[35] ;
-   sprintf( legStr3,  "Chi2: %d / %d", nu3, nu3a ) ;
-   leg1->AddEntry( h.aveObsTime1, legStr3,  "L");
+   sprintf( legStr3,  "Chi2: %d/%d", nu3, nu3a ) ;
+   leg1->AddEntry( h.aveObsTime2, legStr3,  "L");
    /// gen time
    if ( isData == 0 ) {
-      Int_t nu0  = h.h_genTime->Integral(bin_tcut,160);
+      Int_t nu0  = h.h_genTime->Integral(73,88);
       Int_t nu0a = h.h_genTime->Integral(43,160);      // ignore the photons outside ECAL ( t = -4 ns )
       char legStr0[35] ;
       sprintf( legStr0,  "Gen: %d / %d", nu0, nu0a ) ;
@@ -509,8 +511,9 @@ void Histogram::DrawHistograms() {
       h_draw->Draw(    h.h_genTime,  "", "Ecal Time (ns)", "", "logY", 0.35, 6 ) ;
       h_draw->DrawAppend( h.obsTime, "ECALTime",           0.95, 1, 1, leg1 ) ;
    } else {
-      h_draw->Draw(    h.obsTime,    "", "Ecal Time (ns)", "", "logY", 0.95, 1 ) ;
-      h_draw->DrawAppend( h.aveObsTime,"ECALTime",           0.55, 4, 1, leg1 ) ;
+      h_draw->Draw(    h.obsTime1,    "", "Ecal Time (ns)", "", "logY", 0.95, 1 ) ;
+      h_draw->DrawAppend( h.aveObsTime1,"",                   0.75, 2, 1  ) ;
+      h_draw->DrawAppend( h.aveObsTime2,"ECALTime",           0.55, 4, 1, leg1 ) ;
    }
 
    //h_draw->DrawAppend( h.aveObsTime, "",           0.75, 2, 1 ) ;
@@ -522,8 +525,9 @@ void Histogram::DrawHistograms() {
    h_draw->SetFitParameter( "Gaus", h.pureTime, 0, 0, 3, 4 );
    h_draw->FitNDraw( h.pureTime, "TimeResolution0", "Reco Photon Time (ns)", "", "logY", 0.95, 1 ) ;
 
+   int bin_tcut = 93 ;
    if ( isData == 0 ) {
-
+      
       TLegend* leg3  = new TLegend(.5, .7, .9, .9 );
       leg3->Clear();
       leg3->SetTextSize(0.03) ;
