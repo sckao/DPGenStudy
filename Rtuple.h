@@ -41,6 +41,9 @@ struct Rtuple {
    float metPx, metPy, metE, met_dx1, met_dy1, met_dx2, met_dy2, met_dx3, met_dy3 ;
    int   nJets, nPhotons, nElectrons, nVertices, totalNVtx, nMuons, triggered, L1a ;
 
+   int pdgId[MAXGEN], momId[MAXGEN] ;
+   int nGen ;
+
 } ;
 
 // ------------------------------------------------------------------------

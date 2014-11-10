@@ -23,7 +23,6 @@
 typedef pair<int, TLorentzVector> objID ;
 */
 
-
 //class DPSelection : public TObject {
 class DPSelection {
 
@@ -38,7 +37,6 @@ public:
    void SetArray( int a[], int b[], int size ) ;
    void SetArray( float a[], float b[], int size ) ;
 
-
    bool HLTFilter();
    bool L1Filter();
    bool PhotonFilter() ;
@@ -47,6 +45,7 @@ public:
    bool ElectronFilter() ;
    bool MuonFilter() ;
    bool CorrectMET() ;
+   double BR() ;
 
    bool GetEventStat( string flagName ) ;
 
@@ -75,8 +74,7 @@ public:
    double GetEstimation( TH3D* hCount, bool getQCD = true ) ;
    vector<double> GetComponent( int eta_i, double B12, double h_B12, double s_B12, double c_B12 ) ;
    vector<double> GetComponent( int eta_i, int B12,    int h_B12,    int s_B12,    int c_B12 ) ;
-
-   
+  
 
    // results
    bool passL1 ;
@@ -132,6 +130,9 @@ private:
    float metPx, metPy, metE, met_dx1, met_dy1, met_dx2, met_dy2, met_dx3, met_dy3 ;
    int   nJets, nPhotons, nElectrons, nVertices, nMuons, triggered, L1a ;
 
+   int nGen ;
+   int pdgId[MAXGEN], momId[MAXGEN] ;
+
    int isData ;
    int UseL1 ;
    int systType ;
@@ -139,8 +140,8 @@ private:
    vector<int> trigCuts ;
 
    // counters for cutflow  
-   int counter[9] ;
-   int gCounter[9] ;
+   int counter[10] ;
+   int gCounter[10] ;
    int photonCutFlow ;
 
    // Efficiency and mis-tag rate for background taggers
@@ -152,7 +153,8 @@ private:
    vector<double> cosMis ;
    int useInFlight ;
 
-
+   // For BR calculation
+   int nX0, nPho ;
    // MET Correction
    double met1x, met1y, met1E ;
    double met2x, met2y, met2E ;

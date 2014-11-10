@@ -91,6 +91,11 @@ void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
    tr->SetBranchAddress("vtxChi2",    &vr.vtxChi2 );
    tr->SetBranchAddress("vtxNdof",    &vr.vtxNdof );
 
+   tr->SetBranchAddress("nGen",        &vr.nGen);
+   tr->SetBranchAddress("pdgId",       &vr.pdgId );
+   tr->SetBranchAddress("momId",       &vr.momId );
+
+
 }
 
 /*

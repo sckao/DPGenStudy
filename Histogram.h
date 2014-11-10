@@ -76,6 +76,7 @@ struct hSet {
     TH1D* late_ctbgT   ;
     TH1D* lateR_ctbgT   ;
     TH1D* obs_ctbgT   ;
+    TH1D* hlt_ctbgT   ;
     TH1D* sel_ctbgT   ;
     TH1D* acc_ctbgT   ;
     TH1D* h_xbeta  ;

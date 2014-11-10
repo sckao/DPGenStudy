@@ -10,20 +10,26 @@
 
 // define the fitting function
 void EffPlotter() {
-
     TString plotname = "Photon_EffAsym.png" ;
     string xlable = "Photon P_{T} (GeV/c) " ;
     string hName = "h_gPt_trg" ;
     string AName = "h_gPt_sel" ;
     /*
-    TString plotname = "PFMET_EffAsym.png" ;
+    TString plotname = "HLTStudy/PFMET_EffAsym.png" ;
     string xlable = "MET (GeV) " ;
     string hName = "h_met_trg" ;
     string AName = "h_met_sel" ;
     */
+
+    /* 
     TFile *file0  = TFile::Open("TCuts_RunBCD_new/histo_trig_pho50.root");
     TFile *file1  = TFile::Open("TCuts_RunBCD_new/histo_trig_gmsb.root");
     TFile *file2  = TFile::Open("TCuts_RunBCD_new/histo_trig_gj.root");
+    */
+    TFile *file0  = TFile::Open("HLTStudy/hlt_phot50.root");
+    TFile *file1  = TFile::Open("HLTStudy/hlt_gmsb.root");
+    //TFile *file2  = TFile::Open("HLTStudy/hlt_gjets_highMET.root");
+    TFile *file2  = TFile::Open("HLTStudy/hlt_gjets_lowPt.root");
 
     TH1D* h_data  = (TH1D *) file0->Get( hName.c_str() )  ;
     TH1D* h_gmsb  = (TH1D *) file1->Get( hName.c_str() )  ;
@@ -94,7 +100,7 @@ void EffPlotter() {
     c0->Update();
 
     // Legend
-    TLegend* leg1  = new TLegend(.65, .5, .85, .7 );
+    TLegend* leg1  = new TLegend(.65, .3, .85, .5 );
     leg1->Clear();
     leg1->SetTextSize(0.03) ;
 

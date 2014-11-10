@@ -106,6 +106,7 @@ void BackgroundStudy::Write() {
   h_met_met2->Write() ;
   h_nPhoton->Write() ;
   h_jet_phot_Time->Write() ;
+  h_dT_jg->Write() ;
   h_jetTime->Write() ;
   h_jetTimeErr->Write() ;
 
@@ -301,7 +302,8 @@ void BackgroundStudy::Create() {
   h_met_met1     = new TH2D( "h_met_met1",    " MET vs MET1", 50, 0, 500, 50, 0, 500 ) ;
   h_met_met2     = new TH2D( "h_met_met2",    " MET vs MET2", 50, 0, 500, 50, 0, 500 ) ;
   h_nPhoton      = new TH1D( "h_nPhoton", "N Photons", 11, -0.5, 10.5 ) ;
-  h_jet_phot_Time = new TH2D( "h_jet_phot_Time", " jet time vs photon time", 80, -5., 5., 160, -20, 20 ) ;
+  h_jet_phot_Time = new TH2D( "h_jet_phot_Time", " Jet time vs Photon time", 80, -5., 5., 120, -15, 15 ) ;
+  h_dT_jg        = new TH1D( "h_dT_jg", " Jet time vs Photon time", 100, -5., 5. ) ;
   h_jetTime      = new TH1D( "h_jetTime", "Jet time", 160, -20., 20. ) ;
   h_jetTimeErr   = new TH1D( "h_jetTimeErr", "Jet time error", 100, 0., 5. ) ;
 
@@ -499,6 +501,7 @@ void BackgroundStudy::Open( TFile* hFile ) {
      h_photIso_Time = (TH2D*) theFile->Get("h_photIso_Time");
      h_seedE_Time   = (TH2D*) theFile->Get("h_seedE_Time");
      h_jet_phot_Time = (TH2D*) theFile->Get("h_jet_phot_Time");
+     h_dT_jg        = (TH1D*) theFile->Get("h_dT_jg");
      h_jetTime      = (TH1D*) theFile->Get("h_jetTime");
      h_jetTimeErr   = (TH1D*) theFile->Get("h_jetTimeErr");
 
@@ -669,7 +672,7 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
    cout<<" Event start from : "<< beginEvent << endl ;
    cout<<" from  "<< dataFileNames  <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
-   int nTrig[2] = { 0 , 0 } ;
+   int nTrig[2] = { 0. , 0 } ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
 
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
@@ -716,7 +719,7 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
        qcdS->Run(   selectPho, selectJets, rt, weight  )   ;
  
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
-       bool wanted = ( (evtType >> 1) & 1  ) ;
+       bool wanted = ( (evtType >> 2) & 1  ) ;
        if ( !wanted ) continue ;
        //cout<<" evt type: "<< evtType ;
        //cout<<" phot sz: "<< selectPho.size() <<" jet sz: "<< selectJets.size() << endl ;
@@ -1006,22 +1009,27 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	      if ( cosmicTag  ) nJets_cosmic->Fill( njets , weight );
            }
          
-           double dt_jg = 99. ;
-           int jk = -1 ;
-           for ( size_t jj =0 ; jj< selectJets.size() ; jj++ ) {
-               int j = selectJets[jj].first ;
-               if ( kk == 0 ) { 
-                  h_jetTime->Fill( rt.jetTime[j] ) ;
-                  h_jetTimeErr->Fill( rt.jetTimeErr[j] ) ;
-               }
-               if ( rt.jetTimeErr[j] < 0.001 || rt.jetTimeErr[j] > 50. ) continue ;
-               double dt_ = fabs( rt.jetTime[j] - rt.seedTime[k] ) ;
-               if ( dt_ < dt_jg ) {
-                  dt_jg = dt_ ;
-                  jk = j ;
-               }          
+           if ( !ghostTag && selectPho[0].second.Pt() > 80. ) {
+              double dt_jg = 99. ;
+              int jk = -1 ;
+              for ( size_t jj =0 ; jj< selectJets.size() ; jj++ ) {
+                  int j = selectJets[jj].first ;
+                  if ( kk == 0 ) { 
+                     h_jetTime->Fill( rt.jetTime[j] ) ;
+                     h_jetTimeErr->Fill( rt.jetTimeErr[j] ) ;
+                  }
+                  if ( rt.jetTimeErr[j] < 0.001 || rt.jetTimeErr[j] > 50. ) continue ;
+                  double dt_ = fabs( rt.jetTime[j] - rt.seedTime[k] ) ;
+		  if ( dt_ < dt_jg ) {
+		     dt_jg = dt_ ;
+		     jk = j ;
+		  }          
+              }
+              if ( jk > - 1 ) {
+                 h_jet_phot_Time->Fill( rt.jetTime[jk], rt.seedTime[k] ) ;
+                 h_dT_jg->Fill( rt.jetTime[jk] - rt.seedTime[k]  ) ;
+              }
            }
-           h_jet_phot_Time->Fill( rt.jetTime[jk], rt.seedTime[k] ) ;
 
            if ( selectPho[0].second.Pt() > 80. ) {
 
@@ -1240,9 +1248,10 @@ void BackgroundStudy::DrawHistograms( hDraw* h_draw ) {
    h_draw->Draw2D( h_nXtl_Eta,    "h_nXtl_Eta",    "N crystals", "#eta", "logZ", 8  ) ;
    h_draw->Draw2D( h_nXtl_Pt_EB,  "h_nXtl_Pt_EB",     "N crystals", "P_{T}", "logZ", 8  ) ;
    
-   h_draw->Draw2D( h_jet_phot_Time, "h_jet_phot_Time", "jet time", "photon time", "logZ", 8  ) ;
+   h_draw->Draw2D( h_jet_phot_Time, "h_jet_phot_Time", "Jet time (ns)", "Photon time (ns)", "logZ", 8  ) ;
+   h_draw->Draw(   h_dT_jg,         "h_dt_jg",     " jet time - photon time", "", "logY", 0.95, 1 ) ;
    h_draw->Draw(   h_jetTime,      "h_jetTime",    " jet time ", "", "logY", 0.95, 1 ) ;
-   h_draw->Draw(   h_jetTime,      "h_jetTimeErr", " jet time error", "", "logY", 0.95, 1 ) ;
+   h_draw->Draw(   h_jetTimeErr,   "h_jetTimeErr", " jet time error", "", "logY", 0.95, 1 ) ;
    h_draw->Draw2D( h_met_met1,     "h_met_met1",     "MET", "MET1", "logZ", 8  ) ;
    h_draw->Draw2D( h_met_met2,     "h_met_met2",     "MET", "MET2", "logZ", 8  ) ;
    h_draw->Draw(   h_nPhoton,      "h_nPhoton", " N Selected Photons ", "", "logY", 0.95, 1 ) ;

@@ -31,7 +31,7 @@ DPSelection::DPSelection( string datacardfile ){
   photonIso            = iConfig.getParameter<std::vector<double> >("photonIso");
   electronCuts         = iConfig.getParameter<std::vector<double> >("electronCuts");
   */
-  for ( int i =0 ; i< 9 ; i++) {
+  for ( int i =0 ; i< 10 ; i++) {
       counter[i] = 0 ;
       gCounter[i] = 0 ;
   }
@@ -51,6 +51,8 @@ DPSelection::DPSelection( string datacardfile ){
   metCorrY = 0 ;
   met1x =0 ; met1y = 0 ; met1E = 0 ;
   met2x =0 ; met2y = 0 ; met2E = 0 ;
+  nX0  = 0 ;
+  nPho = 0 ;
 }
 
 DPSelection::~DPSelection(){
@@ -146,6 +148,11 @@ void DPSelection::Init( TTree* tr ) {
    tr->SetBranchAddress("vtxZ",       vtxZ );
    tr->SetBranchAddress("vtxChi2",    vtxChi2 );
    tr->SetBranchAddress("vtxNdof",    vtxNdof );
+
+   tr->SetBranchAddress("nGen",        &nGen);
+   tr->SetBranchAddress("pdgId",       pdgId );
+   tr->SetBranchAddress("momId",       momId );
+
 }
 
 void DPSelection::Init( Rtuple& rt ) { 
@@ -213,6 +220,9 @@ void DPSelection::Init( Rtuple& rt ) {
      SetArray( eleTrkIso   , rt.eleTrkIso , MAXELE ); 
      SetArray( eleNLostHits , rt.eleNLostHits , MAXELE ) ;
 
+     SetArray( pdgId, rt.pdgId, MAXGEN ) ;
+     SetArray( momId, rt.momId, MAXGEN ) ;
+
      metPx = rt.metPx ;
      metPy = rt.metPy ;
      metE  = rt.metE ;
@@ -231,9 +241,19 @@ void DPSelection::Init( Rtuple& rt ) {
      triggered = rt.triggered ;
      L1a     = rt.L1a ;
      eventId = rt.eventId;
-
+     nGen    = rt.nGen ;
 }
 
+double DPSelection::BR( ) { 
+     
+     for (int i=0; i< nGen ; i++ ) {
+         if ( pdgId[i] == 1000022 ) nX0++ ;
+         if ( pdgId[i] ==      22 ) nPho++ ;
+     } 
+
+     double br = ( nX0 == 0 ) ? -1. :  (double)nPho / (double) nX0 ;
+     return  br ;
+}
 // analysis template
 bool DPSelection::HLTFilter( ) { 
     
@@ -257,7 +277,7 @@ bool DPSelection::L1Filter() {
 bool DPSelection::PhotonFilter() { 
 
        bool pass =  true ;
-       int nG[9] = { 0 } ;
+       int nG[10] = { 0 } ;
 
        // 0. photon cuts
        phoV.clear() ;
@@ -364,7 +384,7 @@ bool DPSelection::PhotonFilter() {
        if ( (int)phoV.size() > photonCuts[3] ) pass = false ;
        if ( maxPt < photonCuts[8] ) pass = false ;
        if ( phoV.size() > 1 ) sort( phoV.begin(), phoV.end(), PtDecreasing );
-       if ( pass ) photonCutFlow = 8 ;
+       if ( pass ) photonCutFlow = 9 ;
 
        return pass ;
 }
@@ -673,8 +693,8 @@ void DPSelection::PrintCutFlow() {
 
      printf(" Input: %d,  trig: %d,  vtx: %d,  photon: %d,  jetMET: %d \n"
            , counter[0], counter[1], counter[2], counter[3], counter[4]) ;
-     printf(" Photon Input: %d,   Pt: %d ,  Eta: %d,    H/E: %d,     sMin: %d,  dR_trk: %d,    tChi2: %d, sigmaIeta: %d, maxPt: %d \n"
-                 , gCounter[0], gCounter[1], gCounter[2], gCounter[3], gCounter[4], gCounter[5], gCounter[6],   gCounter[7], gCounter[8] );
+     printf(" Photon Input: %d,   Pt: %d ,  Eta: %d,    H/E: %d,   sMin: %d,  dR_trk: %d,  tChi2: %d, sigmaIeta: %d, maxPt: %d \n"
+               , gCounter[0], gCounter[1], gCounter[2], gCounter[3], gCounter[4], gCounter[5], gCounter[6], gCounter[7], gCounter[8] );
 
 }
 
@@ -751,7 +771,7 @@ void DPSelection::GetCollection( string collName, vector<objID>& coll ) {
 }
 
 void DPSelection::ResetCounter() {
-   for ( int i =0 ; i< 8 ; i++) {
+   for ( int i =0 ; i< 10 ; i++) {
        counter[i] = 0 ;
        gCounter[i] = 0 ;
    }

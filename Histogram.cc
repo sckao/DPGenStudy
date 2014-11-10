@@ -63,13 +63,16 @@ void Histogram::Init( hSet& hS ) {
    hS.h_ctbg   = new TH1D("h_ctbg", "(c*t*beta*gamma) for #chi_{0}", 80,  0, 4000);
    hS.sel_ctbg = new TH1D("sel_ctbg", "(c*t*beta*gamma) for #chi_{0} pass selection", 80,  0, 4000);
    hS.acc_ctbg = new TH1D("acc_ctbg", "(c*t*beta*gamma) for t > 3", 80,  0, 4000);
+
    hS.h_ctbgT   = new TH1D("h_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
    hS.obs_ctbgT = new TH1D("obs_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
    hS.reco_ctbgT = new TH1D("reco_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
    hS.late_ctbgT = new TH1D("late_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
    hS.lateR_ctbgT = new TH1D("lateR_ctbgT", "(c*t*beta*gamma) on transverse plane for #chi_{0}", 80,  0, 4000);
+   hS.hlt_ctbgT = new TH1D("hlt_ctbgT", "(c*t*beta*gamma) on transverse plane for selected #chi_{0}", 80,  0, 4000);
    hS.sel_ctbgT = new TH1D("sel_ctbgT", "(c*t*beta*gamma) on transverse plane for selected #chi_{0}", 80,  0, 4000);
    hS.acc_ctbgT = new TH1D("acc_ctbgT", "(c*t*beta*gamma) on transverse plane for t > 3", 80,  0, 4000);
+
    hS.h_xbeta   = new TH1D("h_xbeta", "Beta of Neutrlino ", 55,  0, 1.1);
    hS.reco_xbeta = new TH1D("reco_xbeta", "beta for #chi_{0}", 11,  0, 1.1);
    hS.sel_xbeta  = new TH1D("sel_xbeta", "beta for #chi_{0}", 11,  0, 1.1);
@@ -226,6 +229,7 @@ void Histogram::Open() {
      h.late_ctbgT = (TH1D*) hFile->Get("late_ctbgT") ;
      h.lateR_ctbgT = (TH1D*) hFile->Get("lateR_ctbgT") ;
      h.obs_ctbgT = (TH1D*) hFile->Get("obs_ctbgT")   ;
+     h.hlt_ctbgT = (TH1D*) hFile->Get("hlt_ctbgT")   ;
      h.sel_ctbgT = (TH1D*) hFile->Get("sel_ctbgT")   ;
      h.acc_ctbgT = (TH1D*) hFile->Get("acc_ctbgT")   ;
      h.h_xbeta  = (TH1D*) hFile->Get("h_xbeta")  ;
@@ -371,6 +375,7 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.late_ctbgT->Write()   ;
      h.lateR_ctbgT->Write()   ;
      h.obs_ctbgT->Write()   ;
+     h.hlt_ctbgT->Write()   ;
      h.sel_ctbgT->Write()   ;
      h.acc_ctbgT->Write()   ;
      h.h_xbeta->Write()  ;

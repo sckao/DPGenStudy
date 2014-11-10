@@ -420,8 +420,11 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
 
            if ( genRecoP4.Pt() > 45. && fabs(genRecoP4.Eta()) < 1.46 ) nX0_gb++ ;
 
+           h.obs_ctbgT->Fill( ctbgT*10. ) ;
            if ( dT > 3. ) h.late_ctbgT->Fill( ctbgT*10. ) ;
+           if ( pass_hlt ) h.hlt_ctbgT->Fill( ctbgT*10. ) ;
 
+           // for photons reach EB - reconstructable photns
            if ( genRecoP4.Pt() > 1. && fabs( genRecoP4.Eta()) < 1.47 ) {
                h.reco_ctbgT->Fill( ctbgT*10. ) ;
                h.reco_xbeta->Fill( xP4.Beta() ) ;
@@ -460,7 +463,6 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
                }
            }
 
-           h.obs_ctbgT->Fill( ctbgT*10. ) ;
            if ( ctbgT  < 30. )                 h.xPhot_pt1->Fill( gP4.Pt() ) ;
            if ( ctbgT >= 30. && ctbgT < 60. )  h.xPhot_pt2->Fill( gP4.Pt() ) ;
            if ( ctbgT >= 60. && ctbgT < 90. )  h.xPhot_pt3->Fill( gP4.Pt() ) ;
@@ -474,6 +476,7 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
            if ( dT > 3. ) h.dt1_dt2_late->Fill( dt1, dt2 ) ;
            if ( found_Reco )  h.h_TimeRes0->Fill( match_recoTime - dT0 ) ;
 
+           // matched photons pass event selection  
            if ( pass && pass_hlt && nNonGhost > 0 && passMET && found_Reco ) {
               h.sel_ctbg->Fill(  ctbg*10. ) ;
 	      h.sel_ctbgT->Fill( ctbgT*10. ) ;

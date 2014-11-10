@@ -112,10 +112,13 @@ void Output::ProduceMC() {
      Input->GetParameters( "TheMC",   &mcFileNames );
      vector<string> mcIdx ;
      Input->GetParameters( "mcIndex",   &mcIdx );
+     double br  ;
+     Input->GetParameters( "BR",   &br );
+     double totalR = (br*br) + (2.*(1.-br)*br) ; 
+     printf(" BR = %f  => total Ratio %.4f \n", br, totalR ) ;
 
-     //string ctau_Id[7] = { "93", "185", "368", "733", "1076", "1444", "2161" } ;
      for ( size_t i=0 ; i < mcFileNames.size() ; i++ ) {
-         RunMC( mcFileNames[i], mcIdx[i], normV[i] ) ;
+         RunMC( mcFileNames[i], mcIdx[i], normV[i]*totalR ) ;
      }
 }
 
@@ -464,12 +467,12 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
    TRandom3* tRan = new TRandom3();
    tRan->SetSeed( 0 );
 
-   int nEvt  = 0 ;
+   int nEvt  = 0 ;  // total Number of events
    int nPass = 0 ;
    int nPassPhot = 0 ;
    int beginEvent = SkipEvents + 1 ;
-   bool eventPass = false;
    cout<<" Event start from : "<< beginEvent << endl ;
+   double br = 0 ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;
        tr->GetEntry( i );
@@ -478,12 +481,15 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
        // 1. Reset the cuts and collectors
        select->ResetCuts() ;
        select->ResetCollection() ;
+       bool eventPass = false;
+
+       br = select->BR() ;  // calculate BR ;
        nEvt++; 
 
        // Type = 2 : Control sample , at least one photon pt > 45 GeV
        uint32_t evtType = select->EventIdentification();
-       bool wanted  = ( (evtType >> 1) & 1  ) ;
-       bool passHLT = ( (evtType >> 5) & 1  ) ;     
+       bool wanted  = ( (evtType >> 1) & 1  ) ;  // pass photon and vtx select 
+       bool passHLT = ( (evtType >> 5) & 1  ) ;  // pass hlt 
        if ( !wanted || !passHLT ) continue ;
 
        selectJets.clear() ;
@@ -548,8 +554,8 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
 
    WriteMcHisto() ;
 
-   fprintf(logfile,"Observe: %f Event Eff: %f , nPhot/nEvt =  %f \n", 
-                    rh_sgTime->Integral(), (double)nPass / (double)nEvt , (double)nPassPhot/(double)nEvt );
+   fprintf(logfile,"Observe: %f Event Eff: %f , nPhot/nEvt =  %f , BR = %.4f \n", 
+                    rh_sgTime->Integral(), (double)nPass / (double)nEvt , (double)nPassPhot/(double)nEvt, br );
    fclose( logfile ) ;
    printf(" *** Event Efficiency : %f -> %f \n", (double)nPass / (double)nEvt , (double)nPassPhot / (double)nEvt ) ;
    cout<<" ======== CutFlow for Signal MC ======== "<<endl ;

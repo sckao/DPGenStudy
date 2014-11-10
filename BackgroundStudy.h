@@ -113,6 +113,7 @@ public:
    TH2D* h_jet_phot_Time ;
    TH1D* h_jetTime ;
    TH1D* h_jetTimeErr ;
+   TH1D* h_dT_jg ;
   
    TH1D* h_tChi2 ;
    TH1D* halo_tChi2 ;
