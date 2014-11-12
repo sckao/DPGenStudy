@@ -33,11 +33,11 @@ struct hSet {
 
     TH1D* obsTime     ;
     TH1D* isoTime     ;
+    TH1D* isoTime1    ;
     TH1D* obsTime1    ;
     TH1D* obsTime2    ;
     TH1D* aveObsTime  ;
     TH1D* aveObsTime1 ;
-    TH1D* aveObsTime2 ;
 
     TH2D* seedTime_Chi2  ;
     TH2D* ctbg_RZ0  ;

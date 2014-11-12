@@ -672,7 +672,7 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
    cout<<" Event start from : "<< beginEvent << endl ;
    cout<<" from  "<< dataFileNames  <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
-   int nTrig[2] = { 0. , 0 } ;
+   int nTrig[2] = { 0 , 0 } ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
 
        if ( ProcessEvents > 0 && i > ( ProcessEvents + beginEvent - 1 ) ) break;

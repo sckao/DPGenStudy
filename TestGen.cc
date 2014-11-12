@@ -178,6 +178,12 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
        h.h_met->Fill( met.Pt() , weight );
        h.h_met1->Fill( noPhotMET.E() , weight );
        h.h_met2->Fill( newMET.E() , weight );
+       for ( int k=0 ; k< nPhotons ; k++ ) {
+           TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
+           bool badseed   = badCrystal( gP4_.Eta() , gP4_.Phi() ) ;
+           if ( badseed || fabs( gP4_.Eta() ) > 1.45 ) continue ;
+           h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] , weight ) ;
+       }
 
        // use for efficiency estimation
        if ( pass_hlt ) {
@@ -226,22 +232,21 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
 	      h.h_nXtals->Fill( nXtals[k] , weight ) ;
 
               h.obsTime1->Fill( seedTime[k], weight );
+	      h.aveObsTime1->Fill( aveTime1[k] , weight );
+
+              // timing correction : central shift = 0.1211 ,  sigma = 0.4
+	      float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
+	      float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
+	      if ( systType == 10 ) tShift = 0. ;
+	      float tCorr = ( systType == 8 ) ? ( seedTime[k]- tShift ) : tRan->Gaus(seedTime[k], tRes ) - tShift ;
+
 	      if ( passMET && !ghostTag ) { 
-                 // timing correction : central shift = 0.1211 ,  sigma = 0.4
-		 float tRes    = ( systType == 7 ) ? timeCalib[1]*2. : timeCalib[1] ;
-		 float tShift  = ( systType == 9 ) ? timeCalib[0]*2. : timeCalib[0] ;
-		 if ( systType == 10 ) tShift = 0. ;
-		 float tCorr = ( systType == 8 ) ? ( seedTime[k]- tShift ) : tRan->Gaus(seedTime[k], tRes ) - tShift ;
-                
                  h.obsTime->Fill( tCorr, weight );
 	         h.aveObsTime->Fill( aveTime[k], weight );
                  h.obsTime2->Fill( seedTime[k], weight );
               }
 
-	      if ( timeChi2[k] < 4. )  h.aveObsTime1->Fill( aveTime1[k] , weight );
-	      if ( timeChi2[k] < 4. )  h.aveObsTime2->Fill( seedTime[k] , weight );
 
-              h.seedTime_Chi2->Fill( seedTime[k], timeChi2[k] , weight ) ;
 	      h.h_nChi2->Fill( timeChi2[k] , weight ) ;
 	      h.h_nBC->Fill( nBC[k] , weight ) ;
               // Detector Isolation properties          
@@ -264,6 +269,7 @@ void TestGen::ReadTree( string dataName, double weight, string fNamePattern ) {
               // Only exclude possible halo, keep all kinds of collision backgrounds
 	      if ( isIso && !ghostTag ) { 
                  h.isoTime->Fill( seedTime[k], weight );
+                 h.isoTime1->Fill( tCorr, weight );
               }
 
 	      if ( seedTime[k]  > 3. ) { 

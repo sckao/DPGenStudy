@@ -22,8 +22,8 @@ void Histogram::Init( hSet& hS ) {
    hS.obsTime     = new TH1D("obsTime", "Photon Time from seed", 160,  -20., 20.);
    hS.aveObsTime  = new TH1D("aveObsTime", "Photon Time from clusters", 160,  -20., 20.);
    hS.aveObsTime1 = new TH1D("aveObsTime1", "Photon Time ", 160,  -20., 20.);
-   hS.aveObsTime2 = new TH1D("aveObsTime2", "Photon Time from seed with cluster chi2 < 4", 160,  -20., 20.);
-   hS.isoTime     = new TH1D("isoTime", "Time from isolated good photons", 160,  -20., 20.);
+   hS.isoTime     = new TH1D("isoTime",  "Time from isolated good photons", 160,  -20., 20.);
+   hS.isoTime1    = new TH1D("isoTime1", "Time from isolated good photons & chi2 < 4", 160,  -20., 20.);
    hS.obsTime1    = new TH1D("obsTime1", "Time from photon seed crystal", 160,  -20., 20.);
    hS.obsTime2    = new TH1D("obsTime2", "Time from isolated good photons", 100,  -2.5, 2.5);
 
@@ -188,7 +188,7 @@ void Histogram::Open() {
      h.obsTime2    = (TH1D*) hFile->Get("obsTime2")     ;
      h.aveObsTime  = (TH1D*) hFile->Get("aveObsTime") ;
      h.aveObsTime1 = (TH1D*) hFile->Get("aveObsTime1") ;
-     h.aveObsTime2 = (TH1D*) hFile->Get("aveObsTime2") ;
+     h.isoTime1 = (TH1D*) hFile->Get("isoTime1") ;
 
      h.seedTime_Chi2 = (TH2D*) hFile->Get("seedTime_Chi2")  ;
      h.ctbg_RZ0 = (TH2D*) hFile->Get("ctbg_RZ0")  ;
@@ -334,7 +334,7 @@ void Histogram::Write( string theFolder , TFile* file  ) {
      h.obsTime2->Write()     ;
      h.aveObsTime->Write() ;
      h.aveObsTime1->Write() ;
-     h.aveObsTime2->Write() ;
+     h.isoTime1->Write() ;
 
      h.seedTime_Chi2->Write()  ;
      h.ctbg_RZ0->Write()  ;
@@ -501,11 +501,11 @@ void Histogram::DrawHistograms() {
    leg1->AddEntry( h.aveObsTime1, legStr2,  "L");
 
    /// original cluster time with Chi2 cut
-   Int_t nu3  = h.aveObsTime2->Integral(73,88);
-   Int_t nu3a = h.aveObsTime2->Integral(1,160);
+   Int_t nu3  = h.isoTime1->Integral(73,88);
+   Int_t nu3a = h.isoTime1->Integral(1,160);
    char legStr3[35] ;
    sprintf( legStr3,  "Chi2: %d/%d", nu3, nu3a ) ;
-   leg1->AddEntry( h.aveObsTime2, legStr3,  "L");
+   leg1->AddEntry( h.isoTime1, legStr3,  "L");
    /// gen time
    if ( isData == 0 ) {
       Int_t nu0  = h.h_genTime->Integral(73,88);
@@ -517,8 +517,7 @@ void Histogram::DrawHistograms() {
       h_draw->DrawAppend( h.obsTime, "ECALTime",           0.95, 1, 1, leg1 ) ;
    } else {
       h_draw->Draw(    h.obsTime1,    "", "Ecal Time (ns)", "", "logY", 0.95, 1 ) ;
-      h_draw->DrawAppend( h.aveObsTime1,"",                   0.75, 2, 1  ) ;
-      h_draw->DrawAppend( h.aveObsTime2,"ECALTime",           0.55, 4, 1, leg1 ) ;
+      h_draw->DrawAppend( h.aveObsTime1,"ECALTime",           0.75, 4, 1, leg1 ) ;
    }
 
    //h_draw->DrawAppend( h.aveObsTime, "",           0.75, 2, 1 ) ;
