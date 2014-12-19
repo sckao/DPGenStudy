@@ -2,7 +2,9 @@
 
 void setRtupleAddresses(TTree* tr, Rtuple& vr ) {
 
+   tr->SetBranchAddress("runId",      &vr.runId);
    tr->SetBranchAddress("eventId",    &vr.eventId);
+   tr->SetBranchAddress("lumiSection", &vr.lumi);
    tr->SetBranchAddress("triggered",  &vr.triggered);
    tr->SetBranchAddress("L1a",        &vr.L1a);
    tr->SetBranchAddress("nPhotons",   &vr.nPhotons);

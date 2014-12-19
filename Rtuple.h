@@ -15,7 +15,7 @@
 
 struct Rtuple {
 
-   unsigned int eventId ;
+   unsigned int eventId, runId, lumi ;
    float phoPx[MAXPHO], phoPy[MAXPHO], phoPz[MAXPHO], phoE[MAXPHO] ;
    float seedTime[MAXPHO], aveTime[MAXPHO], dR_TrkPho[MAXPHO], timeChi2[MAXPHO] ;
    float phoHovE[MAXPHO], sMinPho[MAXPHO], sMajPho[MAXPHO], sigmaIeta[MAXPHO] ;
