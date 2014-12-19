@@ -672,6 +672,7 @@ void BackgroundStudy::SimpleRun( string dataName, double weight ) {
    cout<<" Event start from : "<< beginEvent << endl ;
    cout<<" from  "<< dataFileNames  <<" total entries = "<< totalN <<" Process "<< ProcessEvents <<endl;
 
+
    int nTrig[2] = { 0 , 0 } ;
    for ( int i= beginEvent ; i< totalN ; i++ ) {
 
@@ -856,6 +857,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
        TLorentzVector met = select->theMET ;
        TLorentzVector ajet = JetVectorSum( selectJets ) ;
        double dPhi_jMET = ( selectJets.size() > 0 ) ? fabs( met.DeltaPhi( ajet ) ) : -0.1 ;
+       FILE* logfile = fopen( "SignalList.txt" ,"a");
 
        for ( size_t kk =0; kk < selectPho.size() ; kk++) {
 
@@ -921,6 +923,22 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 		    if ( haloTag && !cosmicTag && !spikeTag )  hBg_A->Fill( ih, 1.5, nj, weight );
 		    if ( spikeTag && !cosmicTag )              hBg_A->Fill( ih, 2.5, nj, weight );
 		    if ( cosmicTag )                           hBg_A->Fill( ih, 3.5, nj, weight );
+
+		    if ( !ghostTag && nj >= jetCuts[2] && nj <= jetCuts[3] ) {
+                       fprintf(logfile,"====== Region A ====== \n");
+		       fprintf(logfile,"RunID: %d  EventId: %d , LumiSec: %d \n",  rt.runId,  rt.eventId, rt.lumi );
+		       fprintf(logfile,"  N Photon : %d  \n",   (int)selectPho.size() );
+		       fprintf(logfile,"  MET1: %.2f (%.2f) , MET2: %.2f (%.2f)\n", noPhotMET.E(), noPhotMET.Phi(), newMET.E(), newMET.Phi() );
+		       fprintf(logfile,"  N Jet : %d  \n",   (int)selectJets.size() );
+		       for ( int ss=0; ss < (int)selectJets.size() ; ss++ ) {
+                           fprintf(logfile,"   Jet(%d) , pt = %.2f, eta: %.2f, phi: %.2f  \n",  
+                                   ss, selectJets[ss].second.Pt(), selectJets[ss].second.Eta(), selectJets[ss].second.Phi() );
+                       }
+                       fprintf(logfile,"  Pho(%d) , pt = %.2f , t = %.2f ",  (int)kk, gP4_.Pt() , rt.seedTime[k] );
+                       fprintf(logfile,"  eta = %.2f , phi = %.2f, sMaj = %.2f, sMin = %.2f, phIso : %.2f , nHIso: %.2f, cHIso: %.2f \n",  
+                                       gP4_.Eta() , gP4_.Phi(), rt.sMajPho[k] , rt.sMinPho[k], phIso, nHIso, rt.cHadIso[k]  );
+                       fprintf(logfile,"  cscdPhi= %.2f  dt(df,dh) = (%.2f,%.2f) \n", cscdPhi_, rt.dtdPhi[k], rt.dtdEta[k] ) ;
+                    }
               }
            }
 	   // ******************
@@ -930,6 +948,22 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
               // Region D
               if ( noPhotMET.E() > jetCuts[4] ) {
 
+                 if ( !ghostTag ) {
+                    if ( kk ==0 ) {
+                       fprintf(logfile,"====== Region D ====== \n");
+                       fprintf(logfile,"RunID: %d  EventId: %d , LumiSec: %d \n",  rt.runId,  rt.eventId, rt.lumi );
+		       fprintf(logfile,"  N Photon : %d  \n",   (int)selectPho.size() );
+		       fprintf(logfile,"  MET1 : %.2f  , MET2 : %.2f \n",  noPhotMET.E() , newMET.E() );
+		       fprintf(logfile,"  N Jet : %d  \n",   (int)selectJets.size() );
+		       for ( int ss=0; ss < (int)selectJets.size() ; ss++ ) {
+                           fprintf(logfile,"   Jet(%d) , pt = %.2f, eta: %.2f, phi: %.2f  \n",  
+                                   ss, selectJets[ss].second.Pt(), selectJets[ss].second.Eta(), selectJets[ss].second.Phi() );
+                       }
+                    }
+                    fprintf(logfile,"  Pho(%d) , pt = %.2f , t = %.2f ",  (int)kk, gP4_.Pt() , rt.seedTime[k] );
+                    fprintf(logfile,"  eta = %.2f , phi = %.2f, sMaj = %.2f, sMin = %.2f, phIso : %.2f , nHIso: %.2f, cHIso: %.2f \n",  
+                                       gP4_.Eta() , gP4_.Phi(), rt.sMajPho[k] , rt.sMinPho[k], phIso, nHIso, rt.cHadIso[k]  );
+                 }
 		 hBg_D->Fill( ih, 0.5, nj, weight );
 		 if ( haloTag && !cosmicTag && !spikeTag )  hBg_D->Fill( ih, 1.5, nj, weight );
 		 if ( spikeTag && !cosmicTag )              hBg_D->Fill( ih, 2.5, nj, weight );
@@ -1140,6 +1174,8 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 		 if ( spikeTag ) nSpk_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
            }
        } // end of photon looping 
+
+       fclose( logfile ) ;
 }
 
 
