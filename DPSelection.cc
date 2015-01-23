@@ -439,6 +439,56 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
          }
 
 	 double dR_gj = 999. ;
+         for ( int k=0 ; k< (int)phoV.size() ; k++ ) {
+             TLorentzVector phoP4 = phoV[k].second ;
+	     if ( phoP4.DeltaR( jp4 ) < dR_gj )  dR_gj  = phoP4.DeltaR( jp4 ) ;
+         }
+
+	 if ( dR_gj < jetCuts[5] ) continue ;
+	 jetV.push_back( make_pair( j, jp4 ) );
+
+     }
+     int nu_Jets = (int)jetV.size() ;
+     if ( nu_Jets < (int)jetCuts[2] || nu_Jets > (int)jetCuts[3] )  pass = false ;
+
+
+     if ( jetV.size() > 1 ) sort( jetV.begin(), jetV.end(), PtDecreasing ) ;
+ 
+     return pass ;
+}
+/*
+bool DPSelection::JetMETFilter( bool usePFJetClean ) { 
+
+     bool pass =  true ;
+     // 1. jet selection
+     jetV.clear() ;
+     for ( int j=0 ; j< nJets; j++ ) {
+         TLorentzVector jp4( jetPx[j], jetPy[j], jetPz[j], jetE[j] ) ;
+         double jCorr = 1. ;
+         if ( systType == 1 ) jCorr = ( jp4.Pt() + jerUnc[j] ) / jp4.Pt() ;
+         if ( systType == 2 ) jCorr = ( jp4.Pt() - jerUnc[j] ) / jp4.Pt() ;
+         if ( systType == 3 ) jCorr = ( 1. + jecUnc[j] ) ;
+         if ( systType == 4 ) jCorr = ( 1. - jecUnc[j] ) ;
+
+	 metCorrX += jp4.Px() ;
+	 metCorrY += jp4.Py() ;
+	 jp4 = jp4*jCorr;
+	 metCorrX -= jp4.Px() ;
+	 metCorrY -= jp4.Py() ;
+
+	 if ( jp4.Pt()        < jetCuts[0] ) continue ;
+	 if ( fabs(jp4.Eta()) > jetCuts[1] ) continue ;
+           
+         // Jet ID cuts
+         if ( usePFJetClean ) { 
+            if ( jetNDau[j] < (double)   2 )  continue ;
+	    if ( jetCEF[j] >= (double)0.99 )  continue ;
+	    if ( jetNEF[j] >= (double)0.99 )  continue ;
+	    if ( jetNHF[j] >= (double)0.99 )  continue ;
+	    if ( fabs( jp4.Eta() ) < 2.4 && jetCM[j]  <= 0 ) continue ;
+         }
+
+	 double dR_gj = 999. ;
          for ( int k=0 ; k< nPhotons; k++ ) {
              TLorentzVector phoP4( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
              if ( phoP4.Pt() < photonCuts[0] ) continue ;
@@ -460,6 +510,8 @@ bool DPSelection::JetMETFilter( bool usePFJetClean ) {
  
      return pass ;
 }
+*/
+
 
 // Correct MET by taking late photon into account and systematic varies 
 // MET Uncertainty Twiki : https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription
@@ -819,15 +871,23 @@ vector<double> DPSelection::ABCD_ABCD( vector<TH3D*>& hColls, vector<TH3D*>& hMI
 
      double predict = ( abcdef[1] > colB[0] || abcdef[0] < 0.0001 ) ? (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]) + colD[0] : colD[0] ;
 
+     //cout<<" B - Qb error" <<endl ;
      pair<double,double> errB     = MathTools::ErrApnB( abcdef[1] , colB[0] , -1, -1, colB[1], colB[2] ) ;
+     //cout<<" C/A error" <<endl ;
      pair<double,double> errCovA  = MathTools::ErrAovB( abcdef[2], abcdef[0]) ;
-     pair<double,double> errBCovA = MathTools::ErrAxB( (abcdef[1] - colB[0]), (abcdef[2]/abcdef[0])
+     //cout<<" (B-Qb)(C/A) error" <<endl ;
+     double B_Qb = ( abcdef[1] > colB[0] ) ? (abcdef[1] - colB[0]) : 0. ;
+     pair<double,double> errBCovA = MathTools::ErrAxB( B_Qb, (abcdef[2]/abcdef[0])
                                                      , errB.first, errB.second, errCovA.first, errCovA.second ) ;
-     pair<double,double> errFinal = MathTools::ErrApnB( (abcdef[1] - colB[0])*(abcdef[2]/abcdef[0]), colD[0]
+
+     //cout<<" (B-Qb)(C/A) + Qd error" <<endl ;
+     printf(" FinalD = %.4f, Qd = %.4f \n", B_Qb*(abcdef[2]/abcdef[0]),  colD[0] ) ;
+     //printf(" D error 1st term : + %f, - %f \n", errBCovA.first,  errBCovA.second ) ;
+     pair<double,double> errFinal = MathTools::ErrApnB( B_Qb*(abcdef[2]/abcdef[0]), colD[0]
                                                      , errBCovA.first, errBCovA.second, colD[1], colD[2] ) ;
 
    printf("\n ================ Final Result =================== \n") ;
-   printf(" Observe :%.2f -> Predict : %.4f + %.4f - %.4f \n", abcdef[3], predict, errFinal.first , errFinal.second ) ;
+   printf(" Observe :%.4f -> Predict : %.4f + %.4f - %.4f \n", abcdef[3], predict, errFinal.first , errFinal.second ) ;
 
    vector<double> result ;
    result.push_back( predict ) ;
@@ -852,19 +912,20 @@ vector<double> DPSelection::ABCD_Collision( TH3D* hF_A, TH3D* hF_B, TH3D* hF_C, 
    pair<double,double> errAB = MathTools::ErrAovB( rA, rB ) ;
    double predict = ( rA > 0. ) ? rC * ( rB / rA ) : 0. ;
 
-   double sBA_u = errAB.first ;
-   double sBA_d = errAB.second ;
+   pair<double,double> err_D = MathTools::ErrAxB( rC, rB/rA, -1, -1, errAB.first, errAB.second ) ;
+   //double sBA_u = errAB.first ;
+   //double sBA_d = errAB.second ;
 
-   double s2u = (sBA_u*sBA_u)*(rC*rC) + (rC*rB*rB)/(rA*rA) ;
-   double s2d = (sBA_d*sBA_d)*(rC*rC) + (rC*rB*rB)/(rA*rA) ;
+   //double s2u = (sBA_u*sBA_u)*(rC*rC) + (rC*rB*rB)/(rA*rA) ;
+   //double s2d = (sBA_d*sBA_d)*(rC*rC) + (rC*rB*rB)/(rA*rA) ;
 
-   printf(" Predicted Collision background : %.2f + %.2f - %.2f ", predict , sqrt(s2u) , sqrt(s2d) ) ;
-   printf(" Observed = %.2f \n", rD ) ;
+   printf(" Predicted Collision background : %.4f + %.4f - %.4f ", predict , err_D.first, err_D.second ) ;
+   printf(" Observed = %.4f \n", rD ) ;
 
    vector<double> vals ;
    vals.push_back( predict );
-   vals.push_back( sqrt(s2u) );
-   vals.push_back( sqrt(s2d) );
+   vals.push_back( err_D.first );
+   vals.push_back( err_D.second );
    return vals ;
 }
 
