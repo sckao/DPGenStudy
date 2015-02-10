@@ -859,9 +859,26 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
        double dPhi_jMET = ( selectJets.size() > 0 ) ? fabs( met.DeltaPhi( ajet ) ) : -0.1 ;
        FILE* logfile = fopen( "SignalList.txt" ,"a");
 
-       for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+       // pick the photon if more than one in the event
+       int k = 0 ;
+       int kk = 0 ;
+       for ( kk = 0 ; kk < (int)selectPho.size() ; kk++) {
+           int m = selectPho[kk].first ;
+           if ( rt.seedTime[m] > TCut[2] && rt.seedTime[m] < TCut[3] ) {
+              k = m ;
+              break ;
+           } else if ( rt.seedTime[m] > TCut[0] && rt.seedTime[m] < TCut[1] ) {
+              k = m ;
+              break ;
+           }  else {
+              k = selectPho[0].first ;
+              break ;
+           }
+       }
 
-           int k = selectPho[kk].first ;
+       //for ( size_t kk =0; kk < selectPho.size() ; kk++) {
+           //int k = selectPho[kk].first ;
+
 	   TLorentzVector gP4_ = selectPho[kk].second ; 
 	   double dPhi_gMET = fabs( gP4_.DeltaPhi( met ) );
 	   double cscdPhi_  = ( rt.cscdPhi[k] > 9. ) ? 3.24 : rt.cscdPhi[k] ;
@@ -1173,7 +1190,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 		 if ( haloTag ) nHL_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
 		 if ( spikeTag ) nSpk_Eta->Fill( fabs(gP4_.Eta()) , weight ) ;
            }
-       } // end of photon looping 
+       //} // end of photon looping 
 
        fclose( logfile ) ;
 }
