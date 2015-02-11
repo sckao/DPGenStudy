@@ -219,8 +219,25 @@ void Output::RunData( string dataName ) {
        //cout<<" EVT# : "<< nEvt <<endl ;
 
        // Signal Region - Photon Pt > 80 
-       for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
-           int k = selectPho[j].first ;
+       // pick the photon if more than one in the event
+       int k = 0 ;
+       int j = 0 ;
+       for ( j = 0 ; j < (int)selectPho.size() ; j++) {
+           int m = selectPho[j].first ;
+           if ( seedTime[m] > TCut[2] && seedTime[m] < TCut[3] ) {
+              k = m ;
+              break ;
+           } else if ( seedTime[m] > TCut[0] && seedTime[m] < TCut[1] ) {
+              k = m ;
+              break ;
+           }  else {
+              k = selectPho[0].first ;
+              break ;
+           }
+       }
+
+       //for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
+           //int k = selectPho[j].first ;
            TLorentzVector gP4_ = TLorentzVector( phoPx[k], phoPy[k], phoPz[k], phoE[k] ) ;
 
            // Background Tagging
@@ -354,7 +371,7 @@ void Output::RunData( string dataName ) {
            }
 
 
-       }
+       //}
 
    } // end of event looping
 
@@ -500,16 +517,33 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
        newMET    = select->newMET ;
        noPhotMET = select->noPhotMET ;
 
+       // Pick up photon
+       int k = 0 ;
+       int j = 0 ;
+       for ( j = 0 ; j < (int)selectPho.size() ; j++) {
+           int m = selectPho[j].first ;
+           if ( seedTime[m] > TCut[2] && seedTime[m] < TCut[3] ) {
+              k = m ;
+              break ;
+           } else if ( seedTime[m] > TCut[0] && seedTime[m] < TCut[1] ) {
+              k = m ;
+              break ;
+           }  else {
+              k = selectPho[j].first ;
+              break ;
+           }
+       }
+
        //cout<<" EVT# : "<< nEvt <<endl ;
        bool passBasic = false ;
-       for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
-           int k = selectPho[j].first ;
+       //for ( size_t j =0 ; j < selectPho.size() ; j++ ) {
+           //int k = selectPho[j].first ;
            // Background Tagging
            bool haloTag   = select->HaloTag( cscdPhi[k] , sMajPho[k] , sMinPho[k] , selectPho[j].second.Eta() ) ;
 	   bool spikeTag  = select->SpikeTag( nXtals[k] , sMajPho[k] , sMinPho[k], seedSwissX[k], selectPho[j].second.Eta() ) ;
            bool cosmicTag = select->CosmicTag( dtdEta[k] , dtdPhi[k] ) ;
            bool ghostTag = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
-           if ( ghostTag && j ==0 && selectPho.size() < 2 ) break ;
+           if ( ghostTag && j ==0 && selectPho.size() < 2 ) continue ;
            if ( ghostTag ) continue ;
 
            bool passABCDSelection = newMET.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4]  ;
@@ -534,7 +568,7 @@ void Output::RunMC( string mcName, string ctau_Id, double weight ) {
            if ( newMET.E() > jetCuts[4] && noPhotMET.E() < jetCuts[4]  && passBasic ) { 
 	      h_sgTimeAEC->Fill( tCorr, weight ) ;
            }
-       }
+       //}
 
    } // end of event looping
   
@@ -712,7 +746,6 @@ void Output::RunGenOnly( string mcName, string ctau_Id, double weight, double sc
 	   h_sgTimeBFD->Fill( tCorr, weight ) ;
 	   h_sgTimeAEC->Fill( tCorr, weight ) ;
        }
-
        //bool passABCDSelection = (met.E() > jetCuts[4] && noPhotMET.E() > jetCuts[4] ) ;
        //bool passBasic  = (maxPhoPt > photonCuts[8]) && (nPassJet >= jetCuts[2]) && (nPassJet < jetCuts[3])  ;
 

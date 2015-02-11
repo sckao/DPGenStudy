@@ -859,27 +859,40 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
        double dPhi_jMET = ( selectJets.size() > 0 ) ? fabs( met.DeltaPhi( ajet ) ) : -0.1 ;
        FILE* logfile = fopen( "SignalList.txt" ,"a");
 
-       // pick the photon if more than one in the event
-       int k = 0 ;
-       int kk = 0 ;
-       for ( kk = 0 ; kk < (int)selectPho.size() ; kk++) {
+       // Pick the photon if more than one in the event
+       int k = -1 ;
+       vector<int> glist ;
+       vector<int> nlist ;
+       vector<int> slist ;
+       for ( int kk = 0 ; kk < (int)selectPho.size() ; kk++) {
            int m = selectPho[kk].first ;
-           if ( rt.seedTime[m] > TCut[2] && rt.seedTime[m] < TCut[3] ) {
-              k = m ;
+	   bool haloTag   = haloS->HaloTag( rt , m) ;
+	   bool cosmicTag = cosmicS->CosmicTag(rt, m ) ;
+	   bool spikeTag  = spikeS->SpikeTag(rt, m) ;
+	   bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
+           if ( ghostTag ) {
+              glist.push_back( m ) ; 
+           } else if ( rt.seedTime[m] > TCut[2] && rt.seedTime[m] < TCut[3] ) {
+              k = m ;   // 1. Choose late timing first but not ghost
               break ;
            } else if ( rt.seedTime[m] > TCut[0] && rt.seedTime[m] < TCut[1] ) {
-              k = m ;
-              break ;
+              nlist.push_back( m ) ;
            }  else {
-              k = selectPho[0].first ;
-              break ;
+              slist.push_back( m ) ;
            }
+       }
+       if ( k < 0 ) {
+          if ( nlist.size() > 0 )       k = nlist[0] ;  // 2. negative timing but not ghost 
+          else if ( slist.size() >  0 ) k = slist[0] ;  // 3. in-time but not ghost 
+          else if ( glist.size() >  0 ) k = glist[0] ;  // 4. ghost 
+          else                          k = 0 ;
        }
 
        //for ( size_t kk =0; kk < selectPho.size() ; kk++) {
            //int k = selectPho[kk].first ;
+	   //TLorentzVector gP4_ = selectPho[kk].second ; 
 
-	   TLorentzVector gP4_ = selectPho[kk].second ; 
+	   TLorentzVector gP4_ = TLorentzVector( rt.phoPx[k], rt.phoPy[k], rt.phoPz[k], rt.phoE[k] ) ; 
 	   double dPhi_gMET = fabs( gP4_.DeltaPhi( met ) );
 	   double cscdPhi_  = ( rt.cscdPhi[k] > 9. ) ? 3.24 : rt.cscdPhi[k] ;
 	   double nHIso     = max( rt.nHadIso[k] - (0.04*gP4_.Pt()) , 0. ) ;
@@ -892,7 +905,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
 	   bool ghostTag  = ( haloTag || spikeTag || cosmicTag ) ? true : false ;
            
            // Test for ABCD region
-           if ( !ghostTag && rt.timeChi2[k] < 4. && selectPho[0].second.Pt() > photonCuts[8] && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3]) {
+           if ( !ghostTag && selectPho[0].second.Pt() > photonCuts[8] && selectJets.size() >= jetCuts[2] && selectJets.size() <= jetCuts[3]) {
                  abcd_MET_Time->Fill( met.E(), rt.seedTime[k], weight);
 		 abcd_MET2_Time->Fill( newMET.E(), rt.seedTime[k], weight);
            }
@@ -951,7 +964,7 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
                            fprintf(logfile,"   Jet(%d) , pt = %.2f, eta: %.2f, phi: %.2f  \n",  
                                    ss, selectJets[ss].second.Pt(), selectJets[ss].second.Eta(), selectJets[ss].second.Phi() );
                        }
-                       fprintf(logfile,"  Pho(%d) , pt = %.2f , t = %.2f ",  (int)kk, gP4_.Pt() , rt.seedTime[k] );
+                       fprintf(logfile,"  Pho(%d) , pt = %.2f , t = %.2f ",  k, gP4_.Pt() , rt.seedTime[k] );
                        fprintf(logfile,"  eta = %.2f , phi = %.2f, sMaj = %.2f, sMin = %.2f, phIso : %.2f , nHIso: %.2f, cHIso: %.2f \n",  
                                        gP4_.Eta() , gP4_.Phi(), rt.sMajPho[k] , rt.sMinPho[k], phIso, nHIso, rt.cHadIso[k]  );
                        fprintf(logfile,"  cscdPhi= %.2f  dt(df,dh) = (%.2f,%.2f) \n", cscdPhi_, rt.dtdPhi[k], rt.dtdEta[k] ) ;
@@ -966,18 +979,16 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
               if ( noPhotMET.E() > jetCuts[4] ) {
 
                  if ( !ghostTag ) {
-                    if ( kk ==0 ) {
-                       fprintf(logfile,"====== Region D ====== \n");
-                       fprintf(logfile,"RunID: %d  EventId: %d , LumiSec: %d \n",  rt.runId,  rt.eventId, rt.lumi );
-		       fprintf(logfile,"  N Photon : %d  \n",   (int)selectPho.size() );
-		       fprintf(logfile,"  MET1 : %.2f  , MET2 : %.2f \n",  noPhotMET.E() , newMET.E() );
-		       fprintf(logfile,"  N Jet : %d  \n",   (int)selectJets.size() );
-		       for ( int ss=0; ss < (int)selectJets.size() ; ss++ ) {
-                           fprintf(logfile,"   Jet(%d) , pt = %.2f, eta: %.2f, phi: %.2f  \n",  
-                                   ss, selectJets[ss].second.Pt(), selectJets[ss].second.Eta(), selectJets[ss].second.Phi() );
-                       }
-                    }
-                    fprintf(logfile,"  Pho(%d) , pt = %.2f , t = %.2f ",  (int)kk, gP4_.Pt() , rt.seedTime[k] );
+                    fprintf(logfile,"====== Region D ====== \n");
+		    fprintf(logfile,"RunID: %d  EventId: %d , LumiSec: %d \n",  rt.runId,  rt.eventId, rt.lumi );
+		    fprintf(logfile,"  N Photon : %d  \n",   (int)selectPho.size() );
+		    fprintf(logfile,"  MET1 : %.2f  , MET2 : %.2f \n",  noPhotMET.E() , newMET.E() );
+		    fprintf(logfile,"  N Jet : %d  \n",   (int)selectJets.size() );
+		    for ( int ss=0; ss < (int)selectJets.size() ; ss++ ) {
+                        fprintf(logfile,"   Jet(%d) , pt = %.2f, eta: %.2f, phi: %.2f  \n",  
+                                 ss, selectJets[ss].second.Pt(), selectJets[ss].second.Eta(), selectJets[ss].second.Phi() );
+                     }
+                    fprintf(logfile,"  Pho(%d) , pt = %.2f , t = %.2f ",  (int)k, gP4_.Pt() , rt.seedTime[k] );
                     fprintf(logfile,"  eta = %.2f , phi = %.2f, sMaj = %.2f, sMin = %.2f, phIso : %.2f , nHIso: %.2f, cHIso: %.2f \n",  
                                        gP4_.Eta() , gP4_.Phi(), rt.sMajPho[k] , rt.sMinPho[k], phIso, nHIso, rt.cHadIso[k]  );
                  }
@@ -1051,24 +1062,20 @@ void BackgroundStudy::ControlStudy( vector<objID>& selectPho, vector<objID>& sel
            // ******************
 	   //   Jet studies
 	   // ******************
-           if ( kk == 0 ) {
-              int njets = ( selectJets.size() > 9 ) ? 9 : (int)selectJets.size() ;
-              if ( fabs( rt.seedTime[k]) < 2. && ! ghostTag ) 
-                                nJets_center->Fill( njets , weight );
-              if ( haloTag    ) nJets_halo->Fill(   njets , weight );
-	      if ( spikeTag   ) nJets_spike->Fill(  njets , weight );
-	      if ( cosmicTag  ) nJets_cosmic->Fill( njets , weight );
-           }
+           int njets = ( selectJets.size() > 9 ) ? 9 : (int)selectJets.size() ;
+	   if ( fabs( rt.seedTime[k]) < 2. && ! ghostTag ) 
+		             nJets_center->Fill( njets , weight );
+	   if ( haloTag    ) nJets_halo->Fill(   njets , weight );
+	   if ( spikeTag   ) nJets_spike->Fill(  njets , weight );
+	   if ( cosmicTag  ) nJets_cosmic->Fill( njets , weight );
          
            if ( !ghostTag && selectPho[0].second.Pt() > 80. ) {
               double dt_jg = 99. ;
               int jk = -1 ;
               for ( size_t jj =0 ; jj< selectJets.size() ; jj++ ) {
                   int j = selectJets[jj].first ;
-                  if ( kk == 0 ) { 
-                     h_jetTime->Fill( rt.jetTime[j] ) ;
-                     h_jetTimeErr->Fill( rt.jetTimeErr[j] ) ;
-                  }
+		  h_jetTime->Fill( rt.jetTime[j] ) ;
+		  h_jetTimeErr->Fill( rt.jetTimeErr[j] ) ;
                   if ( rt.jetTimeErr[j] < 0.001 || rt.jetTimeErr[j] > 50. ) continue ;
                   double dt_ = fabs( rt.jetTime[j] - rt.seedTime[k] ) ;
 		  if ( dt_ < dt_jg ) {
