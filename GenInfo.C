@@ -11,8 +11,8 @@
 // define the generator's information across different ctau models
 void GenInfo() {
 
-    TString hfolder  = "TCuts_GMSB_L160/" ;
-    TString fileName = "TCuts_GMSB_L160/GMSB2J_160_" ;
+    TString hfolder  = "TCuts_GMSB_L300/" ;
+    TString fileName = "TCuts_GMSB_L300/GMSB2J_300_" ;
 
     TString plotname0 = "ctbg_All.png" ;
     TString plotname1 = "ctau_All.png" ;
@@ -65,12 +65,19 @@ void GenInfo() {
     string hName19 = "simTime" ;
 
 
+    // Lambda 300
+    double nGen[5]   = { 50000,  50000,  50000,  50000,   50000 } ;
+    TString names[5] = { "500", "1000", "3000", "6000", "12000" } ;
+    int color[5]     = {     1,      2,      4,      6,      8  } ;
+    const int nModel = 5 ;
+
+    /*
     // Lambda 160
-    double nGen[8]   = { 50112,  50000,  50000,  50000,  50000,  50000,  50000,   50000 } ;
+    double nGen[8]   = { 50000,  50000,  50000,  50000,  50000,  50000,  50000,   50000 } ;
     TString names[8] = { "250",  "500", "1000", "2000", "3000", "4000", "6000", "12000" } ;
     int color[8]     = {     1,      2,      3,      4,      5,      6,      7,      8  } ;
     const int nModel = 8 ;
-    /*
+
     // Lambda 120
     double nGen[11]   = { 50000, 50000, 50000, 50000,  50000,  50000,  50000,  50000,  50000,  50000,  50000  } ;
     //TString names[11] = {  "95", "185", "370", "730", "1075", "1445", "2160", "3000", "4000", "6000", "12000" } ;

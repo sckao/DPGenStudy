@@ -15,38 +15,46 @@ void Eff_lambda() {
 
     TString hfolder  = "Final2012/" ;
 
-    TString fileName0 = "TCuts_GMSB_L100/GMSB2J_100_5860.root" ;
+    TString fileName0 = "TCuts_GMSB_L100/GMSB2J_100_6000.root" ;
     TString fileName1 = "TCuts_GMSB_L140/GMSB2J_140_6000.root" ;
-    TString fileName2 = "TCuts_GMSB_L180/GMSB2J_180_5980.root" ;
-    TString fileName3 = "TCuts_GMSB_L300/GMSB2J_300_6000.root" ;
+    TString fileName2 = "TCuts_GMSB_L180/GMSB2J_180_6000.root" ;
+    TString fileName3 = "TCuts_GMSB_L220/GMSB2J_220_6000.root" ;
 
-    // Lambda 180
     double nGen[4]   = { 50000,  50000,  50000,  50000 } ;
-    TString names[4] = { "100",  "140",  "180",  "300" } ;
-    int color[4]     = {     4,     2,     1,      6,  } ;
+    TString names[4] = { "100",  "140",  "180",  "220" } ;
+    int color[4]     = {     4,     2,     6,      1,  } ;
     const int nModel = 4;
 
-    TString plotname  = "Eff_lambda.png" ;
-    string hNameD = "reco_ctbgT" ;
-    string hNameN = "acc_ctbgT" ;
-   
     int rbin = 2 ;
-    float ymax = 0.3 ;
+    float ymax = 0.5 ;
     float xmax = 1800. ;
-    TLegend* leg1  = new TLegend(.40, .6, .65, .9 );
+    TLegend* leg1  = new TLegend(.65, .63, .9, .88 );
+    //TLegend* leg1  = new TLegend(.35, .33, .6, .58 );
+    string legTitle = "#tau = 20 ns" ;
+    leg1->SetHeader( legTitle.c_str() );
 
+
+    TString plotname  = "Eff_lambda_sel.png" ;
+    string hNameD = "h_ctbgT" ;
+    string hNameN = "sel_ctbgT" ;
+   
    /*
+    TString plotname  = "Eff_hltSel_lambda.png" ;
+    string hNameD = "selR_ctbgT" ;
+    string hNameN = "sel_ctbgT" ;
+
     TString plotname  = "Eff_hlt_ctbgT.png" ;
-    string hNameD = "obs_ctbgT" ;
+    string hNameD = "h_ctbgT" ;
     string hNameN = "hlt_ctbgT" ;
 
     TString plotname = "Eff_lambad_reco_ctbgT.png" ;
     string hNameD = "obs_ctbgT" ;
     string hNameN = "reco_ctbgT" ;
 
-    TString plotname  = "Eff_sel_ctbgT.png" ;
+    TString plotname  = "Eff_lambda_sel.png" ;
     string hNameD = "obs_ctbgT" ;
     string hNameN = "sel_ctbgT" ;
+
     */
   
     /*
@@ -120,7 +128,7 @@ void Eff_lambda() {
     c0->cd();
 
     TGraphAsymmErrors* eff[nModel] ;
-    leg1->Clear() ;
+    //leg1->Clear() ;
     for ( int i=0; i< nModel; i++ ) {
 
         eff[i]= new TGraphAsymmErrors();
@@ -132,6 +140,7 @@ void Eff_lambda() {
 
         eff[i]->SetMarkerColor( color[i] );
         eff[i]->SetLineColor( color[i] );
+	eff[i]->SetLineWidth(2);
         leg1->AddEntry( eff[i], names[i]+" TeV" ,  "L");
 
         if ( i ==0 ) {
@@ -142,16 +151,15 @@ void Eff_lambda() {
            eff[i]->SetMinimum( 0.0 );
            eff[i]->SetMarkerStyle(22);
            eff[i]->SetMarkerSize(1);
-           eff[i]->SetLineWidth(2);
 
            eff[i]->GetXaxis()->SetTitleOffset(0.9);
            eff[i]->GetYaxis()->SetTitleOffset(1.25);
 	   eff[i]->GetXaxis()->SetTitleSize(0.06);
 	   eff[i]->GetYaxis()->SetTitleSize(0.06);
          
+           eff[i]->GetXaxis()->SetRangeUser(0, xmax ) ;
            eff[i]->GetXaxis()->SetTitle("Transverse Decay Length (mm)") ;
            eff[i]->GetYaxis()->SetTitle("Efficiency / 100 mm") ;
-           eff[i]->GetXaxis()->SetRangeUser(0, xmax ) ;
            eff[i]->Draw("AP");
         } else {
            eff[i]->Draw("SAMEPS");

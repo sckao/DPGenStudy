@@ -12,20 +12,20 @@
 void TrigEff() {
 
     gROOT->LoadMacro("CMS_lumi.C");
-    /*
+    
     TString plotname = "Final2012/Photon_EffAsym.png" ;
     string xlable = "Photon P_{T} (GeV) " ;
     string hName = "h_gPt_trg" ;
     string AName = "h_gPt_sel" ;
     TFile *file2  = TFile::Open("HLTStudy/hlt_gjets_lowPt.root");
-    */
 
+    /*
     TString plotname = "Final2012/PFMET_EffAsym.png" ;
     string xlable = "MET (GeV) " ;
     string hName = "h_met_trg" ;
     string AName = "h_met_sel" ;
     TFile *file2  = TFile::Open("HLTStudy/hlt_gjets_highMET.root");
-    
+    */
 
     TString plotname1 = "Final2012/Eff2D.png" ;
     TFile *file0  = TFile::Open("HLTStudy/hlt_phot50.root");

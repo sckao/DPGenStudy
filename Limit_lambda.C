@@ -13,92 +13,63 @@ void Limit_lambda() {
 
    gROOT->LoadMacro("CMS_lumi.C");
 
-   string hfolder  = "Limit1/" ;
-
-   string ctau = "2000" ;
-   string names[4] = {  "1935", "2060", "1945", "2195"  } ;
-   const int sz = 4;
-
-   string ld_Str[4] = { "120", "140", "160", "180" } ;
-   float x[4] = { 120, 140, 160, 180, } ;
-   float Xsec[4] = { 0.133, 0.0574, 0.0277, 0.0145 }  ;
+   string hfolder  = "Limit5/" ;
 
    /*
    string ctau = "6000" ;
-   string names[6] = { "6000", "5985", "6000", "5875", "5980", "6000"  } ;
    const int sz = 6;
-
    string ld_Str[6] = { "100", "120", "140", "160", "180", "220" } ;
+   string names[6] = { "6000", "6000", "6000", "6000", "6000", "6000"  } ;
    float x[6] = { 100, 120, 140, 160, 180, 220 } ;
-   float Xsec[6] = { 0.368, 0.133, 0.0574, 0.0277, 0.0145, 0.0048}  ;
+   float Xsec[6] = { 368*0.94444 , 133*0.90421, 57.4*0.8711, 27.7*0.84638, 14.5*0.82818, 4.8*0.80434 }  ;
+
+   string ctau = "3000" ;
+   const int sz = 6;
+   string ld_Str[6] = { "100",  "120",  "140",  "160",  "180",  "220" } ;
+   string names[6] = {  "3000", "3000", "3000", "3000", "3000", "3000"  } ;
+   float x[6] = { 100, 120, 140, 160, 180, 220 } ;
+   float Xsec[6] = { 368*0.94444 , 133*0.90421, 57.4*0.8711, 27.7*0.84638, 14.5*0.82818, 4.8*0.80434 }  ;
+
+   string ctau = "2000" ;
+   const int sz = 6;
+   string ld_Str[6] = { "100", "120", "140", "160", "180", "220" } ;
+   string names[6] = {  "2000", "2000", "2000", "2000", "2000", "2000"  } ;
+   float x[6] = { 100, 120, 140, 160, 180, 220 } ;
+   float Xsec[6] = { 0.368*0.94444,  0.133*0.90421, 0.0574*0.8711, 0.0277*0.84638, 0.0145*0.82818, 0.0048*0.80434  }  ;
 
    string ctau = "1000" ;
-   string names[4] = {  "1030", "975", "1100", "1000"  } ;
-   const int sz = 4;
-
-   string ld_Str[4] = { "140", "160", "180", "220" } ;
-   float x[4] = { 140, 160, 180, 220 } ;
-   float Xsec[4] = { 0.0574, 0.0277, 0.0145, 0.0048}  ;
+   const int sz = 5;
+   string ld_Str[5] = { "100", "120", "160", "180", "220" } ;
+   string names[5] = {  "1000", "1000", "1000", "1000", "1000"  } ;
+   float x[5] = { 100, 120, 160, 180, 220 } ;
+   float Xsec[5] = { 368*0.94444, 133.*0.90421, 27.7*0.84638 , 14.5*0.82818, 4.8*0.80434 }  ;
 
    string ctau = "10000" ;
-   string names[6] = { "10000", "10000", "10000", "10000", "10000", "10000" } ;
    const int sz = 6;
-
    string ld_Str[6] = { "100", "120", "140", "160", "180", "220" } ;
+   string names[6] = { "9330", "9825", "10450", "9815", "10450", "10450" } ;
    float x[6] = { 100, 120, 140, 160, 180, 220 } ;
    float Xsec[6] = { 0.368, 0.133, 0.0574, 0.0277, 0.0145, 0.0048}  ;
 
    string ctau = "500" ;
-   string names[4] = { "425", "515", "490", "500" } ;
    const int sz = 4;
-
    string ld_Str[4] = { "100", "140", "160", "220" } ;
+   string names[4] = { "500", "500", "500", "500" } ;
    float x[4] = { 100, 140, 160, 220 } ;
    float Xsec[4] = { 0.368, 0.0574, 0.0277, 0.0048}  ;
-   */
 
-   /*
-   string Lambda = "160" ;
-   float Xsec = 0.0277 ;
-   string names[7] = { "490", "975", "1945", "2930", "3910", "5875", "10000"  } ;
-   const int sz = 7;
-
-   string Lambda = "180" ;
-   float Xsec = 0.0145 ;
-   string names[8] = { "185", "365", "730", "1100", "2195", "3950", "5980", "10000"  } ;
-   const int sz = 8;
-
-   string Lambda = "220" ;
-   float Xsec = 0.0048 ;
-   string names[5] = { "500", "1000", "3000", "6000", "10000"  } ;
-   const int sz = 5;
-
-   string Lambda = "100" ;
-   float Xsec = 0.368 ;
-   string names[7] = { "215", "425", "1700", "3400", "5100", "6000", "10000"  } ;
-   const int sz = 7;
-
-   string Lambda = "120" ;
-   float Xsec = 0.133 ;
-   string names[8] = { "325", "645", "1290", "1935", "2955", "3870", "5985", "10000"  } ;
-   const int sz = 8;
-
-   string Lambda = "140" ;
-   float Xsec = 0.0574 ;
-   string names[8] = { "130", "515", "1030", "2060", "2920", "3985", "6000", "10000"  } ;
-   const int sz = 8;
    */
 
    TString legTitle = "#tilde{#chi}^{0}_{1} #rightarrow #gamma #tilde{G}, c#tau ="+ ctau + " mm" ;
    string limitPlotName = "limit_ct"+ ctau + ".png" ;
 
    float yMax = 30. * Xsec[0] ;
-   float yMin = 0.1 * Xsec[sz-1] ; 
+   float yMin = 0.2 * Xsec[sz-1] ; 
 
    char s1[8],s2[8],s3[8],s4[8],s5[8],s6[8],s7[8] ;
    float f1,f2 ;
    int r1 ;
-   float md[sz], u1[sz], u2[sz], d1[sz], d2[sz], ob[sz], x[sz], th[sz] ;
+   float md[sz], u1[sz], u2[sz], d1[sz], d2[sz], ob[sz], x[sz], th[sz], m[sz] ;
    float ex[sz] = { 0. } ;
    FILE* logf ; 
 
@@ -108,7 +79,7 @@ void Limit_lambda() {
        printf(" filename : %s \n", fileName.c_str() ) ;
        logf = fopen( fileName.c_str() ,"r");
        th[i] = Xsec[i] ;
-
+       m[i] = (x[i]*1.45) - 5 ;
        for (int j=0; j< 6; j++ ) {
            r1 = fscanf( logf, "%s %s %s %f %s %f %s %s %s", s1,s2,s3,&f1,s4,&f2,s5,s6,s7  );
 	   printf("[%.0f] %s %s %s %f %s %f %s %s %s \n", x[i], s1,s2,s3, f1, s4, f2, s5,s6,s7 ) ;
@@ -128,6 +99,17 @@ void Limit_lambda() {
        fclose( logf ) ;
    }
 
+   // Calculate lower and higher limit of ctau
+   string rfName = hfolder +  "limitResult.txt"  ;
+   FILE* resf = fopen( rfName.c_str() ,"a") ;
+
+   printf(" === observed === \n") ;
+   float obs_limit = findLimit( sz, ob, x, Xsec ) ;
+   printf(" === expected === \n") ;
+   float exp_limit = findLimit( sz, md, x, Xsec ) ;
+
+   fprintf(resf, "%.2f %.2f %s \n", obs_limit, exp_limit, ctau.c_str() ) ;
+   fclose( resf ) ;
 
    // For the frame:
    gStyle->SetFrameBorderMode(0);
@@ -141,25 +123,25 @@ void Limit_lambda() {
    gStyle->SetLabelOffset(0.007, "XYZ");
    gStyle->SetLabelSize(0.04, "XYZ");
 
-   TCanvas *c1a = new TCanvas("c1a","c1a" ,800,800);
-   //c1a->SetGridy() ;
-   c1a->SetTopMargin(0.1);
-   c1a->SetBottomMargin(0.13);
-   c1a->SetLeftMargin(0.16);
-   c1a->SetRightMargin(0.05);
+   TCanvas *c2a = new TCanvas("c2a","c2a" ,800,800);
+   //c2a->SetGridy() ;
+   c2a->SetTopMargin(0.1);
+   c2a->SetBottomMargin(0.13);
+   c2a->SetLeftMargin(0.16);
+   c2a->SetRightMargin(0.05);
 
-   c1a->SetLogy() ;
+   c2a->SetLogy() ;
    TMultiGraph *mg = new TMultiGraph();
    //gStyle->SetTitleW(0.85);
    //mg->SetTitle( "   CMS 19.1 fb^{-1}                                                   #sqrt{s} = 8 TeV" );
 
    // SetFillStyle ref: http://root.cern.ch/root/html/TAttFill.html
-   TGraphAsymmErrors* gbe = new TGraphAsymmErrors(sz, x, md, ex, ex, d2, u2);
+   TGraphAsymmErrors* gbe = new TGraphAsymmErrors(sz, m, md, ex, ex, d2, u2);
    gbe->SetFillStyle(1001);
    gbe->SetFillColor(kYellow);
    //gbe->GetXaxis()->SetLimits(240.,6100.) ;
 
-   TGraphAsymmErrors* gae = new TGraphAsymmErrors(sz, x, md, ex, ex, d1, u1);
+   TGraphAsymmErrors* gae = new TGraphAsymmErrors(sz, m, md, ex, ex, d1, u1);
    gae->SetFillStyle(1001);
    //gae->SetFillColor(kSpring);
    gae->SetFillColor(kGreen);
@@ -172,45 +154,43 @@ void Limit_lambda() {
 
    // this modify the x-axis range, must set after Draw() ...stupid ROOT 
    gPad->Modified();
-   mg->GetXaxis()->SetLimits( x[0] - 1, x[sz-1]+1 ) ;
+   mg->GetXaxis()->SetLimits( m[0] - 1, m[sz-1]+1 ) ;
    mg->SetMaximum( yMax );
    mg->SetMinimum( yMin );
-   mg->GetXaxis()->SetTitleOffset(1.1);
-   mg->GetYaxis()->SetTitleOffset(1.3);
+   mg->GetXaxis()->SetTitleOffset(1.2);
+   mg->GetYaxis()->SetTitleOffset(1.5);
    mg->GetXaxis()->SetTitleFont(42);
    mg->GetYaxis()->SetTitleFont(42);
    mg->GetXaxis()->SetTitleSize(0.04);
    mg->GetYaxis()->SetTitleSize(0.04);
-   mg->GetXaxis()->SetTitle( "SUSY breaking scale (TeV)"  ) ;
+   mg->GetXaxis()->SetTitle( "Neutralino Mass (GeV)"  ) ;
    //mg->GetXaxis()->SetTitle( "MET Cut (GeV)" ) ;
-   mg->GetYaxis()->SetTitle(" #sigma_{Upper Limit} (pb) at 95% CL") ;
+   mg->GetYaxis()->SetTitle("Upper Limit of #sigma#times BR (pb) at 95% CL") ;
 
    // expected
-   TGraph*  g1  = new TGraph(sz, x, md ) ;
+   TGraph*  g1  = new TGraph(sz, m, md ) ;
    g1->SetLineColor(2) ;
    g1->SetLineWidth(2) ;
-   g1->SetLineStyle(1) ;
-   //g1->GetXaxis()->SetLimits(1.,5.) ;
+   g1->SetLineStyle(7) ;
    g1->Draw("LP") ;
-   c1a->Update() ;
+   c2a->Update() ;
 
    // observation
-   TGraph*  g0  = new TGraph(sz, x, ob ) ;
+   TGraph*  g0  = new TGraph(sz, m, ob ) ;
    g0->SetLineColor(1) ;
    g0->SetLineWidth(2) ;
    g0->SetLineStyle(1) ;
-   //g0->GetXaxis()->SetLimits(1.,5.) ;
    //g0->SetMarkerStyle(20) ;
    g0->Draw("LP") ;
-   c1a->Update() ;
+   c2a->Update() ;
 
 
    // theoratical suggestion
-   TGraph*  gth = new TGraph(sz, x, th ) ;
+   TGraph*  gth = new TGraph(sz, m, th ) ;
    gth->SetLineColor(4) ;
    gth->SetLineWidth(2) ;
    gth->SetLineStyle(1) ;
-   gth->GetXaxis()->SetLimits( x[0], x[sz-1] ) ;
+   gth->GetXaxis()->SetLimits( m[0], m[sz-1] ) ;
    gth->Draw("L") ;
    
    TLegend* leg1  = new TLegend(.4, .6, .90, .88 );
@@ -226,91 +206,69 @@ void Limit_lambda() {
    leg1->AddEntry( gbe, "#pm 2#sigma Expected" ,  "F");
    leg1->AddEntry( gae, "#pm 1#sigma Expected" ,  "F");
    leg1->AddEntry( g1,  "Expected 95% CL upper limit" , "L");
-   leg1->AddEntry( gth, "Theoretical LO cross-section", "L");
-   leg1->AddEntry( g0,  "Observed" , "L");
+   leg1->AddEntry( gth, "SPS8 Theory LO cross-section", "L");
+   leg1->AddEntry( g0,  "Observed 95% CL upper limit" , "L");
    leg1->Draw("same") ;
 
-   CMS_lumi( c1a, 2, 11 ) ;
-   c1a->Update();
+   TGaxis *lAxis = new TGaxis(154.5, 0.004, 299.5, 0.004,110, 210, 5,"+L");
+   lAxis->SetTitle("SUSY #Lambda [TeV]");
+   lAxis->SetLabelSize(0.04);
+   lAxis->SetTitleSize(0.04);
+   //lAxis->SetTitleFont(42);
+   lAxis->SetTitleOffset(1.2);
+   lAxis->Draw("sames");
+
+   gPad->RedrawAxis();
+   
+
+
+   CMS_lumi( c2a, 2, 11 ) ;
+   c2a->Update();
 
    TString gPlotname = hfolder +  limitPlotName  ;
-   c1a->Print( gPlotname ) ;
-   delete c1a ;
+   c2a->Print( gPlotname ) ;
+   delete c2a ;
 
-   /*
-    // *************************
-    // ***  Drawing setup    ***
-    // *************************
-    gStyle->SetOptStat("");
+}
 
-    gStyle->SetOptStat(kFALSE);
-    //gStyle->SetOptFit(111);
-    gStyle->SetOptTitle(0);
-    //gStyle->SetTitleFontSize(0.05);
- 
-    // Plots
-    TCanvas* c0 = new TCanvas("c0","", 800, 700);
-    c0->SetFillColor(10);
-    c0->SetFillColor(10);
+float findLimit( const int sz, float lm[], float x[], float Theo[]  ) {
 
-    c0->SetTopMargin(0.1);
-    c0->SetBottomMargin(0.13);
-    c0->SetLeftMargin(0.16);
-    c0->SetRightMargin(0.05);
-    c0->SetLogy();
+   float xs1[2] = {0,0} ;
+   float xs2[2] = {0,0} ;
+   int k = -1 ;
 
-    //gPad->SetGridx();
-    //gPad->SetGridy();
-    c0->cd();
+   if ( lm[sz-1] < Theo[sz-1] ) {
+      printf(" Extrapolote ") ;
+      xs2[0] = lm[sz-1] ;
+      xs2[1] = lm[sz-2] ;
+      k = sz-2 ;
+   } else {
+     for (int i = sz-1; i>= 0; i-- ) {
+         if ( lm[i] > Theo[i] ) xs2[0] = lm[i] ;
+         if ( lm[i] < Theo[i] ) {
+                             xs2[1] = lm[i] ;
+                             k = i ;
+                             printf(" Interpolate(%d,%d) \n", i, i+1) ;
+                             break ;
+         }
+     }
+   }
+    
+   if ( k <  0 ) return -999. ;
+   // m = d_Lambda / d_Limit 
+   float m = (x[k+1] - x[k])/(xs2[0] - xs2[1])  ;
+   float b = x[k] -  (m*xs2[1] ) ;
+   float n = (x[k+1] - x[k])/(Theo[k+1] - Theo[k])  ;
+   float a = x[k] -  (n*Theo[k] ) ;
 
-    TGraphAsymmErrors* eff[nModel] ;
-    leg1->Clear() ;
-    for ( int i=0; i< nModel; i++ ) {
+   float lambda0 = ( (n*b) - (m*a) )/(n-m) ;
+   float limit0  =  (a-b)/(m-n) ;
 
-        eff[i]= new TGraphAsymmErrors();
+   printf(" k = %d , m = %.3f b =%.3f m[%.5f ~ %.5f] in [%.1f ~ %.1f] \n", k, m ,b,  xs2[1], xs2[0], x[k] , x[k+1] )  ;
+   printf("         n = %.3f a =%.3f n[%.5f ~ %.5f] \n", n, a, Theo[k] , Theo[k+1] ) ;
+   printf(" higher lambda limit : %.2f at %.2f TeV ( %.2f GeV ) \n", limit0, lambda0, (lambda0*1.45) -5 ) ;
 
-        D_ctbgT[i]->Rebin( rbin ) ;
-        N_ctbgT[i]->Rebin( rbin ) ;
-
-        eff[i]->Divide( N_ctbgT[i], D_ctbgT[i] );    
-
-        eff[i]->SetMarkerColor( color[i] );
-        eff[i]->SetLineColor( color[i] );
-        leg1->AddEntry( eff[i], names[i]+" TeV" ,  "L");
-
-        if ( i ==0 ) {
-           c0->cd();
-           c0->SetLogy(0);
-
-           eff[i]->SetMaximum( ymax );
-           eff[i]->SetMinimum( 0.0 );
-           eff[i]->SetMarkerStyle(22);
-           eff[i]->SetMarkerSize(1);
-           eff[i]->SetLineWidth(2);
-
-           eff[i]->GetXaxis()->SetTitleOffset(0.9);
-           eff[i]->GetYaxis()->SetTitleOffset(1.25);
-	   eff[i]->GetXaxis()->SetTitleSize(0.06);
-	   eff[i]->GetYaxis()->SetTitleSize(0.06);
-         
-           eff[i]->GetXaxis()->SetTitle("Number of Vertices") ;
-           eff[i]->GetYaxis()->SetTitle("Efficiency ") ;
-           eff[i]->GetXaxis()->SetRangeUser(0, xmax ) ;
-           eff[i]->Draw("AP");
-        } else {
-           eff[i]->Draw("SAMEPS");
-        }
-    }
-    leg1->Draw("sames") ;
-    c0->Update();
-
-    CMS_lumi( c0, 2, 11 ) ;
-    c0->Update();
-
-    c0->Print( hfolder + plotname );
-
-
-    delete c0 ;
-    */
+   float Lambda_Limit = (lambda0*1.45) -5 ;
+   return Lambda_Limit ;
 }
 

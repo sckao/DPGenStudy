@@ -18,13 +18,14 @@ void Smin() {
     string ylable = " Entries/0.25 " ;
     string hTitle = "S_{minor}" ;
     string hName = "h_sMin_Time_EB" ;
-    
+    string hName1 = "h_sMin_Time" ;
+
 
     TFile *file0  = TFile::Open("Phot50/bg_phot50.root");
-    TFile *file1  = TFile::Open("TCuts_GMSB_L180/BG_GMSB180_2J.root");
+    TFile *file1  = TFile::Open("TCuts_GMSB_L180/GMSB2J_180_5980_noSmin.root");
 
     TH2D* smin_t_phot50  = (TH2D *) file0->Get( hName.c_str() )  ;
-    TH2D* smin_t_gmsb    = (TH2D *) file1->Get( hName.c_str() )  ;
+    TH2D* smin_t_gmsb    = (TH2D *) file1->Get( hName1.c_str() )  ;
 
     smin_t_phot50->ProjectionX("smin_phot50" ) ;
     smin_t_gmsb->ProjectionX("smin_gmsb", 92,160 ) ;

@@ -12,55 +12,91 @@
 void Eff_Calculator() {
 
      // Z mass 
-     // Scale factor for background template
-     /*
-     double sf = 1033000./1838000. ;
-     pair<double,double> err_sf = ErrAovB( 1033000, 1838000, -1, -1, -1, -1 ) ;
-     printf("scaleFactor = %.5f err + %.5f,  - %.5f \n", sf, err_sf.first, err_sf.second ) ;
-     // Toal - Scaled Background for |t| < 2ns
-     double InT_Bg = 5062600*sf ;
-     pair<double,double> err_b1 = ErrAxB( 5062600, sf , -1, -1, err_sf.first, err_sf.second ) ;
-     printf("InTime Bg = %.5f err + %.5f,  - %.5f \n", InT_Bg, err_b1.first, err_b1.second ) ;
+     // |t| < 2 ns  Z 
+     double InT = 2349187.0 - 996803.6 ;
+     pair<double,double> err_InT = ErrApnB( 2349187.0 , 996803.6 , -1, -1, -1, -1 ) ;
+     printf("InTime Z  = %.5f err + %.5f,  - %.5f \n", InT, err_InT.first, err_InT.second ) ;
 
-     double InT = 5195700 - InT_Bg ;
-     pair<double,double> err_InT = ErrApnB( 5195700, InT_Bg, -1, -1, err_b1.first, err_b1.second ) ;
-     printf("InTime Z - Bg = %.5f err + %.5f,  - %.5f \n", InT, err_InT.first, err_InT.second ) ;
-     // Toal - Scaled Background for t > 3ns
-     double OuT_Bg = 42*sf ;
-     pair<double,double> err_b2 = ErrAxB( 42, sf , -1, -1, err_sf.first, err_sf.second ) ;
-     printf("OuTime Bg = %.5f err + %.5f,  - %.5f \n", OuT_Bg, err_b2.first, err_b2.second ) ;
+     // t > 3 ns Z
+     double posT = 38.0 - 8.6  ;
+     pair<double,double> err_posT = ErrApnB( 38, 8.6, -1, -1, -1, -1 ) ;
+     printf("T > 3 Z = %.5f err + %.5f,  - %.5f \n", posT, err_posT.first, err_posT.second ) ;
 
-     double OuT = 54 - OuT_Bg ;
-     pair<double,double> err_OuT = ErrApnB( 54, OuT_Bg, -1, -1, err_b2.first, err_b2.second ) ;
-     printf("OuTime Z - Bg = %.5f err + %.5f,  - %.5f \n", OuT, err_OuT.first, err_OuT.second ) ;
-     // Given ratio of |t|<2 / t > 3
-     double r = OuT/InT ;
-     pair<double,double> err_r = ErrAovB( OuT, InT, err_OuT.first, err_OuT.second , err_InT.first, err_InT.second ) ;
-     printf("Ratio = %.8f err + %.8f,  - %.8f \n", r, err_r.first, err_r.second ) ;
-     // Predict
-     double final= 29702*r ;
-     pair<double,double> err = ErrAxB( 29702, r , -1, -1, err_r.first, err_r.second ) ;
-     printf("Predict = %.5f err + %.5f,  - %.5f \n", final, err.first, err.second ) ;
-     */
+     // t < 3 ns Z
+     double negT = 378.0 - 329.0 ;
+     pair<double,double> err_negT = ErrApnB( 378, 329, -1, -1, -1, -1 ) ;
+     printf("T < 3 Z = %.5f err + %.5f,  - %.5f \n", negT, err_negT.first, err_negT.second ) ;
 
-     //  Closure Test
-     /*
-     double f = 34047 ;
+     // 2Jet events - total 28246
+     double f = 28208 ; // 1 phot event in F 
+     double f2 =   38 ;  // 2 phot event in F
+     // Closure test events - total 35271
+     //double f = 35097 ;
+     //double f2 = 174  ;
+
      pair<double,double> err_f = StatErr1( f ) ; 
      double f_u = err_f.first ;
      double f_d = err_f.second ;
-     printf("f = %.3f err + %.3f,  - %.3f \n", f, f_u , f_d ) ;
+     pair<double,double> err_f2 = StatErr1( f2 ) ; 
+     printf("f  = %.3f err + %.3f,  - %.3f \n", f, f_u , f_d ) ;
+     printf("f2 = %.3f err + %.3f,  - %.3f \n", f2, err_f2.first , err_f2.second ) ;
 
-     double fp = 1383015 ;
+     // Given ratio of t> 3 / |t|<2 for 1 photon events
+     double r = posT/(2*InT) ;
+     pair<double,double> err_r = ErrAovB( posT, 2*InT, err_posT.first, err_posT.second , 2*err_InT.first, 2*err_InT.second ) ;
+     printf("Ratio(t1 or t2 >3)  = %.8f err + %.8f,  - %.8f \n", r, err_r.first, err_r.second ) ;
+  
+     double n2 = 3 ;
+     double r2 = 3/InT ;
+     pair<double,double> err_r2 = ErrAovB( n2 , InT,  -1, -1 , err_InT.first, err_InT.second ) ;
+     printf("Ratio(t1 and t2 >3) = %.8f err + %.8f,  - %.8f \n", r2, err_r2.first, err_r2.second ) ;
+     
+
+     // Predict
+     double Qd = (f*r) + (f2*2*r) + (f2*r2) + (f*r2);
+     pair<double,double> err_Qd1 = ErrAxB( f, r , -1, -1, err_r.first, err_r.second ) ;
+     pair<double,double> err_Qd2 = ErrAxB( 2*f2, r , -1, -1, err_r.first,   err_r.second ) ;
+     pair<double,double> err_Qd3 = ErrAxB( f2, r2 , -1, -1, err_r2.first,  err_r2.second ) ;
+     pair<double,double> err_Qd4 = ErrAxB(  f, r2 , -1, -1, err_r2.first,  err_r2.second ) ;
+     pair<double,double> err_Qd5 = ErrApnB( f*r, f2*2*r ,  err_Qd1.first, err_Qd1.second, err_Qd2.first, err_Qd2.second ) ;
+     pair<double,double> err_Qd6 = ErrApnB( (f*r)+(f2*2*r) , f2*r2,  err_Qd5.first, err_Qd5.second, err_Qd3.first, err_Qd3.second ) ;
+     pair<double,double> err_Qd  = ErrApnB( (f*r)+(f2*2*r)+(f2*r2), f*r2 , err_Qd6.first, err_Qd6.second, err_Qd4.first, err_Qd4.second ) ;
+     printf("Qd = %.5f err + %.5f,  - %.5f \n", Qd, err_Qd.first, err_Qd.second ) ;
+
+     printf(" ==================== \n") ;
+
+     // Given ratio of  t < -3 / |t|<2 
+     double rB = negT/(2*InT) ;
+     pair<double,double> err_rB = ErrAovB( negT, 2*InT, err_negT.first, err_negT.second , 2*err_InT.first, 2*err_InT.second ) ;
+     printf("Ratio(t<3) = %.8f err + %.8f,  - %.8f \n", rB, err_rB.first, err_rB.second ) ;
+
+     // Predict
+     double Qb = f*rB + f2*2*rB ;
+     pair<double,double> err_Qb1 = ErrAxB(  f,   rB , -1, -1, err_rB.first, err_rB.second ) ;
+     pair<double,double> err_Qb2 = ErrAxB( f2, 2*rB , -1, -1, 2*err_rB.first, 2*err_rB.second ) ;
+     pair<double,double> err_Qb = ErrApnB( f*rB, f2*2*rB , err_Qb1.first, err_Qb1.second, err_Qb2.first, err_Qb2.second ) ;
+     printf("Qb = %.5f err + %.5f,  - %.5f \n", Qb, err_Qb.first, err_Qb.second ) ;
+
+     printf(" ==================== \n\n") ;
+
+     //  Closure Test
+     // ABCD method for collision background
+     /*    
+     double f1 = 35271 ;
+     pair<double,double> err_f1 = StatErr1( f1 ) ; 
+     double f1_u = err_f1.first ;
+     double f1_d = err_f1.second ;
+     printf("f1 = %.3f err + %.3f,  - %.3f \n", f1, f1_u , f1_d ) ;
+     double fp = 1445254 ;
      pair<double,double> err_fp = StatErr1( fp ) ; 
      double fp_u = err_fp.first ;
      double fp_d = err_fp.second ;
      printf("fp = %.3f err + %.3f,  - %.3f \n", fp, fp_u, fp_d  ) ;
 
      pair<double,double> err_f = ErrAovB( f, fp, -1, -1, -1, -1 ) ;
-     printf("f/fp = %.5f err + %.5f,  - %.5f \n", f/fp, err_f.first, err_f.second ) ;
+     printf("f1/fp = %.5f err + %.5f,  - %.5f \n", f/fp, err_f.first, err_f.second ) ;
 
-     double bp = 7. ;
+     double bp = 8. ;
      pair<double,double> err_bp = StatErr1( bp ) ; 
      double bp_u = err_bp.first ;
      double bp_d = err_bp.second ;
@@ -68,7 +104,8 @@ void Eff_Calculator() {
 
      pair<double,double> err_Qb = ErrAxB( bp , f/fp, -1, -1, err_f.first, err_f.second) ;
      double Qb = bp*f/fp ;
-     printf("bp(f/fp) = %.5f err + %.5f,  - %.5f \n\n", Qb, err_Qb.first, err_Qb.second ) ;
+     printf("Qb -> bp(f/fp) = %.5f err + %.5f,  - %.5f \n\n", Qb, err_Qb.first, err_Qb.second ) ;
+     printf(" ==================== \n") ;
 
      double dp = 2. ;
      pair<double,double> err_dp = StatErr1( dp ) ; 
@@ -76,17 +113,19 @@ void Eff_Calculator() {
      double dp_d = err_dp.second ;
      printf("dp = %.3f err + %.3f,  - %.3f \n", dp, dp_u, dp_d  ) ;
 
-     pair<double,double> err_Qd = ErrAxB( dp , f/fp, -1, -1, err_f.first, err_f.second) ;
-     double Qd = dp*f/fp ;
-     printf("dp(f/fp) = %.5f err + %.5f,  - %.5f \n\n", Qd, err_Qd.first, err_Qd.second ) ;
+     pair<double,double> err_Qd7 = ErrAxB( dp , f/fp, -1, -1, err_f.first, err_f.second) ;
+     double Qd7 = dp*f/fp ;
+     printf("Qd -> dp(f/fp) = %.5f err + %.5f,  - %.5f \n\n", Qd7, err_Qd7.first, err_Qd7.second ) ;
+     printf(" ==================== \n") ;
+
 
      double c = 359. ;
      pair<double,double> err_c = StatErr1( c ) ; 
      double c_u = err_c.first ;
      double c_d = err_c.second ;
      printf("c = %.3f err + %.3f,  - %.3f \n", c, c_u , c_d ) ;
-
-     double a = 850. ;
+  
+     double a = 851. ;
      pair<double,double> err_a = StatErr1( a ) ; 
      double a_u = err_a.first ;
      double a_d = err_a.second ;
@@ -95,13 +134,12 @@ void Eff_Calculator() {
      pair<double,double> err0 = ErrAovB( c, a, -1, -1, -1, -1 ) ;
      printf("c/a = %.5f err + %.5f,  - %.5f \n", c/a, err0.first, err0.second ) ;
 
-     double b = 39. ;
+     double b = 38. ;
      pair<double,double> err_b = StatErr1( b ) ; 
      double b_u = err_b.first ;
      double b_d = err_b.second ;
      printf("b = %.3f err + %.3f,  - %.3f \n", b, b_u, b_d  ) ;
 
-     // Qb = 0.1176 +0.1138 -0.0694
      pair<double,double> err1 = ErrApnB( b, Qb, -1, -1, err_Qb.first, err_Qb.second ) ;
      printf("b - Qb = %.5f err + %.5f,  - %.5f \n", b -Qb, err1.first, err1.second ) ;
 
@@ -109,38 +147,37 @@ void Eff_Calculator() {
      printf("(b-Qb)x(c/a) = %.5f err + %.5f,  - %.5f \n", (b -Qb)*c/a, err2.first, err2.second ) ;
      double d1 = (b -Qb)*c/a ;
 
-     // Qd = 0.0888 +0.0888 -0.0444
      pair<double,double> err3 = ErrApnB( d1, Qd, err2.first, err2.second, err_Qd.first, err_Qd.second) ;
      printf("\nfinal = %.5f err + %.5f,  - %.5f \n", d1+Qd , err3.first, err3.second ) ;
-     */
-
+     */         
 
      // 2J events
      
-     double f = 29702 ;
-     pair<double,double> err_f = StatErr1( f ) ; 
-     double f_u = err_f.first ;
-     double f_d = err_f.second ;
-     printf("f = %.3f err + %.3f,  - %.3f \n", f, f_u , f_d ) ;
-
-     double fp = 669013 ;
+     // ABCD method for collision background
+     double f1 = 28246 ;
+     pair<double,double> err_f1 = StatErr1( f1 ) ; 
+     double f1_u = err_f1.first ;
+     double f1_d = err_f1.second ;
+     printf("f1 = %.3f err + %.3f,  - %.3f \n", f1, f1_u , f1_d ) ;
+     double fp = 604958 ;
      pair<double,double> err_fp = StatErr1( fp ) ; 
      double fp_u = err_fp.first ;
      double fp_d = err_fp.second ;
      printf("fp = %.3f err + %.3f,  - %.3f \n", fp, fp_u, fp_d  ) ;
 
      pair<double,double> err_f = ErrAovB( f, fp, -1, -1, -1, -1 ) ;
-     printf("f/fp = %.5f err + %.5f,  - %.5f \n", f/fp, err_f.first, err_f.second ) ;
+     printf("f1/fp = %.5f err + %.5f,  - %.5f \n", f/fp, err_f.first, err_f.second ) ;
 
-     double bp = 4. ;
+     double bp = 3. ;
      pair<double,double> err_bp = StatErr1( bp ) ; 
      double bp_u = err_bp.first ;
      double bp_d = err_bp.second ;
      printf("bp = %.3f err + %.3f,  - %.3f \n", bp, bp_u, bp_d  ) ;
 
-     pair<double,double> err_Qb = ErrAxB( bp , f/fp, -1, -1, err_f.first, err_f.second) ;
-     double Qb = bp*f/fp ;
-     printf("bp(f/fp) = %.5f err + %.5f,  - %.5f \n\n", Qb, err_Qb.first, err_Qb.second ) ;
+     pair<double,double> err_Qb5 = ErrAxB( bp , f/fp, -1, -1, err_f.first, err_f.second) ;
+     double Qb5 = bp*f/fp ;
+     printf("Qb -> bp(f/fp) = %.5f err + %.5f,  - %.5f \n", Qb5, err_Qb5.first, err_Qb5.second ) ;
+     printf(" ==================== \n") ;
 
      double dp = 2. ;
      pair<double,double> err_dp = StatErr1( dp ) ; 
@@ -148,17 +185,19 @@ void Eff_Calculator() {
      double dp_d = err_dp.second ;
      printf("dp = %.3f err + %.3f,  - %.3f \n", dp, dp_u, dp_d  ) ;
 
-     pair<double,double> err_Qd = ErrAxB( dp , f/fp, -1, -1, err_f.first, err_f.second) ;
-     double Qd = dp*f/fp ;
-     printf("dp(f/fp) = %.5f err + %.5f,  - %.5f \n\n", Qd, err_Qd.first, err_Qd.second ) ;
+     pair<double,double> err_Qd7 = ErrAxB( dp , f/fp, -1, -1, err_f.first, err_f.second) ;
+     double Qd7 = dp*f/fp ;
+     printf("Qd -> dp(f/fp) = %.5f err + %.5f,  - %.5f \n", Qd7, err_Qd7.first, err_Qd7.second ) ;
+     printf(" ==================== \n") ;
 
+     
      double c = 0. ;
      pair<double,double> err_c = StatErr1( c ) ; 
      double c_u = err_c.first ;
      double c_d = err_c.second ;
      printf("c = %.3f err + %.3f,  - %.3f \n", c, c_u , c_d ) ;
 
-     double a = 5. ;
+     double a = 3. ;
      pair<double,double> err_a = StatErr1( a ) ; 
      double a_u = err_a.first ;
      double a_d = err_a.second ;
@@ -173,19 +212,41 @@ void Eff_Calculator() {
      double b_d = err_b.second ;
      printf("b = %.3f err + %.3f,  - %.3f \n", b, b_u, b_d  ) ;
 
-     // Qb = 0.1176 +0.1138 -0.0694
-     pair<double,double> err1 = ErrApnB( b, Qb, -1, -1, err_Qb.first, err_Qb.second ) ;
-     printf("b - Qb = %.5f err + %.5f,  - %.5f \n", b -Qb, err1.first, err1.second ) ;
+     pair<double,double> err1 = ErrAxB( b , c/a, err_b.first, err_b.second, err0.first, err0.second) ;
+     printf("(b)x(c/a) = %.5f err + %.5f,  - %.5f \n", b*c/a, err1.first, err1.second ) ;
+     double d1 = b*c/a ;
 
-     pair<double,double> err2 = ErrAxB( b - Qb , c/a, err1.first, err1.second, err0.first, err0.second) ;
-     printf("(b-Qb)x(c/a) = %.5f err + %.5f,  - %.5f \n", (b -Qb)*c/a, err2.first, err2.second ) ;
-     double d1 = (b -Qb)*c/a ;
+     pair<double,double> err2 = ErrAxB( Qb , c/a, err_Qb.first, err_Qb.second, err0.first, err0.second) ;
+     printf("(Qb)x(c/a) = %.5f err + %.5f,  - %.5f \n", Qb*c/a, err2.first, err2.second ) ;
+     double d2 = Qb*c/a ;
 
-     // Qd = 0.0888 +0.0888 -0.0444
-     pair<double,double> err3 = ErrApnB( d1, Qd, err2.first, err2.second, err_Qd.first, err_Qd.second) ;
-     printf("\nfinal = %.5f err + %.5f,  - %.5f \n", d1+Qd , err3.first, err3.second ) ;
+     pair<double,double> err3 = ErrApnB( d1, d2, err1.first, err1.second, err2.first, err2.second ) ;
+     printf("D  = %.5f err + %.5f,  - %.5f \n", d1 - d2, err3.first, err3.second ) ;
+     double d3 = ( d1 > d2 ) ? d1 -d2 : 0. ;
+
+     printf("\n === Result from ABCD + Zee =====\n");
+     pair<double,double> err4 = ErrApnB( d3, Qd, err3.first, err3.second, err_Qd.first, err_Qd.second) ;
+     printf("final = %.5f err + %.5f,  - %.5f, (+%f  -%f)  \n", d3+Qd , err4.first, err4.second, 
+                                                      (d3+Qd+err4.first)/(d3+Qd), (d3+Qd-err4.second)/(d3+Qd) ) ;
+     printf("  ==================================\n\n");
+          
+
+     pair<double,double> err2_ = ErrAxB( Qb5 , c/a, err_Qb5.first, err_Qb5.second, err0.first, err0.second) ;
+     printf("(Qb)x(c/a) = %.5f err + %.5f,  - %.5f \n", Qb*c/a, err2_.first, err2_.second ) ;
+     d2 = Qb5*c/a ;
+
+     pair<double,double> err3_ = ErrApnB( d1, d2, err1.first, err1.second, err2_.first, err2_.second ) ;
+     printf("D  = %.5f err + %.5f,  - %.5f \n", d1 - d2, err3_.first, err3_.second ) ;
+     d3 = ( d1 > d2 ) ? d1 -d2 : 0. ;
+
+     printf("\n === Result from ABCD + ABCD =====\n");
+     pair<double,double> err4_ = ErrApnB( d3, Qd7, err3_.first, err3_.second, err_Qd7.first, err_Qd7.second) ;
+     printf("final = %.5f err + %.5f,  - %.5f, (+%f  -%f) \n", d3+Qd7 , err4_.first, err4_.second,
+                                                      (d3+Qd7+err4_.first)/(d3+Qd7), (d3+Qd7-err4_.second)/(d3+Qd7) ) ;
+     printf("  ==================================\n\n");
+     printf("  ==================================\n");
      
-
+        
 }
 
 //pair<double, double> EffError( double N_all, double N_pass ) {

@@ -13,15 +13,18 @@ void Eff_ctbgT() {
 
     gROOT->LoadMacro("CMS_lumi.C");
 
-    TString hfolder  = "Final2012/" ;
-    TString fileName = "TCuts_GMSB_L180/GMSB2J_180_" ;
+    TString hfolder   = "Final2012/" ;
+    TString fileName  = "TCuts_GMSB_L180/GMSB2J_180_" ;
+    TString plotname1 = "Eff_dt1dt2.png" ;
 
     // Lambda 180
     double nGen[5]   = { 50000,  50000,  50000,  50000,  50000  } ;
-    TString names[5] = { "365", "1100", "2195", "5980", "10450" } ;
-    int color[5]     = {     1,     2,     4,      6,      8    } ;
+    TString names[5] = { "1000", "2000", "3950", "6000", "10450" } ;
+    string tnames[5] = {  "3.33", "6.67", "13.33", "20", "34.83" } ;
+    int color[5]     = {    1,     2,        4,      6,       8  } ;
     const int nModel = 5;
 
+  
     /*
     // Lambda 160
     double nGen[8]   = { 50000,  50000,  50000,  50000,  50000,  50000,  50000,  50000 } ;
@@ -51,26 +54,33 @@ void Eff_ctbgT() {
 
     */
     
+    TString plotname  = "Accp_ctbgT.png" ;
+    string hNameD = "reco_ctbgT" ;
+    string hNameN = "lateR_ctbgT" ;
+   
+
+    int rbin = 2 ;
+    float ymax = 1.0 ;
+    float xmax = 1800. ;
+    TLegend* leg1  = new TLegend(.55, .60, .78, .88 );
+    leg1->Clear() ;
+    string legTitle1 = " #Lambda = 180 TeV" ;
+    leg1->SetHeader( legTitle1.c_str() );
+
+    //TLegend* leg1  = new TLegend(.40, .25, .65, .55 );
+   /*
+    TString plotname  = "Eff_acc_ctbgT.png" ;
+    string hNameD = "h_ctbgT" ;
+    string hNameN = "lateR_ctbgT" ;
+
     TString plotname = "Eff_reco_ctbgT.png" ;
     string hNameD = "obs_ctbgT" ;
     string hNameN = "reco_ctbgT" ;
 
-    int rbin = 2 ;
-    float ymax = 1. ;
-    float xmax = 1800. ;
-    TLegend* leg1  = new TLegend(.40, .25, .65, .55 );
-   /*
     TString plotname  = "Eff_hlt_ctbgT.png" ;
     string hNameD = "obs_ctbgT" ;
     string hNameN = "hlt_ctbgT" ;
 
-    TString plotname  = "Eff_lateReco_ctbgT1.png" ;
-    string hNameD = "reco_ctbgT" ;
-    string hNameN = "lateR_ctbgT1" ;
-   
-    TString plotname  = "Eff_sel_ctbgT.png" ;
-    string hNameD = "obs_ctbgT" ;
-    string hNameN = "sel_ctbgT" ;
     */
   
     /*
@@ -141,7 +151,6 @@ void Eff_ctbgT() {
     c0->cd();
 
     TGraphAsymmErrors* eff[nModel] ;
-    leg1->Clear() ;
     for ( int i=0; i< nModel; i++ ) {
 
         eff[i]= new TGraphAsymmErrors();
@@ -153,7 +162,9 @@ void Eff_ctbgT() {
 
         eff[i]->SetMarkerColor( color[i] );
         eff[i]->SetLineColor( color[i] );
-        leg1->AddEntry( eff[i], names[i]+" mm" ,  "L");
+        eff[i]->SetLineWidth(2);
+        TString entryName =  tnames[i]+" ns" ;
+        leg1->AddEntry( eff[i], entryName ,  "L");
 
         if ( i ==0 ) {
            c0->cd();
@@ -163,7 +174,6 @@ void Eff_ctbgT() {
            eff[i]->SetMinimum( 0.0 );
            eff[i]->SetMarkerStyle(22);
            eff[i]->SetMarkerSize(1);
-           eff[i]->SetLineWidth(2);
 
            eff[i]->GetXaxis()->SetTitleOffset(0.9);
            eff[i]->GetYaxis()->SetTitleOffset(1.25);
@@ -186,121 +196,67 @@ void Eff_ctbgT() {
 
     c0->Print( hfolder + plotname );
 
-    // Plot 1 
-    /*
-    TLegend* leg1  = new TLegend(.80, .65, .95, .90 );
-    TGraphAsymmErrors* eff_hlt[nModel] ;
-    leg1->Clear() ;
-    for ( int i=0; i< nModel; i++ ) {
+    // Another plot 
+    //TFile* hfile1 = TFile::Open( fileName+names[nModel-2]+".root" );
+    //cout<<  fileName+names[nModel-2]+".root" << endl ;
 
-        eff_hlt[i]= new TGraphAsymmErrors();
+    TH1D*  h_reco   = (TH1D *) hfile[nModel-1]->Get( "reco_ctbgT" )  ;
+    TH1D*  h_dt1    = (TH1D *) hfile[nModel-1]->Get( "lateR_ctbgT1" )  ;
+    TH1D*  h_dt2    = (TH1D *) hfile[nModel-1]->Get( "lateR_ctbgT2" )  ;
 
-        //eff_ctbgT[i]->BayesDivide( ActbgT[i], hctbgT[i] );
-        eff_hlt[i]->BayesDivide( HLT_ctbgT[i], Obs_ctbgT[i] );    // including other event selection like MET ...
-        eff_hlt[i]->SetMarkerColor( color[i] );
-        eff_hlt[i]->SetLineColor( color[i] );
-        leg1->AddEntry( eff_hlt[i], names[i] ,  "L");
-
-        if ( i ==0 ) {
-           c0->cd();
-           c0->SetLogy(0);
-
-           eff_hlt[i]->SetTitle(" Efficiency") ;
-           eff_hlt[i]->SetMaximum( 1.0 );
-           eff_hlt[i]->SetMinimum( 0.0 );
-           eff_hlt[i]->SetMarkerStyle(22);
-           eff_hlt[i]->SetMarkerSize(1);
-           eff_hlt[i]->SetLineWidth(2);
-           eff_hlt[i]->GetXaxis()->SetTitleOffset(1.34);
-           eff_hlt[i]->GetYaxis()->SetTitleOffset(1.41);
-
-           eff_hlt[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
-           eff_hlt[i]->GetYaxis()->SetTitle(" HLT Efficiency ") ;
-           eff_hlt[i]->Draw("AP");
-        } else {
-           eff_hlt[i]->Draw("SAMEPS");
-        }
-    }
-    leg1->Draw("sames") ;
-    c0->Update();
-    c0->Print( hfolder + plotname_hlt );
-
-    // Plot 2
-    TGraphAsymmErrors* eff_reco[nModel] ;
-    leg1->Clear() ;
-    for ( int i=1; i< nModel; i++ ) {
-        eff_reco[i]= new TGraphAsymmErrors();
-
-        eff_reco[i]->BayesDivide( Reco_ctbgT[i], Obs_ctbgT[i] );
-        eff_reco[i]->SetMarkerColor( color[i] );
-        eff_reco[i]->SetLineColor( color[i] );
-        leg1->AddEntry( eff_reco[i], names[i]  ,  "L");
-
-        if ( i ==1 ) {
-           c0->cd();
-           c0->SetLogy(0);
-
-           eff_reco[i]->SetTitle(" Efficiency") ;
-           eff_reco[i]->SetMaximum( 1.0 );
-           eff_reco[i]->SetMinimum( 0.0 );
-           eff_reco[i]->SetMarkerStyle(22);
-           eff_reco[i]->SetMarkerSize(1);
-           eff_reco[i]->SetLineWidth(2);
-           eff_reco[i]->GetXaxis()->SetTitleOffset(1.34);
-           eff_reco[i]->GetYaxis()->SetTitleOffset(1.41);
-
-           eff_reco[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
-           eff_reco[i]->GetYaxis()->SetTitle(" Reco Efficiency ") ;
-           eff_reco[i]->Draw("AP");
-        } else {
-           eff_reco[i]->Draw("SAMEPS");
-        }
-
-    }
-    leg1->Draw("sames") ;
-    c0->Update();
-    c0->Print( hfolder + plotname_reco );
-   
-
-    // Plot 3
-    TGraphAsymmErrors* eff_sel[nModel] ;
+    TGraphAsymmErrors* eff_dt1 = new TGraphAsymmErrors(); ;
+    TGraphAsymmErrors* eff_dt2 = new TGraphAsymmErrors(); ;
     leg1->Clear() ;
 
-    for ( int i=1; i< nModel; i++ ) {
+    //h_reco->Rebin( rbin ) ;
+    h_dt1->Rebin( rbin ) ;
+    h_dt2->Rebin( rbin ) ;
 
-        eff_sel[i]= new TGraphAsymmErrors();
-        eff_sel[i]->BayesDivide( Sel_ctbgT[i], Obs_ctbgT[i] );
-        eff_sel[i]->SetMarkerColor( color[i] );
-        eff_sel[i]->SetLineColor( color[i] );
-        leg1->AddEntry( eff_sel[i], names[i]  ,  "L");
+    eff_dt1->Divide( h_dt1, h_reco );    
+    eff_dt2->Divide( h_dt2, h_reco );    
 
-        if ( i ==1 ) {
-           c0->cd();
-           c0->SetLogy(0);
+    eff_dt1->SetMarkerColor( 2 );
+    eff_dt1->SetLineColor( 2 );
+    eff_dt1->SetMarkerSize(1);
+    eff_dt1->SetLineWidth(2);
+    eff_dt2->SetMarkerColor( 4 );
+    eff_dt2->SetLineColor( 4 );
+    eff_dt2->SetMarkerSize(1);
+    eff_dt2->SetLineWidth(2);
+    //eff_dt2->SetMarkerStyle(22);
 
-           eff_sel[i]->SetTitle(" Efficiency") ;
-           eff_sel[i]->SetMaximum( 0.5 );
-           eff_sel[i]->SetMinimum( 0.0 );
-           eff_sel[i]->SetMarkerStyle(22);
-           eff_sel[i]->SetMarkerSize(1);
-           eff_sel[i]->SetLineWidth(2);
-           eff_sel[i]->GetXaxis()->SetTitleOffset(1.34);
-           eff_sel[i]->GetYaxis()->SetTitleOffset(1.41);
+    c0->cd();
+    c0->SetLogy(0);
 
-           eff_sel[i]->GetXaxis()->SetTitle(" Neutralino Decay Length (mm) " ) ;
-           eff_sel[i]->GetYaxis()->SetTitle(" Selection Efficiency ") ;
-           eff_sel[i]->Draw("AP");
-        } else {
-           eff_sel[i]->Draw("SAMEPS");
-        }
+    eff_dt1->SetMaximum( 1.0 );
+    eff_dt1->SetMinimum( 0.0 );
 
-        
-    }
-    leg1->Draw("sames") ;
+    eff_dt1->GetXaxis()->SetTitleOffset(0.9);
+    eff_dt1->GetYaxis()->SetTitleOffset(1.25);
+    eff_dt1->GetXaxis()->SetTitleSize(0.06);
+    eff_dt1->GetYaxis()->SetTitleSize(0.06);
+
+    eff_dt1->GetXaxis()->SetTitle("Transverse Decay Length (mm)") ;
+    eff_dt1->GetYaxis()->SetTitle("Efficiency / 100 mm") ;
+    eff_dt1->GetXaxis()->SetRangeUser(0, xmax ) ;
+    eff_dt1->Draw("AP");
+
+    eff_dt2->Draw("SAMEPS");
     c0->Update();
-    c0->Print( hfolder + plotname_sel );
-    */
 
+    TLegend* leg2  = new TLegend(.55, .65, .8, .88 );
+    TString legTitle = " #tau = " + tnames[nModel-2] + " ns " ;
+    leg2->SetTextSize(0.030) ;
+    leg2->SetHeader( legTitle );
+    leg2->AddEntry( eff_dt1, "#Delta t2 < 0.5 ns" ,  "L");
+    leg2->AddEntry( eff_dt2, "#Delta t2 > 0.5 ns" ,  "L");
+    leg2->Draw("sames") ;
+    c0->Update();
+
+    CMS_lumi( c0, 2, 11 ) ;
+    c0->Update();
+
+    c0->Print( hfolder + plotname1 );
     delete c0 ;
 }
 

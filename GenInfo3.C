@@ -12,7 +12,7 @@
 void GenInfo3() {
 
     TString hfolder  = "TCuts_GMSB_L180/" ;
-    TString fileName = "TCuts_GMSB_L180/GMSB180_2J_" ;
+    TString fileName = "TCuts_GMSB_L180/GMSB2J_180_" ;
 
     TString plotname0 = "Eff_xbeta.png" ;
     TString plotname1 = "Eff_time.png" ;
@@ -35,23 +35,15 @@ void GenInfo3() {
     string hName9 = "sel_xPt_ctbgT" ;
     string hName10 = "m_nPhot" ;
 
-    
     /* 
-    double nGen[5]   = { 50112,  50112,  50112,   50112, 50112  } ;
-    TString names[5] = { "250",  "500", "2000",  "4000", "6000" } ;
-    int color[5]     = {     1,      2,      4,       6,     8  } ;
-    const int nModel = 5 ;
-    
-    double nGen[6]   = { 50112,  50112,  50112,  50112,  50112, 50112  } ;
-    TString names[6] = { "250", "1000", "2000", "3000", "4000", "6000" } ;
-    int color[6]     = {     1,      2,      4,      5,      6,     8  } ;
-    const int nModel = 6;
     */
 
-    double nGen[7]   = { 50112, 50112, 50112,  50112,  50112,  46944,  50112 } ;
-    TString names[7] = { "250", "500","1000", "2000", "3000", "4000", "6000" } ;
-    int color[7]     = {     1,     2,     4,      5,      6,      7,      8 } ;
-    const int nModel = 7;
+    // Lambda 180
+    double nGen[8]   = { 50000, 50000, 50000, 50000,  50000,  50000, 50000,   50000  } ;
+    TString names[8] = { "185", "365", "730","1100", "2195", "3950", "5980", "10450" } ;
+    int color[8]     = {     1,     2,     3,     4,      5,      6,      7,     8   } ;
+    const int nModel = 8;
+
 
     TFile* hfile[ nModel ] ;
 
@@ -277,10 +269,11 @@ void GenInfo3() {
     reco_xPt_ct[0]->RebinY(2);
     TH2D* sel_All = (TH2D*) sel_xPt_ct[0]->Clone("sel_All") ;
     TH2D* rec_All = (TH2D*) reco_xPt_ct[0]->Clone("rec_All") ;
-    for ( int i=1; i< nModel; i++ ) {
+    for ( int i=0; i< nModel; i++ ) {
 
         sel_xPt_ct[i]->RebinY(2);
         reco_xPt_ct[i]->RebinY(2);
+        if ( i < 2 ) continue ; // do not plot short ctau cases
 
         sel_All->Add( sel_xPt_ct[i] );
         rec_All->Add( reco_xPt_ct[i] );
@@ -288,7 +281,7 @@ void GenInfo3() {
         TH2D* hEff = (TH2D*) sel_xPt_ct[i]->Clone("hEff") ;
         hEff->Divide( reco_xPt_ct[i] ) ;
 
-        c1->cd(i);
+        c1->cd(i-1);
  
         hEff->SetMaximum(0.5) ;
         gStyle->SetNumberContours( 10 );
@@ -353,6 +346,7 @@ void GenInfo3() {
 
                 double ib = reco_xPt_ct[m]->GetBinContent(i,j) ;
                 int k = ((j-1)*15) + (i-1) ;
+                if ( k > 299 ) printf(" (%d,%d,%d)\n", i, j, k ) ;
                 sumErr_u += ( (ib*aErr_u[k]*ib*aErr_u[k]) + (ib*Eff_a[k]*Eff_a[k]) ) ; 
                 sumErr_d += ( (ib*aErr_d[k]*ib*aErr_d[k]) + (ib*Eff_a[k]*Eff_a[k]) ) ; 
             }
@@ -407,7 +401,7 @@ void GenInfo3() {
         */
         h_diff->Draw() ;
 	c1->Update();
-        //delete h_diff ;
+        delete h_diff ;
     }
     c1->Print( hfolder + plotname7 + ".png" );
     /*
@@ -506,8 +500,10 @@ double EffError( double N_all, double N_pass, bool isUp ) {
            pL = BinomialErr( xL, par ) ;
            IntEff += (pL*step*(N_all+1) ) ;
            //if ( pL == 0 ) cout<<" ("<< xL[0] <<") <-- L : "<< IntEff <<"  pL = "<< pL <<endl;
+        } else {
+          //printf(" Int_eff = %.4f, pR = %.4f, pL = %.4f , xR=%.4f, xL=%.4f \n", IntEff, pR, pL, xR[0], xL[0] ) ;
+          break ;
         }
-        //cout<<" ------ "<<endl; 
         skipR = ( pL > pR ) ? true : false ;
         skipL = ( pL < pR ) ? true : false ;
         if ( pL == pR ) {
